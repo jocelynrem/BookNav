@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const bookRouter = require('./routes/books');
 
 dotenv.config();
 const app = express();
@@ -15,8 +16,6 @@ mongoose.connect(mongoUri)
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/test', (req, res) => {
-    res.send('API is working!');
-});
+app.use('/api/books', bookRouter);
 
 module.exports = app;
