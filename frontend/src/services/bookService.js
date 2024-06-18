@@ -1,4 +1,4 @@
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api/books';
+const apiUrl = process.env.REACT_APP_API_URL || 'https://booknav-backend.herokuapp.com/api/books';
 
 export const getBooks = async () => {
     const response = await fetch(apiUrl);

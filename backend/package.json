@@ -1,25 +1,24 @@
 {
-  "name": "frontend",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "Frontend for BookNav application",
-  "main": "src/index.js",
+  "description": "Backend for BookNav application",
+  "main": "app.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "node app.js"
   },
   "keywords": [
-    "frontend",
+    "backend",
     "booknav",
-    "react"
+    "express",
+    "mongoose"
   ],
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.4.0"
   },
   "engines": {
     "node": "20.x"

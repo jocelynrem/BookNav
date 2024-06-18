@@ -13,10 +13,16 @@ mongoose.connect(mongoUri)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-const allowedOrigins = ['http://localhost:3000', 'https://booknav-go5t4t55a-jocelyns-projects-2c58987a.vercel.app'];
+const allowedOrigins = ['http://localhost:3000', 'https://booknav-sepia.vercel.app'];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     optionsSuccessStatus: 204
