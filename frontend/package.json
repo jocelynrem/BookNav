@@ -22,7 +22,7 @@
     "react-scripts": "4.0.3"
   },
   "engines": {
-    "node": "16.x"
+    "node": "20.x"
   },
   "browserslist": {
     "production": [
