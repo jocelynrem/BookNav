@@ -9,14 +9,11 @@ const app = express();
 
 const mongoUri = process.env.MONGODB_URI;
 
-mongoose.connect(mongoUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(mongoUri)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-const allowedOrigins = ['http://localhost:3000', 'https://booknav-sepia.vercel.app/'];
+const allowedOrigins = ['http://localhost:3000', 'https://booknav-sepia.vercel.app'];
 
 app.use(cors({
     origin: allowedOrigins,
