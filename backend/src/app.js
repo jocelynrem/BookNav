@@ -13,7 +13,11 @@ mongoose.connect(mongoUri)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
-app.use(cors());
+const allowedOrigins = ['http://localhost:3000', 'https://booknav-go5t4t55a-jocelyns-projects-2c58987a.vercel.app/'];
+app.use(cors({
+    origin: allowedOrigins,
+}));
+
 app.use(express.json());
 
 app.use('/api/books', bookRouter);
