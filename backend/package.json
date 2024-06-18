@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "mongoose": "^5.11.15",
+    "mongoose": "^5.10.7",
     "dotenv": "^8.2.0",
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=14.x"
   }
 }
