@@ -23,10 +23,19 @@
     "web-vitals": "^4.1.1"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.18.6"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-private-methods": "^7.18.6",
+    "@babel/plugin-transform-numeric-separator": "^7.18.6",
+    "@babel/plugin-transform-class-properties": "^7.18.6",
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.18.6",
+    "@babel/plugin-transform-optional-chaining": "^7.21.0",
+    "css-loader": "^6.5.1",
+    "source-map-loader": "^3.0.0",
+    "webpack-dev-server": "^4.5.0",
+    "html-webpack-plugin": "^5.5.0"
   },
   "engines": {
-    "node": "20.x"
+    "node": ">=20.x"
   },
   "browserslist": {
     "production": [
