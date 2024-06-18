@@ -4,36 +4,58 @@ import { getBooks, createBook, updateBook, deleteBook } from '../services/bookSe
 const BookList = () => {
     const [books, setBooks] = useState([]);
     const [newBook, setNewBook] = useState({ title: '', author: '' });
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchBooks();
     }, []);
 
     const fetchBooks = async () => {
-        const data = await getBooks();
-        setBooks(data);
+        try {
+            const data = await getBooks();
+            setBooks(data);
+        } catch (err) {
+            setError('Failed to fetch books');
+            console.error(err);
+        }
     };
 
     const handleCreateBook = async () => {
-        await createBook(newBook);
-        setNewBook({ title: '', author: '' });
-        fetchBooks();
+        try {
+            await createBook(newBook);
+            setNewBook({ title: '', author: '' });
+            fetchBooks();
+        } catch (err) {
+            setError('Failed to create book');
+            console.error(err);
+        }
     };
 
     const handleUpdateBook = async (id) => {
-        const updatedBook = { ...books.find(book => book._id === id), title: 'Updated Title' }; // Example update
-        await updateBook(id, updatedBook);
-        fetchBooks();
+        try {
+            const updatedBook = { ...books.find(book => book._id === id), title: 'Updated Title' }; // Example update
+            await updateBook(id, updatedBook);
+            fetchBooks();
+        } catch (err) {
+            setError('Failed to update book');
+            console.error(err);
+        }
     };
 
     const handleDeleteBook = async (id) => {
-        await deleteBook(id);
-        fetchBooks();
+        try {
+            await deleteBook(id);
+            fetchBooks();
+        } catch (err) {
+            setError('Failed to delete book');
+            console.error(err);
+        }
     };
 
     return (
         <div>
             <h1>Book List</h1>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             <input
                 type="text"
                 placeholder="Title"
