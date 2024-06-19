@@ -134,7 +134,7 @@ const BookList = () => {
                                         className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                                         onClick={() => handleSortChange('inLibrary')}
                                     >
-                                        Copies Available
+                                        In Library
                                     </th>
                                     {hasCheckedOutBooks && (
                                         <th

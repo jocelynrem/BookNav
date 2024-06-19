@@ -12,7 +12,7 @@ const Header = () => {
                 </div>
                 <nav>
                     <Link to="/" className="mr-4 hover:underline">Book List</Link>
-                    <Link to="/add-book" className="hover:underline">Add Book</Link>
+                    <Link to="/add" className="hover:underline">Add Book</Link>
                 </nav>
             </div>
         </header>
