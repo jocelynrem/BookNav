@@ -5,7 +5,7 @@ import BookList from './components/BookList';
 import AddBook from './components/AddBook';
 import AddBookManual from './components/AddBookManual';
 import AddBookISBN from './components/AddBookISBN';
-import AddBookByTitle from './components/AddBookByTitle';
+import AddBySearch from './components/AddBySearch';
 
 const App = () => {
   return (
@@ -17,7 +17,7 @@ const App = () => {
           <Route path="/add" element={<AddBook />} />
           <Route path="/add-manual" element={<AddBookManual />} />
           <Route path="/add-isbn" element={<AddBookISBN />} />
-          <Route path="/add-title" element={<AddBookByTitle />} />
+          <Route path="/add-search" element={<AddBySearch />} />
         </Routes>
       </div>
     </Router>

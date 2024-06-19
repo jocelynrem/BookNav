@@ -12,9 +12,9 @@ const actions = [
         iconBackground: 'bg-purple-50',
     },
     {
-        title: 'Search by Title',
+        title: 'Add by searching our Library',
         description: 'Search by title to add a book.',
-        href: '/add-title',
+        href: '/add-search',
         icon: MagnifyingGlassIcon,
         iconForeground: 'text-sky-700',
         iconBackground: 'bg-sky-50',

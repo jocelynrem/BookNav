@@ -45,3 +45,42 @@ export const deleteBook = async (id) => {
     }
     return await response.json();
 };
+
+export const fetchBookByISBN = async (isbn) => {
+    const response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch book details');
+    }
+    const data = await response.json();
+    return data[`ISBN:${isbn}`];
+};
+
+export const fetchBooksByTitle = async (title) => {
+    const response = await fetch(`https://openlibrary.org/search.json?title=${title}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch books');
+    }
+    const data = await response.json();
+    return data.docs.map(book => ({
+        id: book.key,
+        title: book.title,
+        author: book.author_name ? book.author_name.join(', ') : 'Unknown',
+        coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null
+    }));
+};
+
+export const fetchBooksByAuthor = async (author) => {
+    const response = await fetch(`https://openlibrary.org/search.json?author=${author}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch books');
+    }
+    const data = await response.json();
+    return data.docs.map(book => ({
+        id: book.key,
+        title: book.title,
+        author: book.author_name ? book.author_name.join(', ') : 'Unknown',
+        coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
+    }));
+};
+
+
