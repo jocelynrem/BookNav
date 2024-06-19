@@ -29,4 +29,9 @@ app.use(cors({
 app.use(express.json());
 app.use('/api/books', bookRouter);
 
+// Handle the root path
+app.get('/', (req, res) => {
+    res.send('Welcome to the BookNav API!');
+});
+
 module.exports = app;
