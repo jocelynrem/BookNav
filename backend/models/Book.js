@@ -1,4 +1,14 @@
+// backend/models/Book.js
+
 const mongoose = require('mongoose');
+
+const copySchema = new mongoose.Schema({
+    status: {
+        type: String,
+        enum: ['in library', 'checked out'],
+        default: 'in library',
+    }
+});
 
 const bookSchema = new mongoose.Schema({
     title: {
@@ -17,6 +27,10 @@ const bookSchema = new mongoose.Schema({
     },
     genre: {
         type: String,
+    },
+    copies: {
+        type: [copySchema],
+        default: [{ status: 'in library' }],
     },
 });
 

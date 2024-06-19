@@ -1,13 +1,36 @@
+// backend/src/routes/books.js
+
 const express = require('express');
 const router = express.Router();
-const Book = require('../../models/Book');
+const Book = require('../models/Book');
 
-// Create a new book
+// Create a new book or add copies if the book already exists
 router.post('/', async (req, res) => {
     try {
-        const book = new Book(req.body);
-        await book.save();
-        res.status(201).send(book);
+        const { title, author, publishedDate, pages, genre } = req.body;
+        let book = await Book.findOne({ title, author });
+
+        if (book) {
+            // If the book exists, add a new copy
+            book.copies.push({ status: 'in library' });
+            await book.save();
+            res.status(200).send({
+                message: 'Book already exists. Added another copy.',
+                book
+            });
+        } else {
+            // If the book doesn't exist, create a new book
+            book = new Book({
+                title,
+                author,
+                publishedDate,
+                pages,
+                genre,
+                copies: [{ status: 'in library' }],
+            });
+            await book.save();
+            res.status(201).send(book);
+        }
     } catch (error) {
         res.status(400).send(error);
     }
