@@ -9,6 +9,9 @@ export const getBooks = async () => {
 };
 
 export const createBook = async (book) => {
+    console.log('API URL:', apiUrl);
+    console.log('Book data:', book);
+
     const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -17,6 +20,8 @@ export const createBook = async (book) => {
         body: JSON.stringify(book),
     });
     if (!response.ok) {
+        const errorText = await response.text(); // Get detailed error message from response
+        console.error('Error response:', errorText);
         throw new Error('Network response was not ok');
     }
     return await response.json();
@@ -82,5 +87,3 @@ export const fetchBooksByAuthor = async (author) => {
         coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
     }));
 };
-
-

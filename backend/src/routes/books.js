@@ -5,21 +5,41 @@ const Book = require('../models/Book');
 // Create a new book
 router.post('/', async (req, res) => {
     try {
-        let book = await Book.findOne({ isbn: req.body.isbn });
+        console.log('Request body:', req.body); // Log the request body for debugging
+
+        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, coverImage, isbn } = req.body;
+
+        if (!title || !authorFirstName || !authorLastName) {
+            return res.status(400).send('Title, Author First Name, and Author Last Name are required');
+        }
+
+        let book = await Book.findOne({ isbn });
 
         if (book) {
             // If book already exists, update the copies
             book.copies.push({ status: 'in library' });
         } else {
-            book = new Book(req.body);
+            book = new Book({
+                title,
+                authorFirstName,
+                authorLastName,
+                publishedDate,
+                pages,
+                genre,
+                coverImage,
+                isbn
+            });
         }
 
         await book.save();
+        console.log('Saved book:', book); // Log the saved book for debugging
         res.status(201).send(book);
     } catch (error) {
-        res.status(400).send(error);
+        console.error('Error creating book:', error); // Log detailed error
+        res.status(400).send(error.message);
     }
 });
+
 
 // Get all books
 router.get('/', async (req, res) => {

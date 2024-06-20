@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getBooks, updateBook, deleteBook } from '../services/bookService';
+import Swal from 'sweetalert2';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
+import { TrashIcon } from '@heroicons/react/20/solid';
+
 
 const statuses = {
     'in library': 'text-green-700 bg-green-50 ring-green-600/20',
@@ -49,15 +52,30 @@ const BookList = () => {
         }
     };
 
-    const handleDeleteBook = async (id) => {
+    const handleDeleteBook = async (id, title) => {
         try {
-            await deleteBook(id);
-            fetchBooks();
+            const result = await Swal.fire({
+                title: `${title}`,
+                text: `Delete this book?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+            });
+
+            if (result.isConfirmed) {
+                await deleteBook(id);
+                Swal.fire('Deleted!', `"${title}" has been deleted.`, 'success');
+                fetchBooks();
+            }
         } catch (err) {
             setError('Failed to delete book');
             console.error(err);
+            Swal.fire('Error!', 'Failed to delete the book.', 'error');
         }
     };
+
 
     const handleEditClick = (book) => {
         setEditingBook(book);
@@ -82,7 +100,7 @@ const BookList = () => {
     const sortedBooks = books
         .filter(book =>
             book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            book.author.toLowerCase().includes(searchQuery.toLowerCase())
+            (`${book.authorFirstName} ${book.authorLastName}`).toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
             if (a[sortField] < b[sortField]) return sortOrder === 'asc' ? -1 : 1;
@@ -148,11 +166,15 @@ const BookList = () => {
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                         <span className="sr-only">Edit</span>
                                     </th>
+                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                                        <span className="sr-only">Delete</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
                                 {sortedBooks.map((book) => {
                                     const { inLibrary, checkedOut } = getCopyStatus(book.copies);
+                                    const authorName = `${book.authorFirstName} ${book.authorLastName}`;
                                     return (
                                         <tr key={book._id}>
                                             <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
@@ -167,7 +189,7 @@ const BookList = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{book.author}</td>
+                                            <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{authorName}</td>
                                             <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{inLibrary}</td>
                                             {checkedOut > 0 && (
                                                 <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{checkedOut}</td>
@@ -180,6 +202,15 @@ const BookList = () => {
                                                 >
                                                     Edit<span className="sr-only">, {book.title}</span>
                                                 </a>
+                                            </td>
+                                            <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                <button
+                                                    onClick={() => handleDeleteBook(book._id, book.title)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                >
+                                                    <TrashIcon className="h-5 w-5" />
+                                                    <span className="sr-only">, {book.title}</span>
+                                                </button>
                                             </td>
                                         </tr>
                                     );
@@ -202,9 +233,16 @@ const BookList = () => {
                         />
                         <input
                             type="text"
-                            placeholder="Author"
-                            value={editingBook.author}
-                            onChange={(e) => setEditingBook({ ...editingBook, author: e.target.value })}
+                            placeholder="Author First Name"
+                            value={editingBook.authorFirstName}
+                            onChange={(e) => setEditingBook({ ...editingBook, authorFirstName: e.target.value })}
+                            className="border p-2 mb-2 w-full"
+                        />
+                        <input
+                            type="text"
+                            placeholder="Author Last Name"
+                            value={editingBook.authorLastName}
+                            onChange={(e) => setEditingBook({ ...editingBook, authorLastName: e.target.value })}
                             className="border p-2 mb-2 w-full"
                         />
                         <button

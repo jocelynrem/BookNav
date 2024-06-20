@@ -1,5 +1,12 @@
-const mongoose = require('mongoose');
+// scripts/inspectBooks.js
 
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+
+// Load environment variables from .env file
+dotenv.config();
+
+// Define the book schema (ensure this matches your actual schema)
 const copySchema = new mongoose.Schema({
     status: {
         type: String,
@@ -44,4 +51,20 @@ const bookSchema = new mongoose.Schema({
 
 const Book = mongoose.model('Book', bookSchema);
 
-module.exports = Book;
+// Connect to MongoDB using the connection string from the environment variable
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log('Connected to MongoDB');
+
+        // Query the books collection
+        return Book.find();
+    })
+    .then(books => {
+        console.log('Books:', books);
+    })
+    .catch(err => {
+        console.error('Error:', err);
+    })
+    .finally(() => {
+        mongoose.disconnect();
+    });

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, createBook } from '../services/bookService';
+import Swal from 'sweetalert2';
+import { ClipLoader } from 'react-spinners';
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('title');
@@ -7,6 +9,7 @@ const AddBySearch = () => {
     const [books, setBooks] = useState([]);
     const [error, setError] = useState('');
     const [limit, setLimit] = useState(10);
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setQuery(e.target.value);
@@ -17,16 +20,18 @@ const AddBySearch = () => {
     };
 
     const handleSearch = async () => {
+        setLoading(true);
         try {
-            const data =
-                searchType === 'title'
-                    ? await fetchBooksByTitle(query)
-                    : await fetchBooksByAuthor(query);
+            const data = searchType === 'title'
+                ? await fetchBooksByTitle(query)
+                : await fetchBooksByAuthor(query);
             setBooks(data);
             setError('');
         } catch (err) {
             setError('Failed to fetch books');
             console.error(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -34,14 +39,44 @@ const AddBySearch = () => {
         setLimit((prevLimit) => prevLimit + 10);
     };
 
-    const handleAddBook = async (book) => {
+    const addBookToLibrary = async (book) => {
+        const [authorFirstName, authorLastName] = book.author.split(' ', 2);
+        const bookData = {
+            title: book.title,
+            authorFirstName: authorFirstName || 'Unknown',
+            authorLastName: authorLastName || 'Unknown',
+            publishedDate: book.publishedDate || '',
+            pages: book.pages || 0,
+            genre: book.genre || 'Unknown',
+            coverImage: book.coverImage || '',
+            isbn: book.isbn || 'N/A' // Include ISBN if needed
+        };
+
+        console.log('Book data being sent:', bookData); // Log data for debugging
+
         try {
-            await createBook(book);
-            alert(`Book added: ${book.title}`);
+            await createBook(bookData);
+            showToast(`Book "${book.title}" added to the library!`);
         } catch (err) {
-            setError('Failed to add book');
-            console.error(err);
+            console.error('Failed to add book:', err);
+            showToast('Failed to add book.', 'error');
         }
+    };
+
+
+
+    const showToast = (title, icon = 'success') => {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: icon,
+            title: title,
+            showConfirmButton: false,
+            timer: 3000,
+            customClass: {
+                popup: 'bg-white shadow-lg rounded-md text-black',
+            },
+        });
     };
 
     return (
@@ -74,7 +109,12 @@ const AddBySearch = () => {
                 </button>
             </div>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-            {books.length > 0 && (
+            {loading && (
+                <div className="mt-4 text-center">
+                    <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
+                </div>
+            )}
+            {books.length > 0 && !loading && (
                 <div className="mt-8 flow-root">
                     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -94,7 +134,7 @@ const AddBySearch = () => {
                                                         )}
                                                         <div className="ml-4 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl">
                                                             <div className="font-medium text-gray-900 truncate">{book.title}</div>
-                                                            <div className="mt-1 text-gray-500">{book.author}</div>
+                                                            <div className="mt-1 text-gray-500 truncate">{book.author}</div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -102,7 +142,7 @@ const AddBySearch = () => {
                                                     <button
                                                         type="button"
                                                         className="text-indigo-600 hover:text-indigo-900"
-                                                        onClick={() => handleAddBook(book)}
+                                                        onClick={() => addBookToLibrary(book)}
                                                     >
                                                         Add<span className="sr-only">, {book.title}</span>
                                                     </button>
