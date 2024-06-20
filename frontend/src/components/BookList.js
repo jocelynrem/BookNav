@@ -1,18 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getBooks, updateBook, deleteBook } from '../services/bookService';
 import Swal from 'sweetalert2';
-import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { TrashIcon } from '@heroicons/react/20/solid';
-
-
-const statuses = {
-    'in library': 'text-green-700 bg-green-50 ring-green-600/20',
-    'checked out': 'text-gray-600 bg-gray-50 ring-gray-500/10',
-};
-
-function classNames(...classes) {
-    return classes.filter(Boolean).join(' ');
-}
+import { TrashIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 
 const BookList = () => {
     const [books, setBooks] = useState([]);
@@ -76,7 +65,6 @@ const BookList = () => {
         }
     };
 
-
     const handleEditClick = (book) => {
         setEditingBook(book);
     };
@@ -100,15 +88,22 @@ const BookList = () => {
     const sortedBooks = books
         .filter(book =>
             book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (`${book.authorFirstName} ${book.authorLastName}`).toLowerCase().includes(searchQuery.toLowerCase())
+            (`${book.authorLastName}, ${book.authorFirstName}`).toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
-            if (a[sortField] < b[sortField]) return sortOrder === 'asc' ? -1 : 1;
-            if (a[sortField] > b[sortField]) return sortOrder === 'asc' ? 1 : -1;
+            const aValue = sortField === 'author' ? a.authorLastName : a[sortField];
+            const bValue = sortField === 'author' ? b.authorLastName : b[sortField];
+            if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+            if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
             return 0;
         });
 
     const hasCheckedOutBooks = books.some(book => getCopyStatus(book.copies).checkedOut > 0);
+
+    const getSortIcon = (field) => {
+        if (sortField !== field) return null;
+        return sortOrder === 'asc' ? <ChevronUpIcon className="h-5 w-5 inline" /> : <ChevronDownIcon className="h-5 w-5 inline" />;
+    };
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
@@ -138,21 +133,36 @@ const BookList = () => {
                                         className="cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
                                         onClick={() => handleSortChange('title')}
                                     >
-                                        Title
+                                        <a href="#" className="group inline-flex">
+                                            Title
+                                            <span className={`ml-2 flex-none rounded ${sortField === 'title' ? 'bg-gray-100 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}>
+                                                {sortField === 'title' ? (sortOrder === 'asc' ? <ChevronUpIcon className="h-5 w-5" aria-hidden="true" /> : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />) : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />}
+                                            </span>
+                                        </a>
                                     </th>
                                     <th
                                         scope="col"
                                         className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                                         onClick={() => handleSortChange('author')}
                                     >
-                                        Author
+                                        <a href="#" className="group inline-flex">
+                                            Author
+                                            <span className={`ml-2 flex-none rounded ${sortField === 'author' ? 'bg-gray-100 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}>
+                                                {sortField === 'author' ? (sortOrder === 'asc' ? <ChevronUpIcon className="h-5 w-5" aria-hidden="true" /> : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />) : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />}
+                                            </span>
+                                        </a>
                                     </th>
                                     <th
                                         scope="col"
                                         className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                                         onClick={() => handleSortChange('inLibrary')}
                                     >
-                                        In Library
+                                        <a href="#" className="group inline-flex">
+                                            Copies
+                                            <span className={`ml-2 flex-none rounded ${sortField === 'inLibrary' ? 'bg-gray-100 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}>
+                                                {sortField === 'inLibrary' ? (sortOrder === 'asc' ? <ChevronUpIcon className="h-5 w-5" aria-hidden="true" /> : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />) : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />}
+                                            </span>
+                                        </a>
                                     </th>
                                     {hasCheckedOutBooks && (
                                         <th
@@ -160,7 +170,12 @@ const BookList = () => {
                                             className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                                             onClick={() => handleSortChange('checkedOut')}
                                         >
-                                            Checked Out
+                                            <a href="#" className="group inline-flex">
+                                                Checked Out
+                                                <span className={`ml-2 flex-none rounded ${sortField === 'checkedOut' ? 'bg-gray-100 text-gray-900' : 'invisible text-gray-400 group-hover:visible group-focus:visible'}`}>
+                                                    {sortField === 'checkedOut' ? (sortOrder === 'asc' ? <ChevronUpIcon className="h-5 w-5" aria-hidden="true" /> : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />) : <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />}
+                                                </span>
+                                            </a>
                                         </th>
                                     )}
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
@@ -174,7 +189,7 @@ const BookList = () => {
                             <tbody className="divide-y divide-gray-200 bg-white">
                                 {sortedBooks.map((book) => {
                                     const { inLibrary, checkedOut } = getCopyStatus(book.copies);
-                                    const authorName = `${book.authorFirstName} ${book.authorLastName}`;
+                                    const authorName = `${book.authorLastName}, ${book.authorFirstName}`;
                                     return (
                                         <tr key={book._id}>
                                             <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
