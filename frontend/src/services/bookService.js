@@ -9,8 +9,7 @@ export const getBooks = async () => {
 };
 
 export const createBook = async (book) => {
-    console.log('API URL:', apiUrl);
-    console.log('Book data:', book);
+
 
     // Ensure copies is a number
     const bookData = {
@@ -95,6 +94,10 @@ export const fetchBooksByTitle = async (title) => {
         throw new Error('Failed to fetch books');
     }
     const data = await response.json();
+
+    // Log the entire JSON response
+    console.log(data);
+
     return data.docs.map(book => ({
         id: book.key,
         title: book.title,
