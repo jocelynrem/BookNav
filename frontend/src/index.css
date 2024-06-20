@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.swal2-book-list-link .h-5 {
+  width: 1.25rem;
+  height: 1.25rem;
+}

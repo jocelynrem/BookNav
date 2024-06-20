@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, createBook } from '../services/bookService';
 import Swal from 'sweetalert2';
 import { ClipLoader } from 'react-spinners';
+import SearchBookTable from './SearchBookTable';
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('title');
@@ -39,43 +40,43 @@ const AddBySearch = () => {
         setLimit((prevLimit) => prevLimit + 10);
     };
 
-    const addBookToLibrary = async (book) => {
-        const [authorFirstName, authorLastName] = book.author.split(' ', 2);
+    const addBookToLibrary = async (book, copies) => {
+        const [authorFirstName, authorLastName] = (book.author || '').split(' ', 2);
         const bookData = {
-            title: book.title,
+            title: book.title || 'Unknown Title',
             authorFirstName: authorFirstName || 'Unknown',
             authorLastName: authorLastName || 'Unknown',
             publishedDate: book.publishedDate || '',
             pages: book.pages || 0,
             genre: book.genre || 'Unknown',
             coverImage: book.coverImage || '',
-            isbn: book.isbn || 'N/A' // Include ISBN if needed
+            isbn: book.isbn || 'N/A',
+            copies: copies || 1 // default to 1 copy if not specified
         };
 
-        console.log('Book data being sent:', bookData); // Log data for debugging
-
         try {
+            // Create a new book in the library
             await createBook(bookData);
-            showToast(`Book "${book.title}" added to the library!`);
+            showAddConfirmation(book.title);
         } catch (err) {
             console.error('Failed to add book:', err);
-            showToast('Failed to add book.', 'error');
+            Swal.fire('Error', 'Failed to add book.', 'error');
         }
     };
 
-
-
-    const showToast = (title, icon = 'success') => {
+    const showAddConfirmation = (title) => {
         Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: icon,
-            title: title,
+            title: `${title} added to library!`,
+            position: 'bottom-end',
+            icon: 'success',
             showConfirmButton: false,
-            timer: 3000,
-            customClass: {
-                popup: 'bg-white shadow-lg rounded-md text-black',
-            },
+            timer: 1500,
+            toast: true,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
         });
     };
 
@@ -116,55 +117,18 @@ const AddBySearch = () => {
             )}
             {books.length > 0 && !loading && (
                 <div className="mt-8 flow-root">
-                    <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                                <table className="min-w-full divide-y divide-gray-300">
-                                    <tbody className="divide-y divide-gray-200 bg-white">
-                                        {books.slice(0, limit).map((book) => (
-                                            <tr key={book.id}>
-                                                <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-6">
-                                                    <div className="flex items-center">
-                                                        {book.coverImage ? (
-                                                            <div className="h-11 w-11 flex-shrink-0">
-                                                                <img className="h-11 w-11 rounded-full" src={book.coverImage} alt="" />
-                                                            </div>
-                                                        ) : (
-                                                            <div className="h-11 w-11 flex-shrink-0 bg-gray-300 rounded-full"></div>
-                                                        )}
-                                                        <div className="ml-4 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl">
-                                                            <div className="font-medium text-gray-900 truncate">{book.title}</div>
-                                                            <div className="mt-1 text-gray-500 truncate">{book.author}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                    <button
-                                                        type="button"
-                                                        className="text-indigo-600 hover:text-indigo-900"
-                                                        onClick={() => addBookToLibrary(book)}
-                                                    >
-                                                        Add<span className="sr-only">, {book.title}</span>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {books.length > limit && (
-                                <div className="mt-4 text-center">
-                                    <button
-                                        type="button"
-                                        onClick={loadMore}
-                                        className="text-indigo-600 hover:text-indigo-900"
-                                    >
-                                        Load More
-                                    </button>
-                                </div>
-                            )}
+                    <SearchBookTable books={books.slice(0, limit)} onAddBook={addBookToLibrary} />
+                    {books.length > limit && (
+                        <div className="mt-4 text-center">
+                            <button
+                                type="button"
+                                onClick={loadMore}
+                                className="text-indigo-600 hover:text-indigo-900"
+                            >
+                                Load More
+                            </button>
                         </div>
-                    </div>
+                    )}
                 </div>
             )}
         </div>

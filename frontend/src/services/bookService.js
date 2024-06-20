@@ -12,15 +12,21 @@ export const createBook = async (book) => {
     console.log('API URL:', apiUrl);
     console.log('Book data:', book);
 
+    // Ensure copies is a number
+    const bookData = {
+        ...book,
+        copies: parseInt(book.copies, 10)
+    };
+
     const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(book),
+        body: JSON.stringify(bookData),
     });
     if (!response.ok) {
-        const errorText = await response.text(); // Get detailed error message from response
+        const errorText = await response.text();
         console.error('Error response:', errorText);
         throw new Error('Network response was not ok');
     }
@@ -28,6 +34,11 @@ export const createBook = async (book) => {
 };
 
 export const updateBook = async (id, book) => {
+    // Ensure copies is a number if provided
+    if (book.copies) {
+        book.copies = parseInt(book.copies, 10);
+    }
+
     const response = await fetch(`${apiUrl}/${id}`, {
         method: 'PATCH',
         headers: {
@@ -36,6 +47,24 @@ export const updateBook = async (id, book) => {
         body: JSON.stringify(book),
     });
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error('Network response was not ok');
+    }
+    return await response.json();
+};
+
+export const updateBookCopies = async (id, numberOfCopies) => {
+    const response = await fetch(`${apiUrl}/${id}/updateCopies`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ copies: parseInt(numberOfCopies, 10) }), // Ensure copies is sent as a number
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error('Network response was not ok');
     }
     return await response.json();
@@ -86,4 +115,12 @@ export const fetchBooksByAuthor = async (author) => {
         author: book.author_name ? book.author_name.join(', ') : 'Unknown',
         coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
     }));
+};
+
+export const fetchLibraryBooks = async () => {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return await response.json();
 };

@@ -28,6 +28,13 @@ const BookEditModal = ({ editingBook, setEditingBook, handleUpdateBook }) => {
                     onChange={(e) => setEditingBook({ ...editingBook, authorLastName: e.target.value })}
                     className="border p-2 mb-2 w-full"
                 />
+                <input
+                    type="number"
+                    placeholder="Number of Copies"
+                    value={editingBook.copies}
+                    onChange={(e) => setEditingBook({ ...editingBook, copies: parseInt(e.target.value, 10) })}
+                    className="border p-2 mb-2 w-full"
+                />
                 <button
                     onClick={() => handleUpdateBook(editingBook._id)}
                     className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mb-2"

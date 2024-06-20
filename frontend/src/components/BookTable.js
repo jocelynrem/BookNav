@@ -2,9 +2,7 @@ import React from 'react';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import BookSortHeader from './BookSortHeader';
 
-const BookTable = ({ books, sortedBooks, handleEditClick, handleDeleteBook, getCopyStatus, sortField, sortOrder, handleSortChange }) => {
-    const hasCheckedOutBooks = books.some(book => getCopyStatus(book.copies).checkedOut > 0);
-
+const BookTable = ({ books, sortedBooks, handleEditClick, handleDeleteBook, sortField, sortOrder, handleSortChange }) => {
     const getSortIcon = (field) => {
         if (sortField !== field) return null;
         return sortOrder === 'asc' ? 'asc' : 'desc';
@@ -19,10 +17,7 @@ const BookTable = ({ books, sortedBooks, handleEditClick, handleDeleteBook, getC
                             <tr>
                                 <BookSortHeader field="title" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Title" />
                                 <BookSortHeader field="author" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Author" />
-                                <BookSortHeader field="inLibrary" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Copies" />
-                                {hasCheckedOutBooks && (
-                                    <BookSortHeader field="checkedOut" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Checked Out" />
-                                )}
+                                <BookSortHeader field="copies" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Copies" />
                                 <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                     <span className="sr-only">Edit</span>
                                 </th>
@@ -33,7 +28,6 @@ const BookTable = ({ books, sortedBooks, handleEditClick, handleDeleteBook, getC
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {sortedBooks.map((book) => {
-                                const { inLibrary, checkedOut } = getCopyStatus(book.copies);
                                 const authorName = `${book.authorLastName}, ${book.authorFirstName}`;
                                 return (
                                     <tr key={book._id}>
@@ -45,15 +39,12 @@ const BookTable = ({ books, sortedBooks, handleEditClick, handleDeleteBook, getC
                                                     </div>
                                                 )}
                                                 <div className="ml-4">
-                                                    <div className="font-medium text-gray-900">{book.title}</div>
+                                                    <div className="font-medium text-gray-900">{String(book.title)}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{authorName}</td>
-                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{inLibrary}</td>
-                                        {checkedOut > 0 && (
-                                            <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{checkedOut}</td>
-                                        )}
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{String(authorName)}</td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{book.copies}</td>
                                         <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                             <a
                                                 href="#"

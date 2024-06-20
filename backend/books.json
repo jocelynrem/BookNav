@@ -1,0 +1,2 @@
+{"_id":{"$oid":"6671eda70cffb2a41da5025f"},"title":"Sample Book","author":"Author Name","publishedDate":"2024-01-01","genre":"Fiction","copies":2,"availableCopies":1,"checkedOutCopies":1}
+{"_id":{"$oid":"6671ee170cffb2a41da62e53"},"title":"Test Book","author":"Another Author","publishedDate":"2024-01-02","genre":"Fiction","copies":2,"availableCopies":1,"checkedOutCopies":1}

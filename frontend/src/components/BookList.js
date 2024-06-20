@@ -20,11 +20,7 @@ const BookList = () => {
     const fetchBooks = async () => {
         try {
             const data = await getBooks();
-            const initializedBooks = data.map(book => ({
-                ...book,
-                copies: book.copies || [{ status: 'in library' }],
-            }));
-            setBooks(initializedBooks);
+            setBooks(data);
         } catch (err) {
             setError('Failed to fetch books');
             console.error(err);
@@ -71,12 +67,6 @@ const BookList = () => {
         setEditingBook(book);
     };
 
-    const getCopyStatus = (copies) => {
-        const inLibrary = (copies || []).filter(copy => copy.status === 'in library').length;
-        const checkedOut = (copies || []).filter(copy => copy.status === 'checked out').length;
-        return { inLibrary, checkedOut };
-    };
-
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
     };
@@ -114,7 +104,6 @@ const BookList = () => {
                 sortedBooks={sortedBooks}
                 handleEditClick={handleEditClick}
                 handleDeleteBook={handleDeleteBook}
-                getCopyStatus={getCopyStatus}
                 sortField={sortField}
                 sortOrder={sortOrder}
                 handleSortChange={handleSortChange}
