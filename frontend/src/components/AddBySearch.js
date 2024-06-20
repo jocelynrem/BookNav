@@ -3,6 +3,7 @@ import { fetchBooksByTitle, fetchBooksByAuthor, createBook, fetchLibraryBooks, u
 import Swal from 'sweetalert2';
 import { ClipLoader } from 'react-spinners';
 import SearchBookTable from './SearchBookTable';
+import BookDetailsSlideout from './BookDetailsSlideout';
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('title');
@@ -11,6 +12,8 @@ const AddBySearch = () => {
     const [error, setError] = useState('');
     const [limit, setLimit] = useState(10);
     const [loading, setLoading] = useState(false);
+    const [selectedBook, setSelectedBook] = useState(null);
+    const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
 
     const handleChange = (e) => {
         setQuery(e.target.value);
@@ -108,6 +111,16 @@ const AddBySearch = () => {
         });
     };
 
+    const handleTitleClick = (book) => {
+        setSelectedBook(book);
+        setIsSlideoutOpen(true);
+    };
+
+    const handleSlideoutClose = () => {
+        setIsSlideoutOpen(false);
+        setSelectedBook(null);
+    };
+
     return (
         <div className="px-4 sm:px-6 lg:px-8">
             <h2 className="text-lg font-medium text-gray-900">Search Book</h2>
@@ -145,7 +158,11 @@ const AddBySearch = () => {
             )}
             {books.length > 0 && !loading && (
                 <div className="mt-8 flow-root">
-                    <SearchBookTable books={books.slice(0, limit)} onAddBook={addBookToLibrary} />
+                    <SearchBookTable
+                        books={books.slice(0, limit)}
+                        onAddBook={addBookToLibrary}
+                        onTitleClick={handleTitleClick} // Pass title click handler
+                    />
                     {books.length > limit && (
                         <div className="mt-4 text-center">
                             <button
@@ -158,6 +175,13 @@ const AddBySearch = () => {
                         </div>
                     )}
                 </div>
+            )}
+            {selectedBook && (
+                <BookDetailsSlideout
+                    isOpen={isSlideoutOpen}
+                    onClose={handleSlideoutClose}
+                    book={selectedBook}
+                />
             )}
         </div>
     );

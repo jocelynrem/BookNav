@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchBookRow from './SearchBookRow';
 
-const SearchBookTable = ({ books, onAddBook }) => {
+const SearchBookTable = ({ books, onAddBook, onTitleClick }) => {
     return (
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -9,7 +9,12 @@ const SearchBookTable = ({ books, onAddBook }) => {
                     <table className="min-w-full divide-y divide-gray-300">
                         <tbody className="divide-y divide-gray-200 bg-white">
                             {books.map((book) => (
-                                <SearchBookRow key={book.id} book={book} onAddBook={onAddBook} />
+                                <SearchBookRow
+                                    key={book.id}
+                                    book={book}
+                                    onAddBook={onAddBook}
+                                    onTitleClick={onTitleClick} // Pass the title click handler
+                                />
                             ))}
                         </tbody>
                     </table>

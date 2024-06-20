@@ -13,22 +13,20 @@ const SlideoutDetails = ({ book }) => {
     return (
         <div className="space-y-6 pb-16">
             <div>
-                <div className="aspect-h-7 aspect-w-10 block w-full overflow-hidden rounded-lg">
+                <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
                     <img
                         src={book.coverImage}
                         alt={book.title}
-                        className="object-cover"
+                        className="object-cover w-full"
                     />
                 </div>
-                <div className="mt-4 flex items-start justify-between">
-                    <div>
-                        <h2 className="text-base font-semibold leading-6 text-gray-900">
-                            {book.title}
-                        </h2>
-                        <p className="text-sm font-medium text-gray-500">
-                            {book.authorFirstName} {book.authorLastName}
-                        </p>
-                    </div>
+                <div className="mt-4">
+                    <h2 className="text-base font-semibold leading-6 text-gray-900">
+                        {book.title}
+                    </h2>
+                    <p className="text-sm font-medium text-gray-500">
+                        {book.author}
+                    </p>
                 </div>
             </div>
             <div>
