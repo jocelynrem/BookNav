@@ -94,16 +94,23 @@ export const fetchBooksByTitle = async (title) => {
         throw new Error('Failed to fetch books');
     }
     const data = await response.json();
+    console.log('OpenLibrary API response for title:', data); // Log the entire response for debugging
 
-    // Log the entire JSON response
-    console.log(data);
-
-    return data.docs.map(book => ({
-        id: book.key,
-        title: book.title,
-        author: book.author_name ? book.author_name.join(', ') : 'Unknown',
-        coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null
-    }));
+    return data.docs.map(book => {
+        const authors = book.author_name && book.author_name.length > 0 ? book.author_name.join(', ') : 'Unknown';
+        return {
+            id: book.key,
+            title: book.title,
+            author: authors,
+            publishedDate: book.first_publish_year ? new Date(book.first_publish_year, 0, 1) : null,
+            pages: book.number_of_pages_median || 0,
+            genre: book.subject_facet ? book.subject_facet[0] : 'Unknown',
+            subject: book.subject ? book.subject[0] : 'Unknown',
+            coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
+            isbn: book.isbn ? book.isbn[0] : 'N/A',
+            copies: 1 // Default to 1 copy for initial addition
+        };
+    });
 };
 
 export const fetchBooksByAuthor = async (author) => {
@@ -112,12 +119,23 @@ export const fetchBooksByAuthor = async (author) => {
         throw new Error('Failed to fetch books');
     }
     const data = await response.json();
-    return data.docs.map(book => ({
-        id: book.key,
-        title: book.title,
-        author: book.author_name ? book.author_name.join(', ') : 'Unknown',
-        coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
-    }));
+    console.log('OpenLibrary API response for author:', data); // Log the entire response for debugging
+
+    return data.docs.map(book => {
+        const authors = book.author_name && book.author_name.length > 0 ? book.author_name.join(', ') : 'Unknown';
+        return {
+            id: book.key,
+            title: book.title,
+            author: authors,
+            publishedDate: book.first_publish_year ? new Date(book.first_publish_year, 0, 1) : null,
+            pages: book.number_of_pages_median || 0,
+            genre: book.subject_facet ? book.subject_facet[0] : 'Unknown',
+            subject: book.subject ? book.subject[0] : 'Unknown',
+            coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
+            isbn: book.isbn ? book.isbn[0] : 'N/A',
+            copies: 1 // Default to 1 copy for initial addition
+        };
+    });
 };
 
 export const fetchLibraryBooks = async () => {

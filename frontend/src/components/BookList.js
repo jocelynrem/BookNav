@@ -53,8 +53,19 @@ const BookList = () => {
 
             if (result.isConfirmed) {
                 await deleteBook(id);
-                Swal.fire('Deleted!', `"${title}" has been deleted.`, 'success');
-                fetchBooks();
+                Swal.fire({
+                    title: `${title} deleted`,
+                    position: 'bottom-end',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                }); fetchBooks();
             }
         } catch (err) {
             setError('Failed to delete book');

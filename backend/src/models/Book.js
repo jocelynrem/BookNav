@@ -22,6 +22,9 @@ const bookSchema = new mongoose.Schema({
     genre: {
         type: String,
     },
+    subject: {
+        type: String,
+    },
     coverImage: {
         type: String,
     },
