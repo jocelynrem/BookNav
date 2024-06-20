@@ -94,7 +94,6 @@ export const fetchBooksByTitle = async (title) => {
         throw new Error('Failed to fetch books');
     }
     const data = await response.json();
-    console.log('OpenLibrary API response for title:', data); // Log the entire response for debugging
 
     return data.docs.map(book => {
         const authors = book.author_name && book.author_name.length > 0 ? book.author_name.join(', ') : 'Unknown';
@@ -119,7 +118,6 @@ export const fetchBooksByAuthor = async (author) => {
         throw new Error('Failed to fetch books');
     }
     const data = await response.json();
-    console.log('OpenLibrary API response for author:', data); // Log the entire response for debugging
 
     return data.docs.map(book => {
         const authors = book.author_name && book.author_name.length > 0 ? book.author_name.join(', ') : 'Unknown';
