@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, createBook } from '../services/bookService';
+import { fetchBooksByTitle, fetchBooksByAuthor, createBook, fetchLibraryBooks, updateBookCopies } from '../services/bookService';
 import Swal from 'sweetalert2';
 import { ClipLoader } from 'react-spinners';
 import SearchBookTable from './SearchBookTable';
@@ -51,13 +51,41 @@ const AddBySearch = () => {
             genre: book.genre || 'Unknown',
             coverImage: book.coverImage || '',
             isbn: book.isbn || 'N/A',
-            copies: copies || 1 // default to 1 copy if not specified
+            copies: parseInt(copies, 10) || 1 // Ensure copies is a number
         };
 
         try {
-            // Create a new book in the library
-            await createBook(bookData);
-            showAddConfirmation(book.title);
+            const existingBooks = await fetchLibraryBooks();
+            const existingBook = existingBooks.find(b =>
+                b.title.toLowerCase() === book.title.toLowerCase() &&
+                b.authorFirstName.toLowerCase() === authorFirstName.toLowerCase() &&
+                b.authorLastName.toLowerCase() === authorLastName.toLowerCase()
+            );
+
+            if (existingBook) {
+                const { value: numberOfCopies } = await Swal.fire({
+                    title: `The book "${book.title}" by ${book.author} already exists in the library.`,
+                    text: "How many additional copies would you like to add?",
+                    icon: 'warning',
+                    input: 'number',
+                    inputAttributes: {
+                        min: 1,
+                        step: 1,
+                        value: 1
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Add Copies',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (numberOfCopies && numberOfCopies > 0) {
+                    await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
+                    Swal.fire(`${numberOfCopies} copies of ${book.title} added to the library!`);
+                }
+            } else {
+                await createBook(bookData);
+                showAddConfirmation(book.title);
+            }
         } catch (err) {
             console.error('Failed to add book:', err);
             Swal.fire('Error', 'Failed to add book.', 'error');
