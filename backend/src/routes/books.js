@@ -21,6 +21,7 @@ router.post('/', async (req, res) => {
             publishedDate,
             pages,
             genre,
+            subject,
             coverImage,
             isbn,
             copies: copies || 1,

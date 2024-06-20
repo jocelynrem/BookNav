@@ -65,7 +65,8 @@ const BookList = () => {
                         toast.addEventListener('mouseenter', Swal.stopTimer)
                         toast.addEventListener('mouseleave', Swal.resumeTimer)
                     }
-                }); fetchBooks();
+                });
+                fetchBooks();
             }
         } catch (err) {
             setError('Failed to delete book');
@@ -113,6 +114,7 @@ const BookList = () => {
             <BookTable
                 books={books}
                 sortedBooks={sortedBooks}
+                setBooks={setBooks} // Pass setBooks to BookTable
                 handleEditClick={handleEditClick}
                 handleDeleteBook={handleDeleteBook}
                 sortField={sortField}
