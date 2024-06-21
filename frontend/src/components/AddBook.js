@@ -40,7 +40,7 @@ const AddBook = () => {
                 <div
                     key={action.title}
                     className={classNames(
-                        'col-span-4 col-start-2 group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 shadow rounded-lg',
+                        'col-span-4 col-start-2 group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-teal-500 shadow rounded-lg',
                     )}
                 >
                     <div>

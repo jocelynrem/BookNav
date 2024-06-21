@@ -82,7 +82,7 @@ const AddBySearch = () => {
                             <button
                                 type="button"
                                 onClick={loadMore}
-                                className="text-indigo-600 hover:text-indigo-900"
+                                className="text-teal-700 hover:text-teal-900"
                             >
                                 Load More
                             </button>

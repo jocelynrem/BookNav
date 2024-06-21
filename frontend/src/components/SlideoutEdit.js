@@ -43,7 +43,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="title"
                     value={editingBook.title}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -53,7 +53,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="authorFirstName"
                     value={editingBook.authorFirstName}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -63,7 +63,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="authorLastName"
                     value={editingBook.authorLastName}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -73,7 +73,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="genre"
                     value={editingBook.genre}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -83,7 +83,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="subject"
                     value={editingBook.subject}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -93,7 +93,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="publishedDate"
                     value={formatDate(editingBook.publishedDate)}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -103,7 +103,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="pages"
                     value={editingBook.pages}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <label>
@@ -113,7 +113,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="copies"
                     value={editingBook.copies}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             {/* <label>
@@ -123,7 +123,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="coverImage"
                     value={editingBook.coverImage}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label> */}
             <label>
@@ -133,13 +133,13 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     name="isbn"
                     value={editingBook.isbn}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
             <div className="flex justify-end px-4 py-4 sm:px-6">
                 <button
                     type="button"
-                    className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-teal-800 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-700 focus:ring-offset-2"
                     onClick={handleSave}
                 >
                     Save

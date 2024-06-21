@@ -37,7 +37,7 @@ const BookEditModal = ({ editingBook, setEditingBook, handleUpdateBook }) => {
                 />
                 <button
                     onClick={() => handleUpdateBook(editingBook._id)}
-                    className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 mb-2"
+                    className="block rounded-md bg-teal-800 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 mb-2"
                 >
                     Save
                 </button>

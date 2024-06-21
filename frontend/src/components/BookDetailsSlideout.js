@@ -60,7 +60,7 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing }) => {
                                                 <div className="ml-3 flex h-7 items-center">
                                                     <button
                                                         type="button"
-                                                        className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                        className="relative rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-700"
                                                         onClick={onClose}
                                                     >
                                                         <span className="absolute -inset-2.5" />

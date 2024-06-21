@@ -46,7 +46,7 @@ const SearchBookRow = ({ book, onAddBook, onTitleClick }) => {
                     />
                     <button
                         type="button"
-                        className="text-indigo-600 hover:text-indigo-900"
+                        className="text-teal-700 hover:text-teal-900"
                         onClick={handleAddBook}
                     >
                         Add<span className="sr-only">, {title}</span>

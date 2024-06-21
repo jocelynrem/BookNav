@@ -89,7 +89,7 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
                                                 <a
                                                     href="#"
                                                     onClick={() => handleEditClick(book)}
-                                                    className="text-indigo-600 hover:text-indigo-900"
+                                                    className="text-teal-700 hover:text-teal-900"
                                                 >
                                                     Edit<span className="sr-only">, {book.title}</span>
                                                 </a>
