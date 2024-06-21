@@ -24,7 +24,7 @@ const actions = [
         title: 'Add Manually',
         description: 'IN PROGRESS: check back later for this feature',
         href: '#',
-        icon: BookOpenIcon,  // Changed to solid icon for consistency
+        icon: BookOpenIcon,
         iconClasses: 'text-gray-400 bg-gray-50 hover:text-teal-700 hover:bg-white',
         disabled: true,
     },
@@ -39,7 +39,7 @@ const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
-        <header className="text-gray-800 mb-8">
+        <header className="sticky top-0 z-50 bg-white shadow">
             <nav className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full" aria-label="Global">
                 <div className="flex items-center space-x-6 flex-1 py-4">
                     <Link to="/" className="-m-1.5 p-1.5">
@@ -89,7 +89,6 @@ const Header = () => {
 
                     </div>
                 </div>
-
                 {/* Right-aligned section for log-in */}
                 <div className="hidden md:flex lg:justify-end">
                     <a href="#" className="text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed">
@@ -110,9 +109,9 @@ const Header = () => {
                 </div>
             </nav>
 
-            <Dialog className="lg:hidden" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
-                <div className="fixed inset-0 z-10" />
-                <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            <Dialog className="lg:hidden z-50" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
+                <div className="fixed inset-0 z-40 bg-black opacity-50" />
+                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                     <div className="flex items-center justify-end">
                         <button
                             type="button"
