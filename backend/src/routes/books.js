@@ -7,7 +7,7 @@ router.post('/', async (req, res) => {
     try {
         console.log('Request body:', req.body);
 
-        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, coverImage, isbn, copies } = req.body;
+        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
 
         if (!title || !authorFirstName || !authorLastName) {
             return res.status(400).send('Title, Author First Name, and Author Last Name are required');

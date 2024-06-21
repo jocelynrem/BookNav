@@ -52,6 +52,7 @@ const AddBySearch = () => {
             publishedDate: book.publishedDate || '',
             pages: book.pages || 0,
             genre: book.genre || 'Unknown',
+            subject: book.subject || 'Unknown', // Ensure subject is included
             coverImage: book.coverImage || '',
             isbn: book.isbn || 'N/A',
             copies: parseInt(copies, 10) || 1 // Ensure copies is a number
@@ -120,6 +121,7 @@ const AddBySearch = () => {
         setIsSlideoutOpen(false);
         setSelectedBook(null);
     };
+
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
