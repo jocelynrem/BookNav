@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { addBookToLibrary } from '../services/bookService';
 
-const SlideoutDetails = ({ book }) => {
+const SlideoutDetails = ({ book, bookExists }) => {
+    const [copies, setCopies] = useState(1);
+
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -10,23 +13,53 @@ const SlideoutDetails = ({ book }) => {
         return `${year}-${month}-${day}`;
     };
 
+    const handleAddBook = () => {
+        if (copies > 0 && Number.isInteger(copies)) {
+            addBookToLibrary(book, copies);
+        } else {
+            alert('Please enter a valid number of copies.');
+        }
+    };
+
     return (
         <div className="space-y-6 pb-16">
             <div>
-                <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
-                    <img
-                        src={book.coverImage}
-                        alt={book.title}
-                        className="object-cover w-full"
-                    />
-                </div>
-                <div className="mt-4">
-                    <h2 className="text-base font-semibold leading-6 text-gray-900">
-                        {book.title}
-                    </h2>
-                    <p className="text-sm font-medium text-gray-500">
-                        {book.author}
-                    </p>
+                {book.coverImage && (
+                    <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
+                        <img
+                            src={book.coverImage}
+                            alt={book.title}
+                            className="object-cover w-full"
+                        />
+                    </div>
+                )}
+                <div className="mt-4 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-base font-semibold leading-6 text-gray-900">
+                            {book.title}
+                        </h2>
+                        <p className="text-sm font-medium text-gray-500">
+                            {book.author}
+                        </p>
+                    </div>
+                    {!bookExists && (
+                        <div className="flex items-center">
+                            <input
+                                type="number"
+                                value={copies}
+                                onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
+                                min="1"
+                                className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
+                            />
+                            <button
+                                type="button"
+                                className="text-indigo-600 hover:text-indigo-900"
+                                onClick={handleAddBook}
+                            >
+                                Add<span className="sr-only">, {book.title}</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
             <div>

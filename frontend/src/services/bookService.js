@@ -1,3 +1,5 @@
+import Swal from 'sweetalert2';
+
 const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
 
 export const getBooks = async () => {
@@ -9,9 +11,6 @@ export const getBooks = async () => {
 };
 
 export const createBook = async (book) => {
-
-
-    // Ensure copies is a number
     const bookData = {
         ...book,
         copies: parseInt(book.copies, 10)
@@ -33,7 +32,6 @@ export const createBook = async (book) => {
 };
 
 export const updateBook = async (id, book) => {
-    // Ensure copies is a number if provided
     if (book.copies) {
         book.copies = parseInt(book.copies, 10);
     }
@@ -59,7 +57,7 @@ export const updateBookCopies = async (id, numberOfCopies) => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ copies: parseInt(numberOfCopies, 10) }), // Ensure copies is sent as a number
+        body: JSON.stringify({ copies: parseInt(numberOfCopies, 10) }),
     });
     if (!response.ok) {
         const errorText = await response.text();
@@ -107,7 +105,7 @@ export const fetchBooksByTitle = async (title) => {
             subject: book.subject ? book.subject[0] : 'Unknown',
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
-            copies: 1 // Default to 1 copy for initial addition
+            copies: 1
         };
     });
 };
@@ -131,7 +129,7 @@ export const fetchBooksByAuthor = async (author) => {
             subject: book.subject ? book.subject[0] : 'Unknown',
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
-            copies: 1 // Default to 1 copy for initial addition
+            copies: 1
         };
     });
 };
@@ -142,4 +140,73 @@ export const fetchLibraryBooks = async () => {
         throw new Error('Network response was not ok');
     }
     return await response.json();
+};
+
+export const addBookToLibrary = async (book, copies) => {
+    const [authorFirstName, authorLastName] = (book.author || '').split(' ', 2);
+    const bookData = {
+        title: book.title || 'Unknown Title',
+        authorFirstName: authorFirstName || 'Unknown',
+        authorLastName: authorLastName || 'Unknown',
+        publishedDate: book.publishedDate || '',
+        pages: book.pages || 0,
+        genre: book.genre || 'Unknown',
+        subject: book.subject || 'Unknown',
+        coverImage: book.coverImage || '',
+        isbn: book.isbn || 'N/A',
+        copies: parseInt(copies, 10) || 1
+    };
+
+    try {
+        const existingBooks = await fetchLibraryBooks();
+        const existingBook = existingBooks.find(b =>
+            b.title.toLowerCase() === book.title.toLowerCase() &&
+            b.authorFirstName.toLowerCase() === authorFirstName.toLowerCase() &&
+            b.authorLastName.toLowerCase() === authorLastName.toLowerCase()
+        );
+
+        if (existingBook) {
+            const { value: numberOfCopies } = await Swal.fire({
+                title: `The book "${book.title}" by ${book.author} already exists in the library.`,
+                text: "How many additional copies would you like to add?",
+                icon: 'warning',
+                input: 'number',
+                inputAttributes: {
+                    min: 1,
+                    step: 1,
+                    value: 1
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Add Copies',
+                cancelButtonText: 'Cancel'
+            });
+
+            if (numberOfCopies && numberOfCopies > 0) {
+                await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
+                Swal.fire(`${numberOfCopies} copies of ${book.title} added to the library!`);
+            }
+        } else {
+            await createBook(bookData);
+            showAddConfirmation(book.title);
+        }
+    } catch (err) {
+        console.error('Failed to add book:', err);
+        Swal.fire('Error', 'Failed to add book.', 'error');
+    }
+};
+
+const showAddConfirmation = (title) => {
+    Swal.fire({
+        title: `${title} added to library!`,
+        position: 'bottom-end',
+        icon: 'success',
+        showConfirmButton: false,
+        timer: 1500,
+        toast: true,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
 };

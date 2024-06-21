@@ -1,10 +1,28 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
+import { fetchLibraryBooks } from '../services/bookService';
 
 const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing }) => {
+    const [bookExists, setBookExists] = useState(false);
+
+    useEffect(() => {
+        const checkBookInLibrary = async () => {
+            if (isOpen && book) {
+                const existingBooks = await fetchLibraryBooks();
+                const existingBook = existingBooks.find(b =>
+                    b.title?.toLowerCase() === book.title?.toLowerCase() &&
+                    b.authorFirstName?.toLowerCase() === book.authorFirstName?.toLowerCase() &&
+                    b.authorLastName?.toLowerCase() === book.authorLastName?.toLowerCase()
+                );
+                setBookExists(!!existingBook);
+            }
+        };
+        checkBookInLibrary();
+    }, [isOpen, book]);
+
     return (
         <Transition.Root show={isOpen} as={Fragment}>
             <Dialog as="div" className="relative z-10" onClose={onClose}>
@@ -56,7 +74,7 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing }) => {
                                             {isEditing ? (
                                                 <SlideoutEdit book={book} onSave={onSave} onClose={onClose} />
                                             ) : (
-                                                <SlideoutDetails book={book} />
+                                                <SlideoutDetails book={book} bookExists={bookExists} />
                                             )}
                                         </div>
                                     </div>
