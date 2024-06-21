@@ -37,6 +37,10 @@ const SlideoutDetails = ({ book }) => {
                         <dd className="text-gray-900">{book.genre}</dd>
                     </div>
                     <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">Subject</dt>
+                        <dd className="text-gray-900">{book.subject}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
                         <dt className="text-gray-500">Published Date</dt>
                         <dd className="text-gray-900">{formatDate(book.publishedDate)}</dd>
                     </div>
