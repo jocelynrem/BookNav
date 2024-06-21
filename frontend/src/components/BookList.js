@@ -111,7 +111,7 @@ const BookList = () => {
         <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-base font-semibold leading-6 text-gray-900">Book List</h1>
+                    <h1 className="text-base font-semibold leading-6 text-gray-900">My Library</h1>
                     <p className="mt-2 text-sm text-gray-700">Manage your book collection.</p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
