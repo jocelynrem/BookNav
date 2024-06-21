@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpenIcon } from '@heroicons/react/24/solid'; // import the Heroicons book icon
+import { BookOpenIcon } from '@heroicons/react/24/solid';
 
 const Header = () => {
     return (
         <header className="bg-gray-800 text-white py-4 mb-8">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="flex items-center">
-                    <BookOpenIcon className="h-8 w-8 mr-2 text-white" />  {/* use the Heroicons book icon */}
+                    <BookOpenIcon className="h-8 w-8 mr-2 text-white" />
                     <h1 className="text-xl font-bold">BookNav</h1>
                 </div>
                 <nav>

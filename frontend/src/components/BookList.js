@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { getBooks, updateBook, deleteBook } from '../services/bookService';
 import Swal from 'sweetalert2';
 import BookTable from './BookTable';
-import BookSearch from './BookSearch';
 import BookEditModal from './BookEditModal';
 
 const BookList = () => {
@@ -83,6 +82,12 @@ const BookList = () => {
         setSearchQuery(e.target.value);
     };
 
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            fetchBooks();
+        }
+    };
+
     const handleSortChange = (field) => {
         const order = sortField === field && sortOrder === 'asc' ? 'desc' : 'asc';
         setSortField(field);
@@ -109,7 +114,16 @@ const BookList = () => {
                     <h1 className="text-base font-semibold leading-6 text-gray-900">Book List</h1>
                     <p className="mt-2 text-sm text-gray-700">Manage your book collection.</p>
                 </div>
-                <BookSearch searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onKeyPress={handleKeyPress}
+                        className="border p-2"
+                    />
+                </div>
             </div>
             <BookTable
                 books={books}

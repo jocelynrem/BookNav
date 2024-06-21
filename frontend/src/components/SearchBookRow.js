@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import SlideoutDetails from './SlideoutDetails';
 
 const SearchBookRow = ({ book, onAddBook, onTitleClick }) => {
     const { id, title, author, coverImage } = book || {};
@@ -26,7 +25,11 @@ const SearchBookRow = ({ book, onAddBook, onTitleClick }) => {
                             <div className="h-11 w-11 flex-shrink-0 bg-gray-300 rounded-full"></div>
                         )}
                         <div className="ml-4 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl">
-                            <div className="font-medium text-gray-900 cursor-pointer truncate" onClick={() => onTitleClick(book)}>
+                            <div
+                                className="font-medium text-gray-800 cursor-pointer truncate hover:text-gray-900 hover:underline transition-all"
+                                onClick={() => onTitleClick(book)}
+                                title="Click to view more details"
+                            >
                                 {title || 'Unknown Title'}
                             </div>
                             <div className="mt-1 text-gray-500 truncate">{author || 'Unknown Author'}</div>
