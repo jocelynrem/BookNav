@@ -57,7 +57,7 @@ const Header = () => {
                                         <ChevronDownIcon className="ml-2 h-5 w-5 text-gray-800" aria-hidden="true" />
                                     </PopoverButton>
                                     {open && (
-                                        <PopoverPanel className="absolute z-10 mt-3 -translate-x-1/2 px-4 transition-transform transform-gpu duration-200 ease-out w-auto min-w-full sm:min-w-0 sm:w-screen sm:max-w-md lg:max-w-2xl">
+                                        <PopoverPanel className="absolute left-0 mt-3 px-4 transition-transform transform-gpu duration-200 ease-out w-auto min-w-full sm:min-w-0 sm:w-screen sm:max-w-md lg:max-w-2xl">
                                             <div className="overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
                                                 <div className="grid gap-4 p-4">
                                                     {actions.map((action) => (
@@ -65,14 +65,9 @@ const Header = () => {
                                                             key={action.title}
                                                             to={action.disabled ? '#' : action.href}
                                                             onClick={close}
-                                                            className={classNames(
-                                                                "group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 transition ease-in-out duration-150",
-                                                                action.disabled ? 'cursor-not-allowed text-gray-400' : 'text-gray-900'
-                                                            )}
+                                                            className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 transition ease-in-out duration-150"
                                                         >
-                                                            <div
-                                                                className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-gray-400 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}
-                                                            >
+                                                            <div className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-gray-400 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}>
                                                                 <action.icon className="h-6 w-6" aria-hidden="true" />
                                                             </div>
                                                             <div>
@@ -91,6 +86,7 @@ const Header = () => {
                                 </>
                             )}
                         </Popover>
+
                     </div>
                 </div>
 
