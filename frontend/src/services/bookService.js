@@ -76,29 +76,34 @@ export const deleteBook = async (id) => {
 };
 
 export const fetchBookByISBN = async (isbn) => {
-    const response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch book details');
-    }
-    const data = await response.json();
-    const bookData = data[`ISBN:${isbn}`];
+    try {
+        const response = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch book details');
+        }
+        const data = await response.json();
+        const bookData = data[`ISBN:${isbn}`];
 
-    if (!bookData) {
-        throw new Error('No book data found');
-    }
+        if (!bookData) {
+            throw new Error('No book data found');
+        }
 
-    return {
-        id: isbn,
-        title: bookData.title || 'Unknown Title',
-        author: bookData.authors ? bookData.authors.map(author => author.name).join(', ') : 'Unknown Author',
-        publishedDate: bookData.publish_date || 'Unknown',
-        pages: bookData.number_of_pages || 0,
-        genre: bookData.subjects ? bookData.subjects.map(subject => subject.name).join(', ') : 'Unknown Genre',
-        subject: bookData.subjects ? bookData.subjects[0].name : 'Unknown Subject',
-        coverImage: bookData.cover ? bookData.cover.large : '',
-        isbn: isbn,
-        copies: 1
-    };
+        return {
+            id: isbn,
+            title: bookData.title || 'Unknown Title',
+            author: bookData.authors ? bookData.authors.map(author => author.name).join(', ') : 'Unknown Author',
+            publishedDate: bookData.publish_date || 'Unknown',
+            pages: bookData.number_of_pages || 0,
+            genre: bookData.subjects ? bookData.subjects.map(subject => subject.name).join(', ') : 'Unknown Genre',
+            subject: bookData.subjects ? bookData.subjects[0].name : 'Unknown Subject',
+            coverImage: bookData.cover ? bookData.cover.large : '',
+            isbn: isbn,
+            copies: 1
+        };
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 };
 
 export const fetchBooksByTitle = async (title) => {
