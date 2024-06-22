@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { updateBook } from '../services/bookService';
+import { updateBook, deleteBook } from '../services/bookService';
+import Swal from 'sweetalert2';
 
-const SlideoutEdit = ({ book, onSave, onClose }) => {
+const SlideoutEdit = ({ book, onSave, onClose, fetchBooks }) => {
     const [editingBook, setEditingBook] = useState(book);
 
     useEffect(() => {
@@ -23,6 +24,42 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
         onClose();
     };
 
+    const handleDelete = async () => {
+        try {
+            const result = await Swal.fire({
+                title: `${editingBook.title}`,
+                text: `Delete this book?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+            });
+
+            if (result.isConfirmed) {
+                await deleteBook(editingBook._id);
+                Swal.fire({
+                    title: `${editingBook.title} deleted`,
+                    position: 'bottom-end',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
+                fetchBooks();
+                onClose();
+            }
+        } catch (error) {
+            console.error('Failed to delete book:', error);
+            Swal.fire('Error!', 'Failed to delete the book.', 'error');
+        }
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -32,6 +69,7 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
         return `${year}-${month}-${day}`;
     };
 
+    if (!editingBook) return null;
     if (!editingBook) return null;
 
     return (
@@ -143,6 +181,13 @@ const SlideoutEdit = ({ book, onSave, onClose }) => {
                     onClick={handleSave}
                 >
                     Save
+                </button>
+                <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ml-2"
+                    onClick={handleDelete}
+                >
+                    Delete
                 </button>
             </div>
         </div>

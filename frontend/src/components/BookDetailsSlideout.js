@@ -5,7 +5,7 @@ import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
 import { fetchLibraryBooks } from '../services/bookService';
 
-const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing }) => {
+const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing, fetchBooks }) => {
     const [bookExists, setBookExists] = useState(false);
 
     useEffect(() => {
@@ -72,7 +72,7 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing }) => {
                                         </div>
                                         <div className="relative flex-1 py-6 px-4 sm:px-6">
                                             {isEditing ? (
-                                                <SlideoutEdit book={book} onSave={onSave} onClose={onClose} />
+                                                <SlideoutEdit book={book} onSave={onSave} onClose={onClose} fetchBooks={fetchBooks} />
                                             ) : (
                                                 <SlideoutDetails book={book} bookExists={bookExists} />
                                             )}

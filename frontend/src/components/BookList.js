@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getBooks, updateBook, deleteBook } from '../services/bookService';
+import { getBooks, updateBook } from '../services/bookService';
 import Swal from 'sweetalert2';
 import BookTable from './BookTable';
 import BookEditModal from './BookEditModal';
+import BookDetailsSlideout from './BookDetailsSlideout';
 
 const BookList = () => {
     const [books, setBooks] = useState([]);
@@ -11,6 +12,9 @@ const BookList = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortField, setSortField] = useState('title');
     const [sortOrder, setSortOrder] = useState('asc');
+    const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
+    const [selectedBook, setSelectedBook] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         fetchBooks();
@@ -38,44 +42,10 @@ const BookList = () => {
         }
     };
 
-    const handleDeleteBook = async (id, title) => {
-        try {
-            const result = await Swal.fire({
-                title: `${title}`,
-                text: `Delete this book?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
-            });
-
-            if (result.isConfirmed) {
-                await deleteBook(id);
-                Swal.fire({
-                    title: `${title} deleted`,
-                    position: 'bottom-end',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1500,
-                    toast: true,
-                    timerProgressBar: true,
-                    didOpen: (toast) => {
-                        toast.addEventListener('mouseenter', Swal.stopTimer)
-                        toast.addEventListener('mouseleave', Swal.resumeTimer)
-                    }
-                });
-                fetchBooks();
-            }
-        } catch (err) {
-            setError('Failed to delete book');
-            console.error(err);
-            Swal.fire('Error!', 'Failed to delete the book.', 'error');
-        }
-    };
-
     const handleEditClick = (book) => {
-        setEditingBook(book);
+        setSelectedBook(book);
+        setIsSlideoutOpen(true);
+        setIsEditing(true);
     };
 
     const handleSearchChange = (e) => {
@@ -107,6 +77,19 @@ const BookList = () => {
             return 0;
         });
 
+    const handleSlideoutClose = () => {
+        setIsSlideoutOpen(false);
+        setSelectedBook(null);
+    };
+
+    const handleSave = (updatedBook) => {
+        const updatedBooks = books.map(book =>
+            book._id === updatedBook._id ? updatedBook : book
+        );
+        setBooks(updatedBooks);
+        handleSlideoutClose();
+    };
+
     return (
         <div className="px-4 sm:px-6 lg:px-8">
             <div className="sm:flex sm:items-center">
@@ -130,16 +113,26 @@ const BookList = () => {
                 sortedBooks={sortedBooks}
                 setBooks={setBooks} // Pass setBooks to BookTable
                 handleEditClick={handleEditClick}
-                handleDeleteBook={handleDeleteBook}
                 sortField={sortField}
                 sortOrder={sortOrder}
                 handleSortChange={handleSortChange}
+                fetchBooks={fetchBooks} // Pass fetchBooks to BookTable
             />
             <BookEditModal
                 editingBook={editingBook}
                 setEditingBook={setEditingBook}
                 handleUpdateBook={handleUpdateBook}
             />
+            {selectedBook && (
+                <BookDetailsSlideout
+                    isOpen={isSlideoutOpen}
+                    onClose={handleSlideoutClose}
+                    book={selectedBook}
+                    onSave={handleSave}
+                    isEditing={isEditing}
+                    fetchBooks={fetchBooks} // Pass fetchBooks to BookDetailsSlideout
+                />
+            )}
         </div>
     );
 };

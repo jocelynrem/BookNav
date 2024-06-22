@@ -4,7 +4,7 @@ import BookSortHeader from './BookSortHeader';
 import BookDetailsSlideout from './BookDetailsSlideout';
 import { updateBook } from '../services/bookService';
 
-const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, sortOrder, handleSortChange }) => {
+const BookTable = ({ books, sortedBooks, setBooks, handleEditClick, sortField, sortOrder, handleSortChange, fetchBooks }) => {
     const [selectedBook, setSelectedBook] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -20,7 +20,7 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
         setIsEditing(false);
     };
 
-    const handleEditClick = (book) => {
+    const handleEditClickInternal = (book) => {
         setSelectedBook(book);
         setIsSlideoutOpen(true);
         setIsEditing(true);
@@ -34,7 +34,6 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
     const handleSave = async (updatedBook) => {
         try {
             await updateBook(updatedBook._id, updatedBook);
-            // Update the book list in the state
             const updatedBooks = books.map(book =>
                 book._id === updatedBook._id ? updatedBook : book
             );
@@ -58,9 +57,6 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
                                     <BookSortHeader field="copies" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Copies" />
                                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                         <span className="sr-only">Edit</span>
-                                    </th>
-                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                                        <span className="sr-only">Delete</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -88,20 +84,11 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
                                             <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                 <a
                                                     href="#"
-                                                    onClick={() => handleEditClick(book)}
+                                                    onClick={() => handleEditClickInternal(book)}
                                                     className="text-teal-800 hover:text-teal-900"
                                                 >
                                                     Edit<span className="sr-only">, {book.title}</span>
                                                 </a>
-                                            </td>
-                                            <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                                <button
-                                                    onClick={() => handleDeleteBook(book._id, book.title)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    <TrashIcon className="h-5 w-5" />
-                                                    <span className="sr-only">, {book.title}</span>
-                                                </button>
                                             </td>
                                         </tr>
                                     );
@@ -118,6 +105,7 @@ const BookTable = ({ books, sortedBooks, setBooks, handleDeleteBook, sortField, 
                     book={selectedBook}
                     onSave={handleSave}
                     isEditing={isEditing}
+                    fetchBooks={fetchBooks} // Pass fetchBooks to BookDetailsSlideout
                 />
             )}
         </>
