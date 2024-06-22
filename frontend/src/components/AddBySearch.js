@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addBookToLibrary } from '../services/bookService';
+import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addBookToLibrary, deleteBook } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import SearchBookTable from './SearchBookTable';
 import SlideoutParent from './SlideoutParent';
 import BookSearch from './BookSearch';
+import Notification from './addBookFunction/Notification';
+import ConfirmationDialog from './addBookFunction/ConfirmationDialog';
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('isbn');
@@ -16,6 +18,9 @@ const AddBySearch = () => {
     const [selectedBook, setSelectedBook] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [scanning, setScanning] = useState(false);
+    const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
+    const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
+    const [undoBook, setUndoBook] = useState(null);
 
     useEffect(() => {
         let scanner;
@@ -110,54 +115,70 @@ const AddBySearch = () => {
         setSelectedBook(null);
     };
 
+    const handleAddBook = async (book, copies) => {
+        await addBookToLibrary(book, copies, setNotification, setDialog, setUndoBook);
+    };
+
+    const handleUndo = async () => {
+        if (undoBook) {
+            await deleteBook(undoBook);
+            setNotification({ show: false, message: '' });
+            setUndoBook(null);
+        }
+    };
+
     return (
-        <div className="px-4 sm:px-6 lg:px-8">
-            <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2>
-            <BookSearch
-                query={query}
-                handleChange={handleChange}
-                handleSearchTypeChange={handleSearchTypeChange}
-                handleSearch={handleSearch}
-                searchType={searchType}
-                handleScanToggle={handleScanToggle}
-                scanning={scanning}
-            />
-            {scanning && (
-                <div id="scanner" className="mt-4"></div>
-            )}
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-            {loading && (
-                <div className="mt-4 text-center">
-                    <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
-                </div>
-            )}
-            {books.length > 0 && !loading && (
-                <div className="mt-8 flow-root">
-                    <SearchBookTable
-                        books={books.slice(0, limit)}
-                        onAddBook={addBookToLibrary}
-                        onTitleClick={handleTitleClick}
-                    />
-                    {books.length > limit && (
-                        <div className="mt-4 text-center">
-                            <button
-                                type="button"
-                                onClick={loadMore}
-                                className="text-teal-700 hover:text-teal-900"
-                            >
-                                Load More
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
-            {selectedBook && (
-                <SlideoutParent
-                    isOpen={isSlideoutOpen}
-                    onClose={handleSlideoutClose}
-                    book={selectedBook}
+        <div className="relative">
+            <div className="px-4 sm:px-6 lg:px-8">
+                <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2>
+                <BookSearch
+                    query={query}
+                    handleChange={handleChange}
+                    handleSearchTypeChange={handleSearchTypeChange}
+                    handleSearch={handleSearch}
+                    searchType={searchType}
+                    handleScanToggle={handleScanToggle}
+                    scanning={scanning}
                 />
-            )}
+                {scanning && (
+                    <div id="scanner" className="mt-4"></div>
+                )}
+                {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+                {loading && (
+                    <div className="mt-4 text-center">
+                        <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
+                    </div>
+                )}
+                {books.length > 0 && !loading && (
+                    <div className="mt-8 flow-root">
+                        <SearchBookTable
+                            books={books.slice(0, limit)}
+                            onAddBook={handleAddBook}
+                            onTitleClick={handleTitleClick}
+                        />
+                        {books.length > limit && (
+                            <div className="mt-4 text-center">
+                                <button
+                                    type="button"
+                                    onClick={loadMore}
+                                    className="text-teal-700 hover:text-teal-900"
+                                >
+                                    Load More
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {selectedBook && (
+                    <SlideoutParent
+                        isOpen={isSlideoutOpen}
+                        onClose={handleSlideoutClose}
+                        book={selectedBook}
+                    />
+                )}
+                <Notification notification={notification} setNotification={setNotification} onUndo={handleUndo} />
+                <ConfirmationDialog dialog={dialog} setDialog={setDialog} />
+            </div>
         </div>
     );
 };

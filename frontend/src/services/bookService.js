@@ -1,5 +1,3 @@
-import Swal from 'sweetalert2';
-
 const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
 
 export const getBooks = async () => {
@@ -103,7 +101,6 @@ export const fetchBookByISBN = async (isbn) => {
     };
 };
 
-
 export const fetchBooksByTitle = async (title) => {
     const response = await fetch(`https://openlibrary.org/search.json?title=${title}`);
     if (!response.ok) {
@@ -160,7 +157,7 @@ export const fetchLibraryBooks = async () => {
     return await response.json();
 };
 
-export const addBookToLibrary = async (book, copies) => {
+export const addBookToLibrary = async (book, copies, setNotification, setDialog, setUndoBook) => {
     const [authorFirstName, authorLastName] = (book.author || '').split(' ', 2);
     const bookData = {
         title: book.title || 'Unknown Title',
@@ -184,47 +181,24 @@ export const addBookToLibrary = async (book, copies) => {
         );
 
         if (existingBook) {
-            const { value: numberOfCopies } = await Swal.fire({
+            setDialog({
+                open: true,
                 title: `The book "${book.title}" by ${book.author} already exists in the library.`,
-                text: "How many additional copies would you like to add?",
-                icon: 'warning',
-                input: 'number',
-                inputAttributes: {
-                    min: 1,
-                    step: 1,
-                    value: 1
-                },
-                showCancelButton: true,
-                confirmButtonText: 'Add Copies',
-                cancelButtonText: 'Cancel'
+                content: "How many additional copies would you like to add?",
+                onConfirm: async (numberOfCopies) => {
+                    if (numberOfCopies && numberOfCopies > 0) {
+                        await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
+                        setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to the library!` });
+                    }
+                }
             });
-
-            if (numberOfCopies && numberOfCopies > 0) {
-                await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
-                Swal.fire(`${numberOfCopies} copies of ${book.title} added to the library!`);
-            }
         } else {
-            await createBook(bookData);
-            showAddConfirmation(book.title);
+            const newBook = await createBook(bookData);
+            setUndoBook(newBook._id);
+            setNotification({ show: true, message: `Book "${book.title}" added to the library!`, undo: true });
         }
     } catch (err) {
         console.error('Failed to add book:', err);
-        Swal.fire('Error', 'Failed to add book.', 'error');
+        setNotification({ show: true, message: 'Failed to add book.', error: true });
     }
-};
-
-const showAddConfirmation = (title) => {
-    Swal.fire({
-        title: `${title} added to library!`,
-        position: 'bottom-end',
-        icon: 'success',
-        showConfirmButton: false,
-        timer: 1500,
-        toast: true,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
 };

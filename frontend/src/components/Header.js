@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Popover, PopoverButton, PopoverPanel, Dialog, DialogPanel } from '@headlessui/react';
-import { ChevronDownIcon, QrCodeIcon, MagnifyingGlassIcon, Bars3Icon, XMarkIcon, BookOpenIcon, BuildingLibraryIcon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon, MagnifyingGlassIcon, Bars3Icon, XMarkIcon, BookOpenIcon, BuildingLibraryIcon } from '@heroicons/react/20/solid';
 
 const actions = [
     {
@@ -30,7 +30,7 @@ const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
-        <header className="sticky top-0 z-50 bg-white shadow">
+        <header className="sticky top-0 z-30 bg-white shadow"> {/* Reduced z-index from 50 to 30 */}
             <nav className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full" aria-label="Global">
                 <div className="flex items-center space-x-6 flex-1 py-4">
                     <Link to="/" className="-m-1.5 p-1.5">
@@ -96,9 +96,9 @@ const Header = () => {
                 </div>
             </nav>
 
-            <Dialog className="lg:hidden z-50" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
-                <div className="fixed inset-0 z-40 bg-black opacity-50" />
-                <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            <Dialog className="lg:hidden z-40" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
+                <div className="fixed inset-0 z-30 bg-black opacity-50" />
+                <DialogPanel className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                     <div className="flex items-center justify-end">
                         <button
                             type="button"
@@ -117,7 +117,7 @@ const Header = () => {
                                     className="-mx-3 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 flex items-center gap-x-2"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
-                                    <BookOpenIcon className="h-5 w-5 text-gray-800" aria-hidden="true" />
+                                    <BuildingLibraryIcon className="h-5 w-5 text-teal-800" aria-hidden="true" />
                                     My Library
                                 </Link>
                                 <div className="border-t border-gray-100 mt-2 pt-2">
@@ -127,13 +127,13 @@ const Header = () => {
                                             key={item.title}
                                             to={item.disabled ? '#' : item.href}
                                             className={classNames(
-                                                "group rounded-lg px-3 py-2 text-sm font-semibold leading-7 text-gray-800 hover:bg-gray-50 flex items-center gap-x-4",
+                                                "group rounded-lg px-3 py-2 text-sm font-semibold leading-7 text-gray-800 hover:bg-gray-100 flex items-center gap-x-4",
                                                 item.disabled ? 'cursor-not-allowed text-gray-400' : 'text-gray-900'
                                             )}
                                             onClick={() => setMobileMenuOpen(false)}
                                         >
                                             <div
-                                                className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-gray-400 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}
+                                                className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-pink-800 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}
                                             >
                                                 <item.icon className="h-6 w-6" aria-hidden="true" />
                                             </div>

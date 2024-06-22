@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { addBookToLibrary } from '../services/bookService';
+import { addBookToLibrary, deleteBook } from '../services/bookService';
 import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
+const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook }) => {
     const [copies, setCopies] = useState(1);
 
     const formatDate = (dateString) => {
@@ -14,9 +14,9 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
         return `${year}-${month}-${day}`;
     };
 
-    const handleAddBook = () => {
+    const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            addBookToLibrary(book, copies);
+            await addBookToLibrary(book, copies, setNotification, setDialog, setUndoBook);
         } else {
             alert('Please enter a valid number of copies.');
         }
@@ -27,14 +27,14 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
     return (
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
-                <button
+                {/* <button
                     type="button"
                     className="text-gray-400 hover:text-gray-500 focus:outline-none"
                     onClick={onClose}
                 >
                     <XMarkIcon className="h-6 w-6" />
                     <span className="sr-only">Close panel</span>
-                </button>
+                </button> */}
                 {bookExists && (
                     <button
                         type="button"
