@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getBooks, updateBook } from '../services/bookService';
-import Swal from 'sweetalert2';
 import BookTable from './BookTable';
-import BookEditModal from './BookEditModal';
 import BookDetailsSlideout from './BookDetailsSlideout';
 
 const BookList = () => {
@@ -118,11 +116,7 @@ const BookList = () => {
                 handleSortChange={handleSortChange}
                 fetchBooks={fetchBooks} // Pass fetchBooks to BookTable
             />
-            <BookEditModal
-                editingBook={editingBook}
-                setEditingBook={setEditingBook}
-                handleUpdateBook={handleUpdateBook}
-            />
+
             {selectedBook && (
                 <BookDetailsSlideout
                     isOpen={isSlideoutOpen}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { updateBook, deleteBook } from '../services/bookService';
 import Swal from 'sweetalert2';
+import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const SlideoutEdit = ({ book, onSave, onClose, fetchBooks }) => {
+const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     const [editingBook, setEditingBook] = useState(book);
 
     useEffect(() => {
@@ -70,10 +71,27 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks }) => {
     };
 
     if (!editingBook) return null;
-    if (!editingBook) return null;
 
     return (
-        <div className="mt-2 space-y-6">
+        <div className="space-y-6 pb-16">
+            <div className="flex justify-between items-center pb-4">
+                <button
+                    type="button"
+                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onClick={onClose}
+                >
+                    <XMarkIcon className="h-6 w-6" />
+                    <span className="sr-only">Close panel</span>
+                </button>
+                <button
+                    type="button"
+                    className="flex items-center text-teal-700 hover:text-teal-900"
+                    onClick={onView}
+                >
+                    View book details
+                    <ArrowRightIcon className="ml-1 h-5 w-5" />
+                </button>
+            </div>
             <label>
                 Title
                 <input

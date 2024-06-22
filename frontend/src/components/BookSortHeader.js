@@ -4,7 +4,7 @@ import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 const BookSortHeader = ({ field, handleSortChange, getSortIcon, label }) => (
     <th
         scope="col"
-        className="cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+        className={`cursor-pointer px-3 py-3.5 text-left text-sm font-semibold text-gray-900 ${field === 'copies' ? 'hidden sm:table-cell' : ''}`}
         onClick={() => handleSortChange(field)}
     >
         <a href="#" className="group inline-flex">

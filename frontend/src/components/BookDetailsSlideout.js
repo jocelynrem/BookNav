@@ -5,8 +5,9 @@ import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
 import { fetchLibraryBooks } from '../services/bookService';
 
-const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing, fetchBooks }) => {
+const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing }) => {
     const [bookExists, setBookExists] = useState(false);
+    const [isEditing, setIsEditing] = useState(initialIsEditing);
 
     useEffect(() => {
         const checkBookInLibrary = async () => {
@@ -22,6 +23,10 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing, fetchBo
         };
         checkBookInLibrary();
     }, [isOpen, book]);
+
+    useEffect(() => {
+        setIsEditing(initialIsEditing);
+    }, [initialIsEditing]);
 
     return (
         <Transition.Root show={isOpen} as={Fragment}>
@@ -72,9 +77,9 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, isEditing, fetchBo
                                         </div>
                                         <div className="relative flex-1 py-6 px-4 sm:px-6">
                                             {isEditing ? (
-                                                <SlideoutEdit book={book} onSave={onSave} onClose={onClose} fetchBooks={fetchBooks} />
+                                                <SlideoutEdit book={book} onSave={onSave} onClose={onClose} fetchBooks={fetchBooks} onView={() => setIsEditing(false)} />
                                             ) : (
-                                                <SlideoutDetails book={book} bookExists={bookExists} />
+                                                <SlideoutDetails book={book} bookExists={bookExists} onEdit={() => setIsEditing(true)} onClose={onClose} />
                                             )}
                                         </div>
                                     </div>

@@ -30,7 +30,6 @@ const actions = [
     },
 ];
 
-
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ');
 }
@@ -86,17 +85,13 @@ const Header = () => {
                                 </>
                             )}
                         </Popover>
-
                     </div>
                 </div>
-                {/* Right-aligned section for log-in */}
                 <div className="hidden md:flex lg:justify-end">
                     <a href="#" className="text-sm font-semibold leading-6 text-gray-400 cursor-not-allowed">
                         Log in <span aria-hidden="true">&rarr;</span>
                     </a>
                 </div>
-
-                {/* Mobile menu button */}
                 <div className="md:hidden flex items-center">
                     <button
                         type="button"
@@ -109,7 +104,7 @@ const Header = () => {
                 </div>
             </nav>
 
-            <Dialog className="lg:hidden z-50" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
+            <Dialog className="lg:hidden z-50" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
                 <div className="fixed inset-0 z-40 bg-black opacity-50" />
                 <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                     <div className="flex items-center justify-end">
@@ -128,6 +123,7 @@ const Header = () => {
                                 <Link
                                     to="/"
                                     className="-mx-3 rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 flex items-center gap-x-2"
+                                    onClick={() => setMobileMenuOpen(false)}
                                 >
                                     <BookOpenIcon className="h-5 w-5 text-gray-800" aria-hidden="true" />
                                     My Library
@@ -142,6 +138,7 @@ const Header = () => {
                                                 "group rounded-lg px-3 py-2 text-sm font-semibold leading-7 text-gray-800 hover:bg-gray-50 flex items-center gap-x-4",
                                                 item.disabled ? 'cursor-not-allowed text-gray-400' : 'text-gray-900'
                                             )}
+                                            onClick={() => setMobileMenuOpen(false)}
                                         >
                                             <div
                                                 className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-gray-400 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}
@@ -165,7 +162,6 @@ const Header = () => {
                     </div>
                 </DialogPanel>
             </Dialog>
-
         </header>
     );
 };

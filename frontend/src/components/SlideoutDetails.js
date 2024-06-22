@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { addBookToLibrary } from '../services/bookService';
+import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const SlideoutDetails = ({ book, bookExists }) => {
+const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
     const [copies, setCopies] = useState(1);
 
     const formatDate = (dateString) => {
@@ -21,46 +22,66 @@ const SlideoutDetails = ({ book, bookExists }) => {
         }
     };
 
+    const authorName = book.author || `${book.authorLastName || ''}, ${book.authorFirstName || ''}`.trim().replace(/^, |, $/, '');
+
     return (
         <div className="space-y-6 pb-16">
-            <div>
-                {book.coverImage && (
-                    <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
-                        <img
-                            src={book.coverImage}
-                            alt={book.title}
-                            className="object-cover w-full"
+            <div className="flex justify-between items-center">
+                <button
+                    type="button"
+                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onClick={onClose}
+                >
+                    <XMarkIcon className="h-6 w-6" />
+                    <span className="sr-only">Close panel</span>
+                </button>
+                {bookExists && (
+                    <button
+                        type="button"
+                        className="flex items-center text-teal-700 hover:text-teal-900"
+                        onClick={onEdit}
+                    >
+                        Edit book
+                        <ArrowRightIcon className="ml-1 h-5 w-5" />
+                    </button>
+                )}
+            </div>
+            {book.coverImage && (
+                <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
+                    <img
+                        src={book.coverImage}
+                        alt={book.title}
+                        className="object-cover w-full"
+                    />
+                </div>
+            )}
+            <div className="mt-4 flex justify-between items-center">
+                <div>
+                    <h2 className="text-base font-semibold leading-6 text-gray-900">
+                        {book.title}
+                    </h2>
+                    <p className="text-sm font-medium text-gray-500">
+                        {authorName || 'Author not available'}
+                    </p>
+                </div>
+                {!bookExists && (
+                    <div className="flex items-center">
+                        <input
+                            type="number"
+                            value={copies}
+                            onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
+                            min="1"
+                            className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
                         />
+                        <button
+                            type="button"
+                            className="text-teal-700 hover:text-teal-900"
+                            onClick={handleAddBook}
+                        >
+                            Add<span className="sr-only">, {book.title}</span>
+                        </button>
                     </div>
                 )}
-                <div className="mt-4 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-base font-semibold leading-6 text-gray-900">
-                            {book.title}
-                        </h2>
-                        <p className="text-sm font-medium text-gray-500">
-                            {book.author}
-                        </p>
-                    </div>
-                    {!bookExists && (
-                        <div className="flex items-center">
-                            <input
-                                type="number"
-                                value={copies}
-                                onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
-                                min="1"
-                                className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
-                            />
-                            <button
-                                type="button"
-                                className="text-teal-700 hover:text-teal-900"
-                                onClick={handleAddBook}
-                            >
-                                Add<span className="sr-only">, {book.title}</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
             </div>
             <div>
                 <h3 className="font-medium text-gray-900">Information</h3>
