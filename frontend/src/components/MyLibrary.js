@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getBooks, updateBook } from '../services/bookService';
 import BookTable from './BookTable';
-import BookDetailsSlideout from './BookDetailsSlideout';
+import SlideoutParent from './SlideoutParent';
 
-const BookList = () => {
+const MyLibrary = () => {
     const [books, setBooks] = useState([]);
     const [editingBook, setEditingBook] = useState(null);
     const [error, setError] = useState('');
@@ -118,17 +118,17 @@ const BookList = () => {
             />
 
             {selectedBook && (
-                <BookDetailsSlideout
+                <SlideoutParent
                     isOpen={isSlideoutOpen}
                     onClose={handleSlideoutClose}
                     book={selectedBook}
                     onSave={handleSave}
                     isEditing={isEditing}
-                    fetchBooks={fetchBooks} // Pass fetchBooks to BookDetailsSlideout
+                    fetchBooks={fetchBooks} // Pass fetchBooks to SlideoutParent
                 />
             )}
         </div>
     );
 };
 
-export default BookList;
+export default MyLibrary;

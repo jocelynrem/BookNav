@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrashIcon } from '@heroicons/react/20/solid';
 import BookSortHeader from './BookSortHeader';
-import BookDetailsSlideout from './BookDetailsSlideout';
+import SlideoutParent from './SlideoutParent';
 import { updateBook } from '../services/bookService';
 
 const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleSortChange, fetchBooks }) => {
@@ -103,7 +103,7 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                 </div>
             </div>
             {selectedBook && (
-                <BookDetailsSlideout
+                <SlideoutParent
                     isOpen={isSlideoutOpen}
                     onClose={handleSlideoutClose}
                     book={selectedBook}

@@ -3,7 +3,7 @@ import { fetchBooksByTitle, fetchBooksByAuthor, addBookToLibrary, fetchLibraryBo
 import Swal from 'sweetalert2';
 import { ClipLoader } from 'react-spinners';
 import SearchBookTable from './SearchBookTable';
-import BookDetailsSlideout from './BookDetailsSlideout';
+import SlideoutParent from './SlideoutParent';
 import BookSearch from './BookSearch';
 
 const AddBySearch = () => {
@@ -91,7 +91,7 @@ const AddBySearch = () => {
                 </div>
             )}
             {selectedBook && (
-                <BookDetailsSlideout
+                <SlideoutParent
                     isOpen={isSlideoutOpen}
                     onClose={handleSlideoutClose}
                     book={selectedBook}

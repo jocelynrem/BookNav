@@ -45,6 +45,24 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
                         <ArrowRightIcon className="ml-1 h-5 w-5" />
                     </button>
                 )}
+                {!bookExists && (
+                    <div className="flex items-center">
+                        <input
+                            type="number"
+                            value={copies}
+                            onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
+                            min="1"
+                            className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
+                        />
+                        <button
+                            type="button"
+                            className="text-teal-700 hover:text-teal-900"
+                            onClick={handleAddBook}
+                        >
+                            Add<span className="sr-only">, {book.title}</span>
+                        </button>
+                    </div>
+                )}
             </div>
             {book.coverImage && (
                 <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
@@ -64,24 +82,6 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose }) => {
                         {authorName || 'Author not available'}
                     </p>
                 </div>
-                {!bookExists && (
-                    <div className="flex items-center">
-                        <input
-                            type="number"
-                            value={copies}
-                            onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
-                            min="1"
-                            className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
-                        />
-                        <button
-                            type="button"
-                            className="text-teal-700 hover:text-teal-900"
-                            onClick={handleAddBook}
-                        >
-                            Add<span className="sr-only">, {book.title}</span>
-                        </button>
-                    </div>
-                )}
             </div>
             <div>
                 <h3 className="font-medium text-gray-900">Information</h3>

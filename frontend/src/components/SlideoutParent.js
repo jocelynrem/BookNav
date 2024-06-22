@@ -5,7 +5,7 @@ import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
 import { fetchLibraryBooks } from '../services/bookService';
 
-const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing }) => {
+const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing }) => {
     const [bookExists, setBookExists] = useState(false);
     const [isEditing, setIsEditing] = useState(initialIsEditing);
 
@@ -93,4 +93,4 @@ const BookDetailsSlideout = ({ isOpen, onClose, book, onSave, fetchBooks, isEdit
     );
 };
 
-export default BookDetailsSlideout;
+export default SlideoutParent;
