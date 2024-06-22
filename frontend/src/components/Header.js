@@ -5,19 +5,11 @@ import { ChevronDownIcon, QrCodeIcon, MagnifyingGlassIcon, Bars3Icon, XMarkIcon,
 
 const actions = [
     {
-        title: 'Search by ISBN',
-        description: 'IN PROGRESS: check back later for this feature',
-        href: '#',
-        icon: QrCodeIcon,
-        iconClasses: 'text-gray-400 bg-gray-50 hover:text-teal-700 hover:bg-white',
-        disabled: true,
-    },
-    {
-        title: 'Add by searching our Library',
-        description: 'Search by title to add a book.',
+        title: 'Search by title, author, or ISBN',
+        description: 'Search our library to add a book.',
         href: '/add-search',
         icon: MagnifyingGlassIcon,
-        iconClasses: 'text-gray-400 bg-gray-50 hover:text-teal-700 hover:bg-white',
+        iconClasses: 'text-gray-400 bg-gray-50 hover:text-pink-700 hover:bg-white',
         disabled: false,
     },
     {
@@ -25,7 +17,7 @@ const actions = [
         description: 'IN PROGRESS: check back later for this feature',
         href: '#',
         icon: BookOpenIcon,
-        iconClasses: 'text-gray-400 bg-gray-50 hover:text-teal-700 hover:bg-white',
+        iconClasses: 'text-gray-400 bg-gray-50 hover:text-pink-700 hover:bg-white',
         disabled: true,
     },
 ];
@@ -66,7 +58,7 @@ const Header = () => {
                                                             onClick={close}
                                                             className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 transition ease-in-out duration-150"
                                                         >
-                                                            <div className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-gray-400 bg-gray-50 group-hover:bg-white group-hover:text-teal-700`}>
+                                                            <div className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-pink-700 bg-gray-100 group-hover:bg-pink-700 group-hover:text-gray-100`}>
                                                                 <action.icon className="h-6 w-6" aria-hidden="true" />
                                                             </div>
                                                             <div>

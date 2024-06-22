@@ -83,8 +83,26 @@ export const fetchBookByISBN = async (isbn) => {
         throw new Error('Failed to fetch book details');
     }
     const data = await response.json();
-    return data[`ISBN:${isbn}`];
+    const bookData = data[`ISBN:${isbn}`];
+
+    if (!bookData) {
+        throw new Error('No book data found');
+    }
+
+    return {
+        id: isbn,
+        title: bookData.title || 'Unknown Title',
+        author: bookData.authors ? bookData.authors.map(author => author.name).join(', ') : 'Unknown Author',
+        publishedDate: bookData.publish_date || 'Unknown',
+        pages: bookData.number_of_pages || 0,
+        genre: bookData.subjects ? bookData.subjects.map(subject => subject.name).join(', ') : 'Unknown Genre',
+        subject: bookData.subjects ? bookData.subjects[0].name : 'Unknown Subject',
+        coverImage: bookData.cover ? bookData.cover.large : '',
+        isbn: isbn,
+        copies: 1
+    };
 };
+
 
 export const fetchBooksByTitle = async (title) => {
     const response = await fetch(`https://openlibrary.org/search.json?title=${title}`);
