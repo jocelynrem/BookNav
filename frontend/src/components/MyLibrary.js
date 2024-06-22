@@ -28,18 +28,6 @@ const MyLibrary = () => {
         }
     };
 
-    const handleUpdateBook = async (id) => {
-        try {
-            const updatedBook = { ...editingBook };
-            await updateBook(id, updatedBook);
-            setEditingBook(null);
-            fetchBooks();
-        } catch (err) {
-            setError('Failed to update book');
-            console.error(err);
-        }
-    };
-
     const handleEditClick = (book) => {
         setSelectedBook(book);
         setIsSlideoutOpen(true);

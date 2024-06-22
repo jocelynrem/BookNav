@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { TrashIcon } from '@heroicons/react/20/solid';
 import BookSortHeader from './BookSortHeader';
 import SlideoutParent from './SlideoutParent';
 import { updateBook } from '../services/bookService';
@@ -68,11 +67,11 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                                         <tr key={book._id}>
                                             <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 max-w-[200px] sm:max-w-[250px] truncate">
                                                 <div className="flex items-center">
-                                                    {book.coverImage && (
+                                                    {/* {book.coverImage && (
                                                         <div className="h-11 w-11 flex-shrink-0">
                                                             <img className="h-11 w-11 rounded-full" src={book.coverImage} alt="" />
                                                         </div>
-                                                    )}
+                                                    )} */}
                                                     <div className="ml-4">
                                                         <div className="font-medium text-gray-900 cursor-pointer truncate" onClick={() => handleTitleClick(book)}>
                                                             {String(book.title)}
