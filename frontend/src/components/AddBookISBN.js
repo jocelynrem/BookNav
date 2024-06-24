@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchBookByISBN, addBookToLibrary } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
-import { Html5QrcodeScanner } from 'html5-qrcode';
 import SearchBookTable from './SearchBookTable';
 import SlideoutParent from './SlideoutParent';
 
@@ -14,23 +13,23 @@ const AddBookISBN = () => {
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [scanning, setScanning] = useState(false);
 
-    useEffect(() => {
-        let scanner;
-        if (scanning) {
-            scanner = new Html5QrcodeScanner(
-                "scanner",
-                { fps: 10, qrbox: 250 },
-                false
-            );
-            scanner.render(handleScan, handleError);
+    // useEffect(() => {
+    //     let scanner;
+    //     if (scanning) {
+    //         scanner = new Html5QrcodeScanner(
+    //             "scanner",
+    //             { fps: 10, qrbox: 250 },
+    //             false
+    //         );
+    //         scanner.render(handleScan, handleError);
 
-            return () => {
-                scanner.clear().catch(error => {
-                    console.error('Failed to clear scanner.', error);
-                });
-            };
-        }
-    }, [scanning]);
+    //         return () => {
+    //             scanner.clear().catch(error => {
+    //                 console.error('Failed to clear scanner.', error);
+    //             });
+    //         };
+    //     }
+    // }, [scanning]);
 
     const handleSearch = async (isbnToSearch) => {
         setLoading(true);
