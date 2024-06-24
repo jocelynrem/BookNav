@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addBookToLibrary, deleteBook } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import Quagga from 'quagga'; // Import QuaggaJS
 import SearchBookTable from './SearchBookTable';
 import SlideoutParent from './SlideoutParent';
 import BookSearch from './BookSearch';
@@ -23,22 +23,74 @@ const AddBySearch = () => {
     const [undoBook, setUndoBook] = useState(null);
 
     useEffect(() => {
-        let scanner;
         if (scanning) {
-            scanner = new Html5QrcodeScanner(
-                "scanner",
-                { fps: 10, qrbox: 250 },
-                false
-            );
-            scanner.render(handleScan, handleError);
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner'),
+                    // constraints: {
+                    //     width: 320,
+                    //     height: 240,
+                    //     facingMode: "environment"
+                    // },
+                    area: {
+                        top: "0%",
+                        right: "0%",
+                        left: "0%",
+                        bottom: "0%"
+                    },
+                    singleChannel: false
+                },
+                locator: {
+                    patchSize: "medium",
+                    halfSample: true
+                },
+                decoder: {
+                    readers: ["ean_reader"]
+                },
+                locate: true
+            }, function (err) {
+                if (err) {
+                    console.error(err);
+                    setError('Failed to initialize barcode scanner');
+                    return;
+                }
+                Quagga.start();
+
+                // Ensure the canvas is initialized with willReadFrequently attribute
+                const canvas = document.querySelector('canvas');
+                if (canvas) {
+                    const context = canvas.getContext('2d', { willReadFrequently: true });
+                    console.log('Canvas context modified with willReadFrequently:', context);
+                }
+            });
+
+            Quagga.onDetected(handleScan);
 
             return () => {
-                scanner.clear().catch(error => {
-                    console.error('Failed to clear scanner.', error);
-                });
+                Quagga.offDetected(handleScan);
+                Quagga.stop();
             };
         }
     }, [scanning]);
+
+    const handleScan = (result) => {
+        if (result && result.codeResult && result.codeResult.code) {
+            const scannedCode = result.codeResult.code;
+            console.log('Scanned code:', scannedCode);
+
+            // Validate the scanned code
+            const isbn = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
+            console.log('Validated ISBN:', isbn);
+
+            setQuery(isbn);
+            setScanning(false);
+            handleSearchByISBN(isbn);
+        } else {
+            console.log('No code detected:', result);
+        }
+    };
 
     const handleChange = (e) => {
         setQuery(e.target.value);
@@ -74,13 +126,14 @@ const AddBySearch = () => {
         setScanning(!scanning);
     };
 
-    const handleScan = (decodedText, decodedResult) => {
-        if (decodedText) {
-            setQuery(decodedText);
-            setScanning(false);
-            handleSearchByISBN(decodedText);
-        }
-    };
+    // const handleScan = (result) => {
+    //     if (result && result.codeResult && result.codeResult.code) {
+    //         console.log('Scanned code:', result.codeResult.code); // Add logging
+    //         setQuery(result.codeResult.code);
+    //         setScanning(false);
+    //         handleSearchByISBN(result.codeResult.code);
+    //     }
+    // };
 
     const handleSearchByISBN = async (isbn) => {
         setLoading(true);
@@ -94,11 +147,6 @@ const AddBySearch = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleError = (err) => {
-        console.error('QR code parse error', err);
-        setError('Failed to scan ISBN. Ensure the barcode is properly visible and try again.');
     };
 
     const loadMore = () => {
@@ -141,7 +189,7 @@ const AddBySearch = () => {
                     scanning={scanning}
                 />
                 {scanning && (
-                    <div id="scanner" className="mt-4"></div>
+                    <div id="scanner" className="mt-4" style={{ width: '320px', height: '240px', margin: '0 auto' }}></div>
                 )}
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
                 {loading && (
