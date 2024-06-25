@@ -61,20 +61,20 @@ const Header = () => {
                             {mobileLink && (
                                 <Link
                                     to={mobileLink.to}
-                                    className="text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 px-3 py-2 rounded-lg md:hidden"
+                                    className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg md:hidden"
                                 >
                                     {mobileLink.text}
                                 </Link>
                             )}
-                            <Link to="/" className="hidden md:inline text-gray-800 hover:underline">
+                            <Link to="/" className="hidden md:inline text-teal-800 hover:underline">
                                 My Library
                             </Link>
                             <Popover className="relative hidden md:inline-block">
                                 {({ open, close }) => (
                                     <>
-                                        <PopoverButton className="inline-flex items-center text-gray-800 hover:underline focus:outline-none">
+                                        <PopoverButton className="inline-flex items-center text-teal-800 hover:underline focus:outline-none">
                                             Add Book
-                                            <ChevronDownIcon className="ml-2 h-5 w-5 text-gray-800" aria-hidden="true" />
+                                            <ChevronDownIcon className="ml-2 h-5 w-5 text-teal-800" aria-hidden="true" />
                                         </PopoverButton>
                                         {open && (
                                             <PopoverPanel className="absolute left-0 mt-3 px-4 transition-transform transform-gpu duration-200 ease-out w-auto min-w-full sm:min-w-0 sm:w-screen sm:max-w-md lg:max-w-2xl">
@@ -113,7 +113,7 @@ const Header = () => {
                     {token ? (
                         <button
                             onClick={handleLogout}
-                            className="text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                            className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
                         >
                             Log out
                         </button>
@@ -121,7 +121,7 @@ const Header = () => {
                         <>
                             <Link
                                 to="/login"
-                                className="text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
                             >
                                 Log in
                             </Link>

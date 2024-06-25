@@ -225,25 +225,45 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
     };
 
     try {
-        const response = await fetch(`${apiUrl}/books/add`, {
-            method: 'POST',
-            headers: headersWithAuth(),
-            body: JSON.stringify(bookData),
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error('Network response was not ok');
+        const existingBooks = await getUserBooks();
+        const existingBook = existingBooks.find(b =>
+            b.title.toLowerCase() === title.toLowerCase() &&
+            b.authorFirstName.toLowerCase() === authorFirstName.toLowerCase() &&
+            b.authorLastName.toLowerCase() === authorLastName.toLowerCase()
+        );
+
+        if (existingBook) {
+            setDialog({
+                open: true,
+                title: `The book "${title}" by ${author} already exists in your library.`,
+                content: "How many additional copies would you like to add?",
+                onConfirm: async (numberOfCopies) => {
+                    if (numberOfCopies && numberOfCopies > 0) {
+                        await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
+                        setNotification({ show: true, message: `${numberOfCopies} copies of ${title} added to your library!` });
+                    }
+                }
+            });
+        } else {
+            const response = await fetch(`${apiUrl}/books/add`, {
+                method: 'POST',
+                headers: headersWithAuth(),
+                body: JSON.stringify(bookData),
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error('Network response was not ok');
+            }
+            const newBook = await response.json();
+            setUndoBook(newBook._id);
+            setNotification({ show: true, message: `Book "${title}" added to your library!`, undo: true });
         }
-        const newBook = await response.json();
-        setUndoBook(newBook._id);
-        setNotification({ show: true, message: `Book "${book.title}" added to the library!`, undo: true });
     } catch (err) {
         console.error('Failed to add book:', err);
         setNotification({ show: true, message: 'Failed to add book.', error: true });
     }
 };
-
 
 export const getUserBooks = async () => {
     const response = await fetch(`${apiUrl}/books/user-books`, {
@@ -256,59 +276,3 @@ export const getUserBooks = async () => {
     }
     return await response.json();
 };
-
-// export const fetchLibraryBooks = async () => {
-//     const response = await fetch(`${apiUrl}/books`, {
-//         headers: headersWithAuth(),
-//     });
-//     if (!response.ok) {
-//         throw new Error('Network response was not ok');
-//     }
-//     return await response.json();
-// };
-
-// export const addBookToLibrary = async (book, copies, setNotification, setDialog, setUndoBook) => {
-//     const [authorFirstName, authorLastName] = (book.author || '').split(' ', 2);
-//     const bookData = {
-//         title: book.title || 'Unknown Title',
-//         authorFirstName: authorFirstName || 'Unknown',
-//         authorLastName: authorLastName || 'Unknown',
-//         publishedDate: book.publishedDate || '',
-//         pages: book.pages || 0,
-//         genre: book.genre || 'Unknown',
-//         subject: book.subject || 'Unknown',
-//         coverImage: book.coverImage || '',
-//         isbn: book.isbn || 'N/A',
-//         copies: parseInt(copies, 10) || 1
-//     };
-
-//     try {
-//         const existingBooks = await fetchLibraryBooks();
-//         const existingBook = existingBooks.find(b =>
-//             b.title.toLowerCase() === book.title.toLowerCase() &&
-//             b.authorFirstName.toLowerCase() === authorFirstName.toLowerCase() &&
-//             b.authorLastName.toLowerCase() === authorLastName.toLowerCase()
-//         );
-
-//         if (existingBook) {
-//             setDialog({
-//                 open: true,
-//                 title: `The book "${book.title}" by ${book.author} already exists in the library.`,
-//                 content: "How many additional copies would you like to add?",
-//                 onConfirm: async (numberOfCopies) => {
-//                     if (numberOfCopies && numberOfCopies > 0) {
-//                         await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
-//                         setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to the library!` });
-//                     }
-//                 }
-//             });
-//         } else {
-//             const newBook = await createBook(bookData);
-//             setUndoBook(newBook._id);
-//             setNotification({ show: true, message: `Book "${book.title}" added to the library!`, undo: true });
-//         }
-//     } catch (err) {
-//         console.error('Failed to add book:', err);
-//         setNotification({ show: true, message: 'Failed to add book.', error: true });
-//     }
-// };
