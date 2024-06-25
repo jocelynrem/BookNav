@@ -1,19 +1,61 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/User');
 const Book = require('../models/Book');
+const { authenticateToken } = require('../middleware/auth');
+
+// Add a book to user's collection
+router.post('/add', authenticateToken, async (req, res) => {
+    try {
+        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+        const userId = req.user.id;
+
+        const book = new Book({
+            title,
+            authorFirstName,
+            authorLastName,
+            publishedDate,
+            pages,
+            genre,
+            subject,
+            coverImage,
+            isbn,
+            copies,
+            availableCopies: copies,
+        });
+
+        await book.save();
+
+        const user = await User.findById(userId);
+        user.books.push(book);
+        await user.save();
+
+        res.status(201).json(book);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Get all books for a user
+router.get('/user-books', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('books');
+        res.status(200).json(user.books);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Create a new book
 router.post('/', async (req, res) => {
     try {
-        console.log('Request body:', req.body);
-
         const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
 
         if (!title || !authorFirstName || !authorLastName) {
             return res.status(400).send('Title, Author First Name, and Author Last Name are required');
         }
 
-        // Create a new book instance
         const book = new Book({
             title,
             authorFirstName,
@@ -29,12 +71,9 @@ router.post('/', async (req, res) => {
             checkedOutCopies: 0
         });
 
-        // Save the new book
         await book.save();
-        console.log('Saved book:', book);
         res.status(201).send(book);
     } catch (error) {
-        console.error('Error creating book:', error);
         res.status(400).send(error.message);
     }
 });
@@ -68,23 +107,17 @@ router.patch('/:id', async (req, res) => {
         const { id } = req.params;
         const updates = req.body;
 
-        console.log('Updates:', updates); // Log updates for debugging
-
-        // Validate that copies is not negative
         if (updates.copies !== undefined && updates.copies < 1) {
             return res.status(400).send({ error: 'Copies must be 1 or more.' });
         }
 
-        // Find the book to update
         const book = await Book.findById(id);
         if (!book) {
             return res.status(404).send({ error: 'Book not found.' });
         }
 
-        // Update book properties
         Object.keys(updates).forEach(update => book[update] = updates[update]);
 
-        // Adjust availableCopies and checkedOutCopies based on the new copies count
         if (updates.copies !== undefined) {
             book.availableCopies = updates.copies - book.checkedOutCopies;
         }
@@ -92,7 +125,6 @@ router.patch('/:id', async (req, res) => {
         await book.save();
         res.send(book);
     } catch (error) {
-        console.error('Error updating book:', error); // Log detailed error
         res.status(400).send({ error: error.message });
     }
 });
@@ -113,7 +145,7 @@ router.patch('/:id/updateCopies', async (req, res) => {
         }
 
         book.copies = copies;
-        book.availableCopies = copies - book.checkedOutCopies; // Adjust availableCopies accordingly
+        book.availableCopies = copies - book.checkedOutCopies;
 
         await book.save();
         res.send(book);

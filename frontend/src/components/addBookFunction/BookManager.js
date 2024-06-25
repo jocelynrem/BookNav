@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addBookToLibrary } from '../../services/bookService';
+import { addUserBook } from '../../services/bookService';
 import Notification from './Notification';
 import ConfirmationDialog from './ConfirmationDialog';
 
@@ -8,7 +8,7 @@ const BookManager = () => {
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
 
     const handleAddBook = async (book, copies) => {
-        await addBookToLibrary(book, copies, setNotification, setDialog);
+        await addUserBook(book, copies, setNotification, setDialog);
     };
 
     return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBookByISBN, addBookToLibrary } from '../services/bookService';
+import { fetchBookByISBN, addUserBook } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
 import SearchBookTable from './SearchBookTable';
 import SlideoutParent from './SlideoutParent';
@@ -96,7 +96,7 @@ const AddBookISBN = () => {
                 <div className="mt-8 flow-root">
                     <SearchBookTable
                         books={books.slice(0, limit)}
-                        onAddBook={addBookToLibrary}
+                        onAddBook={addUserBook}
                         onTitleClick={handleTitleClick}
                     />
                     {books.length > limit && (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addBookToLibrary, deleteBook } from '../services/bookService';
+import { addUserBook, deleteBook } from '../services/bookService';
 import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook }) => {
@@ -16,7 +16,7 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
 
     const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            await addBookToLibrary(book, copies, setNotification, setDialog, setUndoBook);
+            await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
         } else {
             alert('Please enter a valid number of copies.');
         }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addBookToLibrary, deleteBook } from '../services/bookService';
+import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
-import Quagga from 'quagga'; // Import QuaggaJS
+import Quagga from 'quagga';
 import SearchBookTable from './SearchBookTable';
 import SlideoutParent from './SlideoutParent';
 import BookSearch from './BookSearch';
@@ -164,7 +164,7 @@ const AddBySearch = () => {
     };
 
     const handleAddBook = async (book, copies) => {
-        await addBookToLibrary(book, copies, setNotification, setDialog, setUndoBook);
+        await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
     };
 
     const handleUndo = async () => {

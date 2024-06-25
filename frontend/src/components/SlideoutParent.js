@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
-import { fetchLibraryBooks, deleteBook } from '../services/bookService';
+import { getUserBooks, deleteBook } from '../services/bookService';
 import Notification from './addBookFunction/Notification';
 import ConfirmationDialog from './addBookFunction/ConfirmationDialog';
 
@@ -17,7 +17,7 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
     useEffect(() => {
         const checkBookInLibrary = async () => {
             if (isOpen && book) {
-                const existingBooks = await fetchLibraryBooks();
+                const existingBooks = await getUserBooks();
                 const existingBook = existingBooks.find(b =>
                     b.title?.toLowerCase() === book.title?.toLowerCase() &&
                     b.authorFirstName?.toLowerCase() === book.authorFirstName?.toLowerCase() &&

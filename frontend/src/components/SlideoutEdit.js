@@ -75,14 +75,6 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     return (
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center pb-4">
-                {/* <button
-                    type="button"
-                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                    onClick={onClose}
-                >
-                    <XMarkIcon className="h-6 w-6" />
-                    <span className="sr-only">Close panel</span>
-                </button> */}
                 <button
                     type="button"
                     className="flex items-center text-teal-700 hover:text-teal-900"

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const bookRouter = require('./routes/books');
+const authRouter = require('./routes/auth');
 
 dotenv.config();
 const app = express();
@@ -27,7 +28,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
 app.use('/api/books', bookRouter);
+app.use('/api/auth', authRouter);
 
 app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
