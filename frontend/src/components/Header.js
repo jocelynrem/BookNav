@@ -54,7 +54,7 @@ const Header = () => {
             <nav className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full" aria-label="Global">
                 <div className="flex items-center space-x-6 py-4">
                     <div className="-m-1.5 p-1.5">
-                        <BuildingLibraryIcon className="h-8 w-8 text-teal-800" />
+                        <BuildingLibraryIcon className="h-8 w-8 text-teal-600" />
                     </div>
                     {token && (
                         <div className="flex items-center space-x-6">
