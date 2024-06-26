@@ -1,5 +1,7 @@
 const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
 
+console.log('API URL:', apiUrl);
+
 // Function to get the token from local storage
 export const getToken = () => localStorage.getItem('token');
 
