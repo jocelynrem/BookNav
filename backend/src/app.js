@@ -31,7 +31,6 @@ app.use(express.json());
 
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
-
 app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
 });
