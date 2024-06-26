@@ -9,10 +9,13 @@ const { authenticateToken } = require('../middleware/auth');
 router.post('/register', async (req, res) => {
     try {
         const { username, password, email } = req.body;
+        console.log('Registering user:', username, email);
         const user = new User({ username, password, email });
         await user.save();
+        console.log('User registered successfully:', user);
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
+        console.error('Error registering user:', err);
         if (err.code === 11000) {
             return res.status(400).json({ error: 'Username or email already exists' });
         }
@@ -24,13 +27,22 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log('Login attempt for user:', username);
         const user = await User.findOne({ username });
-        if (!user || !(await user.comparePassword(password))) {
+        if (!user) {
+            console.log('User not found:', username);
+            return res.status(401).json({ error: 'Invalid username or password' });
+        }
+        const isPasswordValid = await user.comparePassword(password);
+        if (!isPasswordValid) {
+            console.log('Invalid password for user:', username);
             return res.status(401).json({ error: 'Invalid username or password' });
         }
         const token = user.generateJWT();
+        console.log('Generated Token:', token);
         res.json({ token });
     } catch (err) {
+        console.error('Error during login:', err);
         res.status(500).json({ error: err.message });
     }
 });
