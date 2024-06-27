@@ -70,7 +70,7 @@ const Header = () => {
                                 My Library
                             </Link>
                             <Popover className="relative hidden md:inline-block">
-                                {({ open, close }) => (
+                                {({ open }) => (
                                     <>
                                         <PopoverButton className="inline-flex items-center text-teal-800 hover:underline focus:outline-none">
                                             Add Book
@@ -84,7 +84,11 @@ const Header = () => {
                                                             <Link
                                                                 key={action.title}
                                                                 to={action.disabled ? '#' : action.href}
-                                                                onClick={close}
+                                                                onClick={() => {
+                                                                    if (!action.disabled) {
+                                                                        navigate(action.href);
+                                                                    }
+                                                                }}
                                                                 className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 transition ease-in-out duration-150"
                                                             >
                                                                 <div className={`h-10 w-10 flex-none items-center justify-center rounded-lg p-2 text-pink-700 bg-gray-100 group-hover:bg-pink-700 group-hover:text-gray-100`}>

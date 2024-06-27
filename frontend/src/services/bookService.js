@@ -50,6 +50,7 @@ export const loginUser = async (credentials) => {
 
 export const logoutUser = () => {
     localStorage.removeItem('token'); // Remove token from local storage
+    localStorage.removeItem('currentRoute'); // Clear the saved route
     localStorage.removeItem('userBooks'); // Clear user-specific books data
 };
 
