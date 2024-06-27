@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchBookRow from './SearchBookRow';
 
-const SearchBookTable = ({ books, userBooks, onAddBook, onTitleClick }) => {
+const SearchBookTable = ({ books, userBooks, setUserBooks, onAddBook, onTitleClick }) => {
     return (
         <div className="overflow-x-auto">
             <div className="min-w-full align-middle">
@@ -15,6 +15,7 @@ const SearchBookTable = ({ books, userBooks, onAddBook, onTitleClick }) => {
                                     onAddBook={onAddBook}
                                     onTitleClick={onTitleClick}
                                     userBooks={userBooks}
+                                    setUserBooks={setUserBooks}
                                 />
                             ))}
                         </tbody>

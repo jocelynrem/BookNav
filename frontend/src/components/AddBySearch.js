@@ -167,6 +167,17 @@ const AddBySearch = () => {
 
     const handleAddBook = async (book, copies) => {
         await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+        // Immediately update the userBooks state
+        setUserBooks(prevBooks => [
+            ...prevBooks,
+            {
+                title: book.title,
+                authorFirstName: book.author.split(' ')[0],
+                authorLastName: book.author.split(' ')[1],
+                copies,
+                _id: Math.random().toString(36).substr(2, 9) // Example ID generation, replace with real ID from backend
+            }
+        ]);
     };
 
     const handleUndo = async () => {
@@ -207,6 +218,7 @@ const AddBySearch = () => {
                             onAddBook={handleAddBook}
                             onTitleClick={handleTitleClick}
                             setDialog={setDialog}
+                            setUserBooks={setUserBooks} // Pass setUserBooks down to SearchBookTable
                         />
                         {books.length > limit && (
                             <div className="mt-4 text-center">

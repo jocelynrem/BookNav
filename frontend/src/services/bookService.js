@@ -2,7 +2,7 @@ const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PRO
 
 console.log('API URL:', apiUrl);
 
-// Function to get the token from local storage
+// Navigation Functions
 export const getToken = () => localStorage.getItem('token');
 
 const headersWithAuth = () => {
@@ -209,7 +209,7 @@ export const fetchBooksByAuthor = async (author) => {
     });
 };
 
-// functions for managing user's books
+// Functions for managing user's books
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
     const { title, author, publishedDate, pages, genre, subject, coverImage, isbn } = book;
     const [authorFirstName, authorLastName] = author.split(' ');
@@ -261,12 +261,14 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
             const newBook = await response.json();
             setUndoBook(newBook._id);
             setNotification({ show: true, message: `Book "${title}" added to your library!`, undo: true });
+            return newBook; // Return the created book's data
         }
     } catch (err) {
         console.error('Failed to add book:', err);
         setNotification({ show: true, message: 'Failed to add book.', error: true });
     }
 };
+
 
 export const getUserBooks = async () => {
     const response = await fetch(`${apiUrl}/books/user-books`, {

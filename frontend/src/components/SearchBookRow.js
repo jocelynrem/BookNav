@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SearchBookRow = ({ book, userBooks, onAddBook, onTitleClick }) => {
+const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick }) => {
     const { title, author, coverImage } = book || {};
     const [copies, setCopies] = useState(1);
 
@@ -19,13 +19,29 @@ const SearchBookRow = ({ book, userBooks, onAddBook, onTitleClick }) => {
             userBookAuthorLastName === bookAuthorLastName;
     });
 
-    const handleAddBook = () => {
+    const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            onAddBook(book, copies);
+            const addedBook = await onAddBook(book, copies); // Wait for the backend response
+            if (addedBook) {
+                const { title, author } = book;
+                const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
+
+                setUserBooks(prevBooks => [
+                    ...prevBooks,
+                    {
+                        title,
+                        authorFirstName,
+                        authorLastName,
+                        copies,
+                        _id: addedBook._id // Use the ID returned from the backend
+                    }
+                ]);
+            }
         } else {
             alert('Please enter a valid number of copies.');
         }
     };
+
 
     return (
         <tr key={book.id} className="sm:table-row">
