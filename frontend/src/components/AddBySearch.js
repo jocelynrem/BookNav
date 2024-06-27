@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook } from '../services/bookService';
+import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
 import Quagga from 'quagga';
 import SearchBookTable from './SearchBookTable';
@@ -12,6 +12,7 @@ const AddBySearch = () => {
     const [searchType, setSearchType] = useState('isbn');
     const [query, setQuery] = useState('');
     const [books, setBooks] = useState([]);
+    const [userBooks, setUserBooks] = useState([]); // State to store user's existing books
     const [error, setError] = useState('');
     const [limit, setLimit] = useState(10);
     const [loading, setLoading] = useState(false);
@@ -23,17 +24,27 @@ const AddBySearch = () => {
     const [undoBook, setUndoBook] = useState(null);
 
     useEffect(() => {
+        // Fetch user's existing books here and set the userBooks state
+        const fetchUserBooks = async () => {
+            try {
+                const data = await getUserBooks();
+                setUserBooks(data);
+            } catch (err) {
+                setError('Failed to fetch user books');
+                console.error(err);
+            }
+        };
+
+        fetchUserBooks();
+    }, []);
+
+    useEffect(() => {
         if (scanning) {
             Quagga.init({
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
                     target: document.querySelector('#scanner'),
-                    // constraints: {
-                    //     width: 320,
-                    //     height: 240,
-                    //     facingMode: "environment"
-                    // },
                     area: {
                         top: "0%",
                         right: "0%",
@@ -126,15 +137,6 @@ const AddBySearch = () => {
         setScanning(!scanning);
     };
 
-    // const handleScan = (result) => {
-    //     if (result && result.codeResult && result.codeResult.code) {
-    //         console.log('Scanned code:', result.codeResult.code); // Add logging
-    //         setQuery(result.codeResult.code);
-    //         setScanning(false);
-    //         handleSearchByISBN(result.codeResult.code);
-    //     }
-    // };
-
     const handleSearchByISBN = async (isbn) => {
         setLoading(true);
         try {
@@ -201,8 +203,10 @@ const AddBySearch = () => {
                     <div className="mt-8 flow-root">
                         <SearchBookTable
                             books={books.slice(0, limit)}
+                            userBooks={userBooks}
                             onAddBook={handleAddBook}
                             onTitleClick={handleTitleClick}
+                            setDialog={setDialog}
                         />
                         {books.length > limit && (
                             <div className="mt-4 text-center">

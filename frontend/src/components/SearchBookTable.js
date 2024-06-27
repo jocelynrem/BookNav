@@ -1,7 +1,7 @@
 import React from 'react';
 import SearchBookRow from './SearchBookRow';
 
-const SearchBookTable = ({ books, onAddBook, onTitleClick }) => {
+const SearchBookTable = ({ books, userBooks, onAddBook, onTitleClick }) => {
     return (
         <div className="overflow-x-auto">
             <div className="min-w-full align-middle">
@@ -13,7 +13,8 @@ const SearchBookTable = ({ books, onAddBook, onTitleClick }) => {
                                     key={book.id}
                                     book={book}
                                     onAddBook={onAddBook}
-                                    onTitleClick={onTitleClick} // Pass the title click handler
+                                    onTitleClick={onTitleClick}
+                                    userBooks={userBooks}
                                 />
                             ))}
                         </tbody>

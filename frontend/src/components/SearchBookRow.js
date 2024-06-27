@@ -1,8 +1,34 @@
 import React, { useState } from 'react';
 
-const SearchBookRow = ({ book, onAddBook, onTitleClick }) => {
+const SearchBookRow = ({ book, userBooks, onAddBook, onTitleClick }) => {
     const { title, author, coverImage } = book || {};
     const [copies, setCopies] = useState(1);
+
+    const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
+
+    const isInLibrary = userBooks && userBooks.some(userBook => {
+        const userBookTitle = userBook.title && userBook.title.toLowerCase();
+        const bookTitle = title && title.toLowerCase();
+        const userBookAuthorFirstName = userBook.authorFirstName && userBook.authorFirstName.toLowerCase();
+        const userBookAuthorLastName = userBook.authorLastName && userBook.authorLastName.toLowerCase();
+        const bookAuthorFirstName = authorFirstName && authorFirstName.toLowerCase();
+        const bookAuthorLastName = authorLastName && authorLastName.toLowerCase();
+
+        console.log('Comparing:', {
+            userBookTitle,
+            bookTitle,
+            userBookAuthorFirstName,
+            userBookAuthorLastName,
+            bookAuthorFirstName,
+            bookAuthorLastName
+        });
+
+        return userBookTitle === bookTitle &&
+            userBookAuthorFirstName === bookAuthorFirstName &&
+            userBookAuthorLastName === bookAuthorLastName;
+    });
+
+    console.log('isInLibrary:', isInLibrary);
 
     const handleAddBook = () => {
         if (copies > 0 && Number.isInteger(copies)) {
@@ -32,6 +58,9 @@ const SearchBookRow = ({ book, onAddBook, onTitleClick }) => {
                             {title || 'Unknown Title'}
                         </div>
                         <div className="mt-1 text-gray-500 truncate">{author || 'Unknown Author'}</div>
+                        {isInLibrary && (
+                            <div className="mt-1 text-red-500">This book is already in your library</div>
+                        )}
                     </div>
                 </div>
             </td>

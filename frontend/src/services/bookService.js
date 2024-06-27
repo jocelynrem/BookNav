@@ -208,7 +208,7 @@ export const fetchBooksByAuthor = async (author) => {
     });
 };
 
-// New functions for managing user's books
+// functions for managing user's books
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
     const { title, author, publishedDate, pages, genre, subject, coverImage, isbn } = book;
     const [authorFirstName, authorLastName] = author.split(' ');
