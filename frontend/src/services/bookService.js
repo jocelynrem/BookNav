@@ -136,7 +136,6 @@ export const fetchBookByISBN = async (isbn) => {
             throw new Error('Failed to fetch book details');
         }
         const data = await response.json();
-        console.log('Fetched data:', data); // Add logging
         const bookData = data[`ISBN:${isbn}`];
 
         if (!bookData) {

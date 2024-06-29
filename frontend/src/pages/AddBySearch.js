@@ -76,7 +76,6 @@ const AddBySearch = () => {
                 const canvas = document.querySelector('canvas');
                 if (canvas) {
                     const context = canvas.getContext('2d', { willReadFrequently: true });
-                    console.log('Canvas context modified with willReadFrequently:', context);
                 }
             });
 
@@ -92,11 +91,9 @@ const AddBySearch = () => {
     const handleScan = (result) => {
         if (result && result.codeResult && result.codeResult.code) {
             const scannedCode = result.codeResult.code;
-            console.log('Scanned code:', scannedCode);
 
             // Validate the scanned code
             const isbn = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
-            console.log('Validated ISBN:', isbn);
 
             setQuery(isbn);
             setScanning(false);
