@@ -1,11 +1,13 @@
+// frontend/src/auth/PrivateRoute.js
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { getToken } from '../services/bookService';
+import { useAuth } from '../contexts/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-    const token = getToken();
+    const { isAuthenticated } = useAuth();
 
-    if (!token) {
+    if (!isAuthenticated) {
         return <Navigate to="/login" />;
     }
 

@@ -1,8 +1,10 @@
+// frontend/src/components/slideout/SlideoutDetails.js
+
 import React, { useState } from 'react';
-import { addUserBook, deleteBook } from '../services/bookService';
+import { addUserBook } from '../../services/bookService';
 import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook }) => {
+const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
     const [copies, setCopies] = useState(1);
 
     const formatDate = (dateString) => {
@@ -16,7 +18,22 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
 
     const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+            const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+            if (addedBook) {
+                const { title, author } = book;
+                const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
+
+                setUserBooks(prevBooks => [
+                    ...prevBooks,
+                    {
+                        title,
+                        authorFirstName,
+                        authorLastName,
+                        copies,
+                        _id: addedBook._id // Use the ID returned from the backend
+                    }
+                ]);
+            }
         } else {
             alert('Please enter a valid number of copies.');
         }
@@ -27,14 +44,6 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
     return (
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
-                {/* <button
-                    type="button"
-                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                    onClick={onClose}
-                >
-                    <XMarkIcon className="h-6 w-6" />
-                    <span className="sr-only">Close panel</span>
-                </button> */}
                 {bookExists && (
                     <button
                         type="button"

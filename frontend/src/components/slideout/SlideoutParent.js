@@ -1,13 +1,15 @@
+//frontend/src/components/slideout/SlideoutParent.js
+
 import React, { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import SlideoutDetails from './SlideoutDetails';
 import SlideoutEdit from './SlideoutEdit';
-import { getUserBooks, deleteBook } from '../services/bookService';
-import Notification from './addBookFunction/Notification';
-import ConfirmationDialog from './addBookFunction/ConfirmationDialog';
+import { getUserBooks, deleteBook } from '../../services/bookService';
+import Notification from '../addBookFunction/Notification';
+import ConfirmationDialog from '../addBookFunction/ConfirmationDialog';
 
-const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing }) => {
+const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing, setUserBooks }) => {
     const [bookExists, setBookExists] = useState(false);
     const [isEditing, setIsEditing] = useState(initialIsEditing);
     const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
@@ -35,7 +37,8 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
 
     const handleUndo = async () => {
         if (undoBook) {
-            await deleteBook(undoBook);
+            await deleteBook(undoBook._id);
+            setUserBooks(prevBooks => prevBooks.filter(book => book._id !== undoBook._id));
             setNotification({ show: false, message: '' });
             setUndoBook(null);
         }
@@ -107,6 +110,7 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
                                                         setNotification={setNotification}
                                                         setDialog={setDialog}
                                                         setUndoBook={setUndoBook}
+                                                        setUserBooks={setUserBooks}
                                                     />
                                                 )}
                                             </div>

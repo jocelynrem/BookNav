@@ -1,8 +1,11 @@
+// frontend/src/components/Header.js
+
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon } from '@heroicons/react/20/solid';
-import { logoutUser, getToken } from '../services/bookService'; // Adjust the path as needed
+import { useAuth } from '../contexts/AuthContext';
+import { logoutUser } from '../services/bookService'; // Adjust the path as needed
 
 const actions = [
     {
@@ -30,10 +33,11 @@ function classNames(...classes) {
 const Header = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const token = getToken();
+    const { isAuthenticated, logout } = useAuth();
 
     const handleLogout = () => {
         logoutUser();
+        logout();
         navigate('/login');
     };
 
@@ -56,7 +60,7 @@ const Header = () => {
                     <div className="-m-1.5 p-1.5">
                         <BuildingLibraryIcon className="h-8 w-8 text-teal-600" />
                     </div>
-                    {token && (
+                    {isAuthenticated && (
                         <div className="flex items-center space-x-6">
                             {mobileLink && (
                                 <Link
@@ -70,7 +74,7 @@ const Header = () => {
                                 My Library
                             </Link>
                             <Popover className="relative hidden md:inline-block">
-                                {({ open }) => (
+                                {({ open, close }) => (
                                     <>
                                         <PopoverButton className="inline-flex items-center text-teal-800 hover:underline focus:outline-none">
                                             Add Book
@@ -87,6 +91,7 @@ const Header = () => {
                                                                 onClick={() => {
                                                                     if (!action.disabled) {
                                                                         navigate(action.href);
+                                                                        close();
                                                                     }
                                                                 }}
                                                                 className="group relative flex gap-x-4 rounded-lg p-4 hover:bg-gray-50 transition ease-in-out duration-150"
@@ -114,7 +119,7 @@ const Header = () => {
                     )}
                 </div>
                 <div className="flex items-center space-x-6">
-                    {token ? (
+                    {isAuthenticated ? (
                         <button
                             onClick={handleLogout}
                             className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import BookSortHeader from './BookSortHeader';
-import SlideoutParent from './SlideoutParent';
-import { updateBook } from '../services/bookService';
+import SlideoutParent from '../slideout/SlideoutParent';
+import { updateBook } from '../../services/bookService';
 
 const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleSortChange, fetchBooks }) => {
     const [selectedBook, setSelectedBook] = useState(null);

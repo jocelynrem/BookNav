@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { updateBook, deleteBook } from '../services/bookService';
+import { updateBook, deleteBook } from '../../services/bookService';
 import Swal from 'sweetalert2';
 import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 

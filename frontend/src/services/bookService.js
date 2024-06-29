@@ -1,7 +1,5 @@
 const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
 
-console.log('API URL:', apiUrl);
-
 // Navigation Functions
 export const getToken = () => localStorage.getItem('token');
 
@@ -124,6 +122,8 @@ export const deleteBook = async (id) => {
         headers: headersWithAuth(),
     });
     if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error('Network response was not ok');
     }
     return await response.json();
@@ -259,7 +259,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                 throw new Error('Network response was not ok');
             }
             const newBook = await response.json();
-            setUndoBook(newBook._id);
+            setUndoBook(newBook); // Set the complete book object, including `_id`
             setNotification({ show: true, message: `Book "${title}" added to your library!`, undo: true });
             return newBook; // Return the created book's data
         }
@@ -268,7 +268,6 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         setNotification({ show: true, message: 'Failed to add book.', error: true });
     }
 };
-
 
 export const getUserBooks = async () => {
     const response = await fetch(`${apiUrl}/books/user-books`, {

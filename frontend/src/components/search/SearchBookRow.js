@@ -42,7 +42,6 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
         }
     };
 
-
     return (
         <tr key={book.id} className="sm:table-row">
             <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 max-w-[200px] sm:max-w-[250px] truncate">

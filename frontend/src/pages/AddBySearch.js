@@ -1,12 +1,15 @@
+//frontend/src/pages/AddBySearch.js
+
 import React, { useState, useEffect } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
 import Quagga from 'quagga';
-import SearchBookTable from './SearchBookTable';
-import SlideoutParent from './SlideoutParent';
-import BookSearch from './BookSearch';
-import Notification from './addBookFunction/Notification';
-import ConfirmationDialog from './addBookFunction/ConfirmationDialog';
+import SearchBookTable from '../components/search/SearchBookTable';
+import SlideoutParent from '../components/slideout/SlideoutParent';
+import BookSearch from '../components/search/BookSearch';
+import Notification from '../components/addBookFunction/Notification';
+import ConfirmationDialog from '../components/addBookFunction/ConfirmationDialog';
+
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('isbn');
@@ -166,23 +169,29 @@ const AddBySearch = () => {
     };
 
     const handleAddBook = async (book, copies) => {
-        await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
-        // Immediately update the userBooks state
-        setUserBooks(prevBooks => [
-            ...prevBooks,
-            {
-                title: book.title,
-                authorFirstName: book.author.split(' ')[0],
-                authorLastName: book.author.split(' ')[1],
-                copies,
-                _id: Math.random().toString(36).substr(2, 9) // Example ID generation, replace with real ID from backend
-            }
-        ]);
+        const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+        if (addedBook) {
+            const { title, author } = book;
+            const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
+
+            setUserBooks(prevBooks => [
+                ...prevBooks,
+                {
+                    title,
+                    authorFirstName,
+                    authorLastName,
+                    copies,
+                    _id: addedBook._id // Ensure the ID returned from the backend is used
+                }
+            ]);
+            setUndoBook(addedBook); // Set the undoBook state
+        }
     };
 
     const handleUndo = async () => {
         if (undoBook) {
-            await deleteBook(undoBook);
+            await deleteBook(undoBook._id); // Use the book ID for deletion
+            setUserBooks(prevBooks => prevBooks.filter(book => book._id !== undoBook._id)); // Remove the book from state
             setNotification({ show: false, message: '' });
             setUndoBook(null);
         }
@@ -238,6 +247,7 @@ const AddBySearch = () => {
                         isOpen={isSlideoutOpen}
                         onClose={handleSlideoutClose}
                         book={selectedBook}
+                        setUserBooks={setUserBooks} // Pass setUserBooks to SlideoutParent
                     />
                 )}
                 <Notification notification={notification} setNotification={setNotification} onUndo={handleUndo} />
