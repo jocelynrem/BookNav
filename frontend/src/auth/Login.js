@@ -112,13 +112,13 @@ export default function Login() {
                                 </div>
                             </form>
 
-                            <div className="mt-6">
+                            {/* <div className="mt-6">
                                 <div className="relative flex justify-center text-sm font-medium leading-6">
                                     <span className="bg-white px-6 text-gray-900">Or continue with</span>
                                 </div>
-                            </div>
+                            </div> */}
 
-                            <div className="mt-6 grid grid-cols-2 gap-4">
+                            {/* <div className="mt-6 grid grid-cols-2 gap-4">
                                 <a
                                     href="#"
                                     onClick={handleGoogleLogin}
@@ -144,7 +144,7 @@ export default function Login() {
                                     </svg>
                                     <span className="text-sm font-semibold leading-6">Google</span>
                                 </a>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>

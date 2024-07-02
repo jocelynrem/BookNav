@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 // Configure Nodemailer to use SendGrid
 const transporter = nodemailer.createTransport({
@@ -71,15 +72,16 @@ router.post('/reset/:token', async (req, res) => {
     res.status(200).json({ message: 'Password reset successful' });
 });
 
-// Configure Google authentication routes
-router.get('/auth/google', passport.authenticate('google', {
+// Google authentication routes
+router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email'],
 }));
 
-router.get('/auth/google/callback',
+router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
-        res.redirect('/');
+        const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.redirect(`${process.env.FRONTEND_URL}/login?token=${token}`);
     }
 );
 
