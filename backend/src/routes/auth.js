@@ -9,6 +9,10 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const sgMail = require('@sendgrid/mail');
+
+// Set SendGrid API Key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Configure Nodemailer to use SendGrid
 const transporter = nodemailer.createTransport({
@@ -21,69 +25,76 @@ const transporter = nodemailer.createTransport({
 
 // Initiate password reset
 router.post('/reset-password', async (req, res) => {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-    }
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    await user.save();
-
-    const mailOptions = {
-        to: user.email,
-        from: process.env.SENDGRID_EMAIL, // Use your verified SendGrid sender email
-        subject: 'Password Reset',
-        text: `You are receiving this because you (or someone else) have requested to reset your password. Please click the following link to reset your password: \n\n
-        http://${req.headers.host}/reset/${resetToken}\n\n
-        If you did not request this, please ignore this email and your password will remain unchanged.\n`,
-    };
-
-    transporter.sendMail(mailOptions, (err, response) => {
-        if (err) {
-            console.error('There was an error: ', err);
-            res.status(500).json({ error: 'Failed to send reset email' });
-        } else {
-            res.status(200).json('Recovery email sent');
+        if (!user) {
+            return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
         }
-    });
+
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+        try {
+            await user.save();
+        } catch (saveError) {
+            console.error('Error saving user with reset token:', saveError);
+            return res.status(500).json({ error: 'Error saving reset token' });
+        }
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset/${resetToken}`;
+
+        const msg = {
+            to: user.email,
+            from: process.env.SENDGRID_EMAIL,
+            subject: 'Password Reset',
+            text: `You are receiving this because you (or someone else) have requested to reset your password. Please click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`,
+            html: `<p>You are receiving this because you (or someone else) have requested to reset your password.</p>
+                   <p>Please click on the following link, or paste this into your browser to complete the process:</p>
+                   <a href="${resetUrl}">${resetUrl}</a>
+                   <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`,
+        };
+
+        await sgMail.send(msg);
+        res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while processing your request.' });
+    }
 });
 
-// Reset password
+// Reset password with token
 router.post('/reset/:token', async (req, res) => {
-    const { password } = req.body;
-    const user = await User.findOne({
-        resetPasswordToken: req.params.token,
-        resetPasswordExpires: { $gt: Date.now() },
-    });
+    try {
+        const { password } = req.body;
+        if (!password) {
+            return res.status(400).json({ error: 'Password is required' });
+        }
 
-    if (!user) {
-        return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (user) {
+
+        } else {
+            return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+        }
+
+        // Update user's password
+        user.password = password; // The pre-save hook will hash this
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error in resetting password' });
     }
-
-    // Hash the new password before saving
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
-    res.status(200).json({ message: 'Password reset successful' });
 });
-
-// Google authentication routes
-router.get('/google', passport.authenticate('google', {
-    scope: ['profile', 'email'],
-}));
-
-router.get('/google/callback',
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => {
-        const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.redirect(`${process.env.FRONTEND_URL}/login?token=${token}`);
-    }
-);
 
 // Update user information
 router.put('/update', authenticateToken, async (req, res) => {
@@ -109,10 +120,8 @@ router.put('/update', authenticateToken, async (req, res) => {
 router.post('/register', async (req, res) => {
     try {
         const { username, password, email } = req.body;
-        console.log('Registering user:', username, email);
         const user = new User({ username, password, email });
         await user.save();
-        console.log('User registered successfully:', user);
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         console.error('Error registering user:', err);
@@ -126,18 +135,22 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        console.log('Login attempt for user:', username);
-        const user = await User.findOne({ username });
+        const { usernameOrEmail, password } = req.body;
+
+        const user = await User.findOne({
+            $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
+        });
+
         if (!user) {
-            console.log('User not found:', username);
-            return res.status(401).json({ error: 'Invalid username or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
+
         const isPasswordValid = await user.comparePassword(password);
+
         if (!isPasswordValid) {
-            console.log('Invalid password for user:', username);
-            return res.status(401).json({ error: 'Invalid username or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
+
         const token = user.generateJWT();
         res.json({ token });
     } catch (err) {

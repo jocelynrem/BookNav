@@ -15,10 +15,8 @@ const NavigationHandler = ({ children }) => {
         const isResetTokenPath = location.pathname.startsWith('/reset/');
 
         if (token && (publicRoutes.includes(location.pathname) || isResetTokenPath)) {
-            console.log('Redirecting to home because user is authenticated and trying to access a public route or reset token path.');
             navigate('/', { replace: true });
         } else if (!token && !publicRoutes.includes(location.pathname) && !isResetTokenPath) {
-            console.log('Redirecting to login because user is not authenticated and trying to access a private route.');
             navigate('/login', { replace: true });
         }
     }, [location, navigate]);

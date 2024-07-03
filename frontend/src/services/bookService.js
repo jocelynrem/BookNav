@@ -34,15 +34,18 @@ export const loginUser = async (credentials) => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+            usernameOrEmail: credentials.usernameOrEmail,
+            password: credentials.password
+        }),
     });
     if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+        throw new Error('Invalid credentials');
     }
     const data = await response.json();
-    localStorage.setItem('token', data.token); // Save token to local storage
+    localStorage.setItem('token', data.token);
     return data;
 };
 
