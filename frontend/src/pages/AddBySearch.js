@@ -1,5 +1,4 @@
 //frontend/src/pages/AddBySearch.js
-
 import React, { useState, useEffect } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
@@ -10,12 +9,11 @@ import BookSearch from '../components/search/BookSearch';
 import Notification from '../components/addBookFunction/Notification';
 import ConfirmationDialog from '../components/addBookFunction/ConfirmationDialog';
 
-
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('isbn');
     const [query, setQuery] = useState('');
     const [books, setBooks] = useState([]);
-    const [userBooks, setUserBooks] = useState([]); // State to store user's existing books
+    const [userBooks, setUserBooks] = useState([]);
     const [error, setError] = useState('');
     const [limit, setLimit] = useState(10);
     const [loading, setLoading] = useState(false);
@@ -25,9 +23,9 @@ const AddBySearch = () => {
     const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
     const [undoBook, setUndoBook] = useState(null);
+    const [hasSearched, setHasSearched] = useState(false);
 
     useEffect(() => {
-        // Fetch user's existing books here and set the userBooks state
         const fetchUserBooks = async () => {
             try {
                 const data = await getUserBooks();
@@ -114,6 +112,7 @@ const AddBySearch = () => {
 
     const handleSearch = async () => {
         setLoading(true);
+        setHasSearched(true);
         try {
             let data;
             if (searchType === 'title') {
@@ -200,11 +199,11 @@ const AddBySearch = () => {
                 <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2>
                 <BookSearch
                     query={query}
-                    handleChange={handleChange}
-                    handleSearchTypeChange={handleSearchTypeChange}
+                    handleChange={(e) => setQuery(e.target.value)}
+                    handleSearchTypeChange={(e) => setSearchType(e.target.value)}
                     handleSearch={handleSearch}
                     searchType={searchType}
-                    handleScanToggle={handleScanToggle}
+                    handleScanToggle={() => setScanning(!scanning)}
                     scanning={scanning}
                 />
                 {scanning && (
@@ -216,7 +215,13 @@ const AddBySearch = () => {
                         <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
                     </div>
                 )}
-                {books.length > 0 && !loading && (
+                {!loading && !hasSearched && (
+                    <p className="mt-4 text-center text-gray-500">Enter a search query to find books.</p>
+                )}
+                {!loading && hasSearched && books.length === 0 && (
+                    <p className="mt-4 text-center text-gray-500">No books found. Try a different search.</p>
+                )}
+                {!loading && books.length > 0 && (
                     <div className="mt-8 flow-root">
                         <SearchBookTable
                             books={books.slice(0, limit)}
@@ -224,7 +229,7 @@ const AddBySearch = () => {
                             onAddBook={handleAddBook}
                             onTitleClick={handleTitleClick}
                             setDialog={setDialog}
-                            setUserBooks={setUserBooks} // Pass setUserBooks down to SearchBookTable
+                            setUserBooks={setUserBooks}
                         />
                         {books.length > limit && (
                             <div className="mt-4 text-center">
@@ -244,7 +249,7 @@ const AddBySearch = () => {
                         isOpen={isSlideoutOpen}
                         onClose={handleSlideoutClose}
                         book={selectedBook}
-                        setUserBooks={setUserBooks} // Pass setUserBooks to SlideoutParent
+                        setUserBooks={setUserBooks}
                     />
                 )}
                 <Notification notification={notification} setNotification={setNotification} onUndo={handleUndo} />
