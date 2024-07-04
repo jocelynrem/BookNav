@@ -19,7 +19,6 @@ const MyLibrary = () => {
         setIsLoading(true);
         try {
             const data = await getBooks();
-            console.log('Fetched books:', data);
             setBooks(data);
         } catch (err) {
             console.error('Failed to fetch books:', err);
@@ -66,14 +65,35 @@ const MyLibrary = () => {
     const sortedBooks = books
         .filter(book =>
             book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (`${book.authorLastName}, ${book.authorFirstName}`).toLowerCase().includes(searchQuery.toLowerCase())
+            (book.author ? book.author.toLowerCase().includes(searchQuery.toLowerCase()) :
+                `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim().toLowerCase().includes(searchQuery.toLowerCase()))
         )
         .sort((a, b) => {
-            const aValue = sortField === 'author' ? a.authorLastName : a[sortField];
-            const bValue = sortField === 'author' ? b.authorLastName : b[sortField];
-            if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-            if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-            return 0;
+            if (sortField === 'author') {
+                const getAuthorLastName = (book) => {
+                    if (book.author) {
+                        const nameParts = book.author.split(' ');
+                        return nameParts[nameParts.length - 1]; // Last word as last name
+                    }
+                    return book.authorLastName || '';
+                };
+
+                const aValue = getAuthorLastName(a);
+                const bValue = getAuthorLastName(b);
+
+                return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            } else {
+                const aValue = a[sortField];
+                const bValue = b[sortField];
+
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                } else {
+                    if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+                    if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+                    return 0;
+                }
+            }
         });
 
     return (

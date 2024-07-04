@@ -220,12 +220,10 @@ export const fetchBooksByAuthor = async (author) => {
 // Functions for managing user's books
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
     const { title, author, publishedDate, pages, genre, subject, coverImage, isbn } = book;
-    const [authorFirstName, authorLastName] = author.split(' ');
 
     const bookData = {
         title,
-        authorFirstName,
-        authorLastName,
+        author: author || `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim(),
         publishedDate,
         pages,
         genre,
@@ -238,9 +236,8 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
     try {
         const existingBooks = await getUserBooks();
         const existingBook = existingBooks.find(b =>
-            b.title.toLowerCase() === title.toLowerCase() &&
-            b.authorFirstName.toLowerCase() === authorFirstName.toLowerCase() &&
-            b.authorLastName.toLowerCase() === authorLastName.toLowerCase()
+            b.title && book.title && b.title.toLowerCase() === book.title.toLowerCase() &&
+            b.author && book.author && b.author.toLowerCase() === book.author.toLowerCase()
         );
 
         if (existingBook) {
@@ -267,13 +264,14 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                 throw new Error('Network response was not ok');
             }
             const newBook = await response.json();
-            setUndoBook(newBook); // Set the complete book object, including `_id`
+            setUndoBook(newBook);
             setNotification({ show: true, message: `Book "${title}" added to your library!`, undo: true });
-            return newBook; // Return the created book's data
+            return newBook;
         }
     } catch (err) {
         console.error('Failed to add book:', err);
         setNotification({ show: true, message: 'Failed to add book.', error: true });
+        throw err; // Re-throw the error so it can be caught by the calling function
     }
 };
 

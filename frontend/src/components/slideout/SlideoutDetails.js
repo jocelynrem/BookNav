@@ -1,11 +1,14 @@
-// frontend/src/components/slideout/SlideoutDetails.js
-
 import React, { useState } from 'react';
 import { addUserBook } from '../../services/bookService';
 import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
     const [copies, setCopies] = useState(1);
+
+    const getAuthorName = (book) => {
+        if (book.author) return book.author;
+        return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -21,14 +24,12 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
             const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
             if (addedBook) {
                 const { title, author } = book;
-                const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
 
                 setUserBooks(prevBooks => [
                     ...prevBooks,
                     {
                         title,
-                        authorFirstName,
-                        authorLastName,
+                        author,
                         copies,
                         _id: addedBook._id // Use the ID returned from the backend
                     }
@@ -38,8 +39,6 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
             alert('Please enter a valid number of copies.');
         }
     };
-
-    const authorName = book.author || `${book.authorLastName || ''}, ${book.authorFirstName || ''}`.trim().replace(/^, |, $/, '');
 
     return (
         <div className="space-y-6 pb-16">
@@ -88,7 +87,7 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
                         {book.title}
                     </h2>
                     <p className="text-sm font-medium text-gray-500">
-                        {authorName || 'Author not available'}
+                        {getAuthorName(book) || 'Author not available'}
                     </p>
                 </div>
             </div>

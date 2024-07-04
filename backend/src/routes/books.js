@@ -7,13 +7,12 @@ const { authenticateToken } = require('../middleware/auth');
 // Add a book to user's collection
 router.post('/add', authenticateToken, async (req, res) => {
     try {
-        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+        const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
         const userId = req.user.id;
 
         const book = new Book({
             title,
-            authorFirstName,
-            authorLastName,
+            author,
             publishedDate,
             pages,
             genre,
@@ -36,21 +35,19 @@ router.post('/add', authenticateToken, async (req, res) => {
     }
 });
 
-
 // Create a new book
 router.post('/', authenticateToken, async (req, res) => {
     try {
         console.log('Received request to create book:', req.body);
-        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+        const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
 
-        if (!title || !authorFirstName || !authorLastName) {
-            return res.status(400).send('Title, Author First Name, and Author Last Name are required');
+        if (!title || !author) {
+            return res.status(400).send('Title and Author are required');
         }
 
         const book = new Book({
             title,
-            authorFirstName,
-            authorLastName,
+            author,
             publishedDate,
             pages,
             genre,
@@ -78,7 +75,6 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 });
 
-
 // Get all books for a user
 router.get('/user-books', authenticateToken, async (req, res) => {
     try {
@@ -87,37 +83,6 @@ router.get('/user-books', authenticateToken, async (req, res) => {
         res.status(200).json(user.books);
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
-});
-
-// Create a new book
-router.post('/', async (req, res) => {
-    try {
-        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
-
-        if (!title || !authorFirstName || !authorLastName) {
-            return res.status(400).send('Title, Author First Name, and Author Last Name are required');
-        }
-
-        const book = new Book({
-            title,
-            authorFirstName,
-            authorLastName,
-            publishedDate,
-            pages,
-            genre,
-            subject,
-            coverImage,
-            isbn,
-            copies: copies || 1,
-            availableCopies: copies || 1,
-            checkedOutCopies: 0
-        });
-
-        await book.save();
-        res.status(201).send(book);
-    } catch (error) {
-        res.status(400).send(error.message);
     }
 });
 

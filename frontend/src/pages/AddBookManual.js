@@ -100,7 +100,7 @@ const AddBookManual = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label htmlFor="authorFirstName" className="block text-sm font-medium text-gray-700">
-                            Author First Name
+                            <RequiredFieldLabel>Author First Name</RequiredFieldLabel>
                         </label>
                         <input
                             type="text"
@@ -110,6 +110,8 @@ const AddBookManual = () => {
                             onChange={handleChange}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                         />
+                        {fieldErrors.authorFirstName && <p className="mt-1 text-sm text-red-500">{fieldErrors.authorFirstName}</p>}
+
                     </div>
                     <div>
                         <label htmlFor="authorLastName" className="block text-sm font-medium text-gray-700">

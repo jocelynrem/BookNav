@@ -6,6 +6,11 @@ import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     const [editingBook, setEditingBook] = useState(book);
 
+    const getAuthorName = (book) => {
+        if (book.author) return book.author;
+        return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
+    };
+
     useEffect(() => {
         setEditingBook(book);
     }, [book]);
@@ -95,21 +100,11 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
                 />
             </label>
             <label>
-                Author First Name
+                Author
                 <input
                     type="text"
-                    name="authorFirstName"
-                    value={editingBook.authorFirstName}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Author Last Name
-                <input
-                    type="text"
-                    name="authorLastName"
-                    value={editingBook.authorLastName}
+                    name="author"
+                    value={getAuthorName(book)}
                     onChange={handleChange}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
@@ -164,16 +159,6 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
             </label>
-            {/* <label>
-                Cover Image
-                <input
-                    type="text"
-                    name="coverImage"
-                    value={editingBook.coverImage}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label> */}
             <label>
                 ISBN
                 <input

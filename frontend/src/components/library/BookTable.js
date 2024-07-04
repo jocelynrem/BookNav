@@ -8,6 +8,11 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
+    const getAuthorName = (book) => {
+        if (book.author) return book.author;
+        return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
+    };
+
     const getSortIcon = (field) => {
         if (sortField !== field) return null;
         return sortOrder === 'asc' ? 'asc' : 'desc';
@@ -60,42 +65,32 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 bg-white">
-                                {sortedBooks.map((book) => {
-                                    const authorNameMobile = book.authorLastName;
-                                    const authorNameFull = `${book.authorLastName}, ${book.authorFirstName}`;
-                                    return (
-                                        <tr key={book._id}>
-                                            <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 max-w-[200px] sm:max-w-[250px] truncate">
-                                                <div className="flex items-center">
-                                                    {/* {book.coverImage && (
-                                                        <div className="h-11 w-11 flex-shrink-0">
-                                                            <img className="h-11 w-11 rounded-full" src={book.coverImage} alt="" />
-                                                        </div>
-                                                    )} */}
-                                                    <div className="ml-4">
-                                                        <div className="font-medium text-gray-900 cursor-pointer truncate" onClick={() => handleTitleClick(book)}>
-                                                            {String(book.title)}
-                                                        </div>
+                                {sortedBooks.map((book) => (
+                                    <tr key={book._id}>
+                                        <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 max-w-[200px] sm:max-w-[250px] truncate">
+                                            <div className="flex items-center">
+                                                <div className="ml-4">
+                                                    <div className="font-medium text-gray-900 cursor-pointer truncate" onClick={() => handleTitleClick(book)}>
+                                                        {String(book.title)}
                                                     </div>
                                                 </div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 max-w-[150px] sm:max-w-[300px] truncate">
-                                                <span className="block sm:hidden">{String(authorNameMobile)}</span>
-                                                <span className="hidden sm:block">{String(authorNameFull)}</span>
-                                            </td>
-                                            <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 w-16 hidden sm:table-cell">{book.copies}</td>
-                                            <td className="relative w-12 whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                                <a
-                                                    href="#"
-                                                    onClick={() => handleEditClickInternal(book)}
-                                                    className="text-teal-800 hover:text-teal-900"
-                                                >
-                                                    Edit<span className="sr-only">, {book.title}</span>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                            </div>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 max-w-[150px] sm:max-w-[300px] truncate">
+                                            {getAuthorName(book)}
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 w-16 hidden sm:table-cell">{book.copies}</td>
+                                        <td className="relative w-12 whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                            <a
+                                                href="#"
+                                                onClick={() => handleEditClickInternal(book)}
+                                                className="text-teal-800 hover:text-teal-900"
+                                            >
+                                                Edit<span className="sr-only">, {book.title}</span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

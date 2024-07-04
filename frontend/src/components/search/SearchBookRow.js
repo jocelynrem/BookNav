@@ -4,36 +4,25 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
     const { title, author, coverImage } = book || {};
     const [copies, setCopies] = useState(1);
 
-    const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
-
     const isInLibrary = userBooks && userBooks.some(userBook => {
         const userBookTitle = userBook.title && userBook.title.toLowerCase();
         const bookTitle = title && title.toLowerCase();
-        const userBookAuthorFirstName = userBook.authorFirstName && userBook.authorFirstName.toLowerCase();
-        const userBookAuthorLastName = userBook.authorLastName && userBook.authorLastName.toLowerCase();
-        const bookAuthorFirstName = authorFirstName && authorFirstName.toLowerCase();
-        const bookAuthorLastName = authorLastName && authorLastName.toLowerCase();
+        const userBookAuthor = userBook.author && userBook.author.toLowerCase();
+        const bookAuthor = author && author.toLowerCase();
 
-        return userBookTitle === bookTitle &&
-            userBookAuthorFirstName === bookAuthorFirstName &&
-            userBookAuthorLastName === bookAuthorLastName;
+        return userBookTitle === bookTitle && userBookAuthor === bookAuthor;
     });
 
     const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            const addedBook = await onAddBook(book, copies); // Wait for the backend response
+            const addedBook = await onAddBook(book, copies);
             if (addedBook) {
-                const { title, author } = book;
-                const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
-
                 setUserBooks(prevBooks => [
                     ...prevBooks,
                     {
-                        title,
-                        authorFirstName,
-                        authorLastName,
+                        ...book,
                         copies,
-                        _id: addedBook._id // Use the ID returned from the backend
+                        _id: addedBook._id
                     }
                 ]);
             }
@@ -73,7 +62,7 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
                     <input
                         type="number"
                         value={copies}
-                        onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)} // Ensure copies is an integer
+                        onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
                         min="1"
                         className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
                     />
