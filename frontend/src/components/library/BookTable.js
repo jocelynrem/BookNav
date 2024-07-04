@@ -56,7 +56,12 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                         <table className="min-w-full divide-y divide-gray-300">
                             <thead>
                                 <tr>
-                                    <BookSortHeader field="title" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Title" />
+                                    <BookSortHeader
+                                        field="title"
+                                        handleSortChange={handleSortChange}
+                                        getSortIcon={getSortIcon}
+                                        label="Title"
+                                    />
                                     <BookSortHeader field="author" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Author" />
                                     <BookSortHeader field="copies" handleSortChange={handleSortChange} getSortIcon={getSortIcon} label="Copies" className="w-16 hidden sm:table-cell" />
                                     <th scope="col" className="relative w-12 py-3.5 pl-3 pr-4 sm:pr-0">
@@ -70,7 +75,7 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                                         <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0 max-w-[200px] sm:max-w-[250px] truncate">
                                             <div className="flex items-center">
                                                 <div className="ml-4">
-                                                    <div className="font-medium text-gray-900 cursor-pointer truncate" onClick={() => handleTitleClick(book)}>
+                                                    <div className="font-medium cursor-pointer truncate text-teal-900 hover:text-teal-800 hover:underline transition-all duration-200 rounded px-1 -mx-1" onClick={() => handleTitleClick(book)}>
                                                         {String(book.title)}
                                                     </div>
                                                 </div>

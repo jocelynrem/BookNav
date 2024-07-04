@@ -44,7 +44,7 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
                     )}
                     <div className="ml-4 flex-1 min-w-0">
                         <div
-                            className="font-medium text-gray-800 cursor-pointer truncate hover:text-gray-900 hover:underline transition-all"
+                            className="font-medium text-teal-900 hover:text-teal-800 cursor-pointer truncate hover:underline transition-all"
                             onClick={() => onTitleClick(book)}
                             title="Click to view more details"
                         >
