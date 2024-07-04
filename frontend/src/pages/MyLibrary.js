@@ -15,22 +15,31 @@ const MyLibrary = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        fetchBooks();
-    }, []);
-
     const fetchBooks = async () => {
         setIsLoading(true);
         try {
             const data = await getBooks();
+            console.log('Fetched books:', data);
             setBooks(data);
         } catch (err) {
+            console.error('Failed to fetch books:', err);
             setError('Failed to fetch books');
-            console.error(err);
         } finally {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchBooks();
+    }, []);
+
+    useEffect(() => {
+        const handleFocus = () => {
+            fetchBooks();
+        };
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, []);
 
     const handleEditClick = (book) => {
         setSelectedBook(book);

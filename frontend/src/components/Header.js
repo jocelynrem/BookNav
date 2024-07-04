@@ -19,10 +19,10 @@ const actions = [
     {
         title: 'Add Manually',
         description: 'IN PROGRESS: check back later for this feature',
-        href: '#',
+        href: '/add-manual',
         icon: BookOpenIcon,
         iconClasses: 'text-gray-400 bg-gray-50 hover:text-pink-700 hover:bg-white',
-        disabled: true,
+        disabled: false,
     },
 ];
 

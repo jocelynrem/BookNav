@@ -69,22 +69,28 @@ export const getBooks = async () => {
 };
 
 export const createBook = async (book) => {
-    const bookData = {
-        ...book,
-        copies: parseInt(book.copies, 10)
-    };
-
-    const response = await fetch(`${apiUrl}/books`, {
-        method: 'POST',
-        headers: headersWithAuth(),
-        body: JSON.stringify(bookData),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    console.log('Attempting to create book:', book);
+    try {
+        const response = await fetch(`${apiUrl}/books`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: JSON.stringify(book),
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error('Failed to create book');
+        }
+        const createdBook = await response.json();
+        console.log('Book created successfully:', createdBook);
+        return createdBook;
+    } catch (error) {
+        console.error('Error in createBook:', error);
+        throw error;
     }
-    return await response.json();
 };
 
 export const updateBook = async (id, book) => {

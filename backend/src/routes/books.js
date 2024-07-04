@@ -36,6 +36,49 @@ router.post('/add', authenticateToken, async (req, res) => {
     }
 });
 
+
+// Create a new book
+router.post('/', authenticateToken, async (req, res) => {
+    try {
+        console.log('Received request to create book:', req.body);
+        const { title, authorFirstName, authorLastName, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+
+        if (!title || !authorFirstName || !authorLastName) {
+            return res.status(400).send('Title, Author First Name, and Author Last Name are required');
+        }
+
+        const book = new Book({
+            title,
+            authorFirstName,
+            authorLastName,
+            publishedDate,
+            pages,
+            genre,
+            subject,
+            coverImage,
+            isbn,
+            copies: copies || 1,
+            availableCopies: copies || 1,
+            checkedOutCopies: 0
+        });
+
+        await book.save();
+        console.log('Book saved:', book);
+
+        // Add the book to the user's library
+        const user = await User.findById(req.user.id);
+        user.books.push(book._id);
+        await user.save();
+        console.log('Book added to user library');
+
+        res.status(201).send(book);
+    } catch (error) {
+        console.error('Error creating book:', error);
+        res.status(400).send(error.message);
+    }
+});
+
+
 // Get all books for a user
 router.get('/user-books', authenticateToken, async (req, res) => {
     try {

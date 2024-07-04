@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MyLibrary from '../pages/MyLibrary';
 import AddBook from '../components/search/AddBook';
-import AddBookManual from '../components/AddBookManual';
+import AddBookManual from '../pages/AddBookManual';
 import AddBySearch from '../pages/AddBySearch';
 import Login from '../auth/Login';
 import Register from '../auth/Register';
