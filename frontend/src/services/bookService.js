@@ -69,7 +69,6 @@ export const getBooks = async () => {
 };
 
 export const createBook = async (book) => {
-    console.log('Attempting to create book:', book);
     try {
         const response = await fetch(`${apiUrl}/books`, {
             method: 'POST',
@@ -85,7 +84,6 @@ export const createBook = async (book) => {
             throw new Error('Failed to create book');
         }
         const createdBook = await response.json();
-        console.log('Book created successfully:', createdBook);
         return createdBook;
     } catch (error) {
         console.error('Error in createBook:', error);

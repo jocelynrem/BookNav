@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const AddBookManual = () => {
     const [book, setBook] = useState({
         title: '',
-        authorFirstName: '',
-        authorLastName: '',
+        author: '',
         isbn: '',
         publishedDate: '',
         genre: '',
@@ -34,7 +33,7 @@ const AddBookManual = () => {
     const validateForm = () => {
         const errors = {};
         if (!book.title.trim()) errors.title = 'Title is required';
-        if (!book.authorLastName.trim()) errors.authorLastName = 'Author last name is required';
+        if (!book.author.trim()) errors.author = 'Author name is required';
         setFieldErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -47,14 +46,12 @@ const AddBookManual = () => {
         }
         try {
             const createdBook = await createBook(book);
-            console.log('Book created:', createdBook);
             setSuccess('Book added successfully!');
             setError('');
 
             // Fetch updated library
             try {
                 await getBooks();
-                console.log('Library updated');
             } catch (fetchError) {
                 console.error('Error fetching updated library:', fetchError);
             }
@@ -97,37 +94,20 @@ const AddBookManual = () => {
                     />
                     {fieldErrors.title && <p className="mt-1 text-sm text-red-500">{fieldErrors.title}</p>}
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="authorFirstName" className="block text-sm font-medium text-gray-700">
-                            <RequiredFieldLabel>Author First Name</RequiredFieldLabel>
-                        </label>
-                        <input
-                            type="text"
-                            name="authorFirstName"
-                            id="authorFirstName"
-                            value={book.authorFirstName}
-                            onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                        />
-                        {fieldErrors.authorFirstName && <p className="mt-1 text-sm text-red-500">{fieldErrors.authorFirstName}</p>}
+                <div>
+                    <label htmlFor="author" className="block text-sm font-medium text-gray-700">
+                        <RequiredFieldLabel>Author Name</RequiredFieldLabel>
+                    </label>
+                    <input
+                        type="text"
+                        name="author"
+                        id="author"
+                        value={book.author}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                    />
+                    {fieldErrors.authorFirstName && <p className="mt-1 text-sm text-red-500">{fieldErrors.authorFirstName}</p>}
 
-                    </div>
-                    <div>
-                        <label htmlFor="authorLastName" className="block text-sm font-medium text-gray-700">
-                            <RequiredFieldLabel>Author Last Name</RequiredFieldLabel>
-                        </label>
-                        <input
-                            type="text"
-                            name="authorLastName"
-                            id="authorLastName"
-                            required
-                            value={book.authorLastName}
-                            onChange={handleChange}
-                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 ${fieldErrors.authorLastName ? 'border-red-500' : ''}`}
-                        />
-                        {fieldErrors.authorLastName && <p className="mt-1 text-sm text-red-500">{fieldErrors.authorLastName}</p>}
-                    </div>
                 </div>
                 <div>
                     <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">ISBN</label>
