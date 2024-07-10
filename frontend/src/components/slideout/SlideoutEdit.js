@@ -6,11 +6,6 @@ import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
 const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     const [editingBook, setEditingBook] = useState(book);
 
-    const getAuthorName = (book) => {
-        if (book.author) return book.author;
-        return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
-    };
-
     useEffect(() => {
         setEditingBook(book);
     }, [book]);
@@ -104,7 +99,7 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
                 <input
                     type="text"
                     name="author"
-                    value={getAuthorName(book)}
+                    value={editingBook.author || ''}
                     onChange={handleChange}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
                 />
