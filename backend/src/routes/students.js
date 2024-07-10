@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 
 // Get all students
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const students = await Student.find().populate('class', 'name');
         res.json(students);
@@ -14,7 +15,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create a new student
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     const newStudent = new Student({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -32,7 +33,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a student
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedStudent);
@@ -42,7 +43,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a student
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         await Student.findByIdAndDelete(req.params.id);
         res.json({ message: 'Student deleted' });
@@ -53,7 +54,9 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 // Get student reading history
 router.get('/:id/reading-history', authenticateToken, async (req, res) => {
-    try {
+    if (req.user.role !== 'teacher' && req.user.id !== req.params.id) {
+        return res.status(403).json({ message: 'Forbidden' });
+    } try {
         const checkoutRecords = await CheckoutRecord.find({ student: req.params.id })
             .populate({
                 path: 'bookCopy',

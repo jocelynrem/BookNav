@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const roleAuth = require('../middleware/roleAuth');
 const CheckoutRecord = require('../models/CheckoutRecord');
 const BookCopy = require('../models/BookCopy');
 
@@ -55,6 +56,21 @@ router.put('/return/:id', authenticateToken, async (req, res) => {
         res.json(checkoutRecord);
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+});
+
+// Get all checkouts (teachers only)
+router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const checkouts = await CheckoutRecord.find()
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title author' }
+            });
+        res.json(checkouts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
