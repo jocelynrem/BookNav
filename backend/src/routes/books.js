@@ -175,4 +175,28 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Get book history
+router.get('/:id/history', authenticateToken, async (req, res) => {
+    try {
+        const bookCopies = await BookCopy.find({ book: req.params.id });
+        const checkoutRecords = await CheckoutRecord.find({
+            bookCopy: { $in: bookCopies.map(copy => copy._id) }
+        }).populate('student', 'firstName lastName');
+
+        res.json(checkoutRecords);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get current status of all copies of a book
+router.get('/:id/status', authenticateToken, async (req, res) => {
+    try {
+        const bookCopies = await BookCopy.find({ book: req.params.id });
+        res.json(bookCopies);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
