@@ -17,23 +17,50 @@ async function migrateDatabase() {
             try {
                 console.log(`Updating book: ${book.title}`);
 
-                // Add new fields
+                // Handle missing author field
+                if (!book.author) {
+                    if (book.authorFirstName || book.authorLastName) {
+                        book.author = `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
+                    } else {
+                        book.author = 'Unknown Author';
+                    }
+                }
+
+                // Add new fields if they don't exist
                 book.readingLevel = book.readingLevel || 'Not Set';
                 book.lexileScore = book.lexileScore || 0;
                 book.arPoints = book.arPoints || 0;
 
+                // Ensure createdAt and updatedAt are set
+                if (!book.createdAt) book.createdAt = new Date();
+                book.updatedAt = new Date();
+
+                // Remove old author fields if they exist
+                book.authorFirstName = undefined;
+                book.authorLastName = undefined;
+
                 await book.save();
 
-                // Create BookCopy records for each book
-                for (let i = 1; i <= book.copies; i++) {
+                // Get existing BookCopy records for this book
+                const existingCopies = await BookCopy.countDocuments({ book: book._id });
+
+                // Create additional BookCopy records if needed
+                for (let i = existingCopies + 1; i <= book.copies; i++) {
                     console.log(`Creating copy ${i} for book: ${book.title}`);
                     await BookCopy.create({
                         book: book._id,
                         copyNumber: i,
-                        status: book.availableCopies >= i ? 'available' : 'checked out',
+                        status: 'available',
                         condition: 'good'
                     });
                 }
+
+                // Remove availableCopies and checkedOutCopies fields if they exist
+                await Book.updateOne(
+                    { _id: book._id },
+                    { $unset: { availableCopies: "", checkedOutCopies: "" } }
+                );
+
             } catch (bookError) {
                 console.error(`Error updating book ${book.title}:`, bookError.message);
             }
