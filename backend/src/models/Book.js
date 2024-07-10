@@ -5,11 +5,7 @@ const bookSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    authorFirstName: {
-        type: String,
-        required: true,
-    },
-    authorLastName: {
+    author: {
         type: String,
         required: true,
     },
@@ -30,6 +26,7 @@ const bookSchema = new mongoose.Schema({
     },
     isbn: {
         type: String,
+        index: true
     },
     readingLevel: {
         type: String,
@@ -60,6 +57,13 @@ const bookSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+bookSchema.virtual('availableCopies').get(function () {
+    return this.bookCopies ? this.bookCopies.filter(copy => copy.status === 'available').length : 0;
+});
+
+bookSchema.set('toJSON', { virtuals: true });
+bookSchema.set('toObject', { virtuals: true });
 
 bookSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
