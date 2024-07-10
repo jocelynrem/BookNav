@@ -1,11 +1,14 @@
 //backend/src/app.js
-
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const bookRouter = require('./routes/books');
 const authRouter = require('./routes/auth');
+const classRouter = require('./routes/classes');
+const studentRouter = require('./routes/students');
+const checkoutRouter = require('./routes/checkouts');
 
 dotenv.config();
 const app = express();
@@ -33,6 +36,9 @@ app.use(express.json());
 
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/classes', classRouter);
+app.use('/api/students', studentRouter);
+app.use('/api/checkouts', checkoutRouter);
 app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
 });
