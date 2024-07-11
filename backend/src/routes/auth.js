@@ -119,8 +119,8 @@ router.put('/update', authenticateToken, async (req, res) => {
 // Register a new user
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, email } = req.body;
-        const user = new User({ username, password, email });
+        const { username, password, email, role } = req.body;
+        const user = new User({ username, password, email, role });
         await user.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {

@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    role: {
+        type: String,
+        enum: ['teacher', 'student'],
+        default: 'student'
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -51,7 +56,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 // Method to generate JWT token
 userSchema.methods.generateJWT = function () {
-    return jwt.sign({ id: this._id, username: this.username }, process.env.JWT_SECRET, {
+    return jwt.sign({ id: this._id, username: this.username, role: this.role }, process.env.JWT_SECRET, {
         expiresIn: '1h',
     });
 };

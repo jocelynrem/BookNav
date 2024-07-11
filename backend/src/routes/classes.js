@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
+const roleAuth = require('../middleware/roleAuth');
 const Class = require('../models/Class');
 
 // Get all classes
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const classes = await Class.find().populate('teacher', 'username');
         res.json(classes);
@@ -14,7 +15,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Create a new class
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     const newClass = new Class({
         name: req.body.name,
         teacher: req.user.id,
@@ -30,7 +31,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Update a class
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const updatedClass = await Class.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedClass);
@@ -40,7 +41,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a class
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         await Class.findByIdAndDelete(req.params.id);
         res.json({ message: 'Class deleted' });
