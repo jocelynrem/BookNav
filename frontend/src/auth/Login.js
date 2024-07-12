@@ -1,3 +1,4 @@
+//frontend/src/auth/Login.js
 import React, { useState, useEffect } from 'react';
 import { loginUser } from '../services/bookService';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,16 +26,12 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await loginUser({ usernameOrEmail, password });
-            login();
+            const { token, role } = await loginUser({ usernameOrEmail, password });
+            login(token, role);
         } catch (error) {
             console.error('Login failed', error);
             setError(error.message || 'Login failed');
         }
-    };
-
-    const handleGoogleLogin = () => {
-        window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`;
     };
 
     return (

@@ -1,3 +1,4 @@
+//backend/src/models/BookCopy.js
 const mongoose = require('mongoose');
 
 const bookCopySchema = new mongoose.Schema({
@@ -8,7 +9,7 @@ const bookCopySchema = new mongoose.Schema({
     },
     copyNumber: {
         type: Number,
-        required: true
+        required: false
     },
     status: {
         type: String,

@@ -4,7 +4,14 @@
   "description": "Backend for BookNav application",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "NODE_ENV=test jest --runInBand --detectOpenHandles",
+    "test:authRoutes": "NODE_ENV=test jest backend/__tests__/AuthRoutes.test.js",
+    "test:checkoutRoutes": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles backend/__tests__/CheckoutRoutes.test.js",
+    "test:classRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/ClassRoutes.test.js",
+    "test:roleBasedAccess": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/RoleBasedAccess.test.js",
+    "test:studentRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/StudentRoutes.test.js",
+    "test:bookRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/BookRoutes.test.js"
   },
   "keywords": [
     "backend",
@@ -29,5 +36,9 @@
   },
   "engines": {
     "node": "20.x"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }

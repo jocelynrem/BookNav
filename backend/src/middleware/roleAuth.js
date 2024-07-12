@@ -1,19 +1,18 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+// backend/src/middleware/roleAuth.js
+const roleAuth = (roles) => {
+    return (req, res, next) => {
+        console.log('User role:', req.user.role);
+        console.log('Required roles:', roles);
 
-const roleAuth = (roles = []) => {
-    if (typeof roles === 'string') {
-        roles = [roles];
-    }
-
-    return async (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        const user = await User.findById(req.user.id);
+        const hasRole = Array.isArray(roles)
+            ? roles.includes(req.user.role)
+            : req.user.role === roles;
 
-        if (!user || !roles.includes(user.role)) {
+        if (!hasRole) {
             return res.status(403).json({ message: 'Forbidden' });
         }
 

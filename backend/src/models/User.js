@@ -1,3 +1,4 @@
+//backend/src/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -20,7 +21,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['teacher', 'student'],
-        default: 'student'
+        default: 'teacher'
     },
     createdAt: {
         type: Date,
@@ -47,18 +48,23 @@ userSchema.pre('save', async function (next) {
 // Method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
-        const isMatch = await bcrypt.compare(candidatePassword, this.password);
-        return isMatch;
+        return await bcrypt.compare(candidatePassword, this.password);
     } catch (error) {
-        return false;
+        throw new Error(error);
     }
 };
 
 // Method to generate JWT token
 userSchema.methods.generateJWT = function () {
-    return jwt.sign({ id: this._id, username: this.username, role: this.role }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-    });
+    return jwt.sign(
+        {
+            id: this._id,
+            username: this.username,
+            role: this.role
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
 };
 
 const User = mongoose.model('User', userSchema);

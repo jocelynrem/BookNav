@@ -1,3 +1,5 @@
+// frontend/src/services/bookService.js
+
 const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
 
 // Navigation Functions
@@ -7,7 +9,7 @@ const headersWithAuth = () => {
     const token = getToken();
     return {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        'Authorization': `Bearer ${token}`
     };
 };
 
@@ -46,6 +48,7 @@ export const loginUser = async (credentials) => {
     }
     const data = await response.json();
     localStorage.setItem('token', data.token);
+    localStorage.setItem('userRole', data.role);
     return data;
 };
 
@@ -274,13 +277,21 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
 };
 
 export const getUserBooks = async () => {
-    const response = await fetch(`${apiUrl}/books/user-books`, {
-        headers: headersWithAuth(),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    try {
+        const response = await fetch(`${apiUrl}/books/user-books`, {
+            headers: headersWithAuth(),
+        });
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log('Received user books:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching user books:', error);
+        throw error;
     }
-    return await response.json();
 };

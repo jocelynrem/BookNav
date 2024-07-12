@@ -1,11 +1,13 @@
+// backend/src/routes/books.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Book = require('../models/Book');
 const { authenticateToken } = require('../middleware/auth');
+const roleAuth = require('../middleware/roleAuth');
 
 // Add a book to user's collection
-router.post('/add', authenticateToken, async (req, res) => {
+router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) => {
     try {
         const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
         const userId = req.user.id;
@@ -36,7 +38,7 @@ router.post('/add', authenticateToken, async (req, res) => {
 });
 
 // Create a new book
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         console.log('Received request to create book:', req.body);
         const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
@@ -76,18 +78,23 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Get all books for a user
-router.get('/user-books', authenticateToken, async (req, res) => {
+router.get('/user-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    console.log('Accessing /user-books route');
+    console.log('User:', req.user);
     try {
         const userId = req.user.id;
+        console.log('Fetching books for user ID:', userId);
         const user = await User.findById(userId).populate('books');
+        console.log('User books:', user.books);
         res.status(200).json(user.books);
     } catch (err) {
+        console.error('Error in /user-books route:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
 // Get all books
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const books = await Book.find();
         res.status(200).send(books);
@@ -97,7 +104,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a book by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const book = await Book.findById(req.params.id);
         if (!book) {
@@ -110,7 +117,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // PATCH /:id - Update a book by ID
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -138,7 +145,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // PATCH /:id/updateCopies - Update book copies
-router.patch('/:id/updateCopies', async (req, res) => {
+router.patch('/:id/updateCopies', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { id } = req.params;
         const { copies } = req.body;
@@ -163,7 +170,7 @@ router.patch('/:id/updateCopies', async (req, res) => {
 });
 
 // Delete a book by id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const book = await Book.findByIdAndDelete(req.params.id);
         if (!book) {
@@ -176,7 +183,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Get book history
-router.get('/:id/history', authenticateToken, async (req, res) => {
+router.get('/:id/history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const bookCopies = await BookCopy.find({ book: req.params.id });
         const checkoutRecords = await CheckoutRecord.find({
@@ -190,7 +197,7 @@ router.get('/:id/history', authenticateToken, async (req, res) => {
 });
 
 // Get current status of all copies of a book
-router.get('/:id/status', authenticateToken, async (req, res) => {
+router.get('/:id/status', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const bookCopies = await BookCopy.find({ book: req.params.id });
         res.json(bookCopies);
