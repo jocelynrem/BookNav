@@ -12,20 +12,44 @@ router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) =
         const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
         const userId = req.user.id;
 
-        const book = new Book({
-            title,
-            author,
-            publishedDate,
-            pages,
-            genre,
-            subject,
-            coverImage,
-            isbn,
-            copies,
-            availableCopies: copies,
-        });
+        let book = await Book.findOne({ title, author });
 
-        await book.save();
+        if (book) {
+            const newCopiesCount = book.copies + copies;
+            for (let i = book.copies + 1; i <= newCopiesCount; i++) {
+                const newCopy = new BookCopy({
+                    book: book._id,
+                    copyNumber: i,
+                });
+                await newCopy.save();
+            }
+            book.copies = newCopiesCount;
+            book.availableCopies += copies;
+            await book.save();
+        } else {
+            book = new Book({
+                title,
+                author,
+                publishedDate,
+                pages,
+                genre,
+                subject,
+                coverImage,
+                isbn,
+                copies,
+                availableCopies: copies,
+            });
+
+            await book.save();
+
+            for (let i = 1; i <= copies; i++) {
+                const newCopy = new BookCopy({
+                    book: book._id,
+                    copyNumber: i,
+                });
+                await newCopy.save();
+            }
+        }
 
         const user = await User.findById(userId);
         user.books.push(book);
@@ -159,8 +183,19 @@ router.patch('/:id/updateCopies', authenticateToken, roleAuth('teacher'), async 
             return res.status(404).send('Book not found');
         }
 
-        book.copies = copies;
-        book.availableCopies = copies - book.checkedOutCopies;
+        const currentCopiesCount = book.copies;
+        const newCopiesCount = copies;
+
+        for (let i = currentCopiesCount + 1; i <= newCopiesCount; i++) {
+            const newCopy = new BookCopy({
+                book: book._id,
+                copyNumber: i,
+            });
+            await newCopy.save();
+        }
+
+        book.copies = newCopiesCount;
+        book.availableCopies = newCopiesCount - book.checkedOutCopies;
 
         await book.save();
         res.send(book);

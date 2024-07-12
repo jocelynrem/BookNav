@@ -1,4 +1,3 @@
-// frontend/src/pages/AddBySearch.js
 import React, { useState, useEffect } from 'react';
 import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../services/bookService';
 import { ClipLoader } from 'react-spinners';
@@ -165,29 +164,27 @@ const AddBySearch = () => {
     };
 
     const handleAddBook = async (book, copies) => {
-        const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+        const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook, setUserBooks);
         if (addedBook) {
             const { title, author } = book;
-            const [authorFirstName, authorLastName] = author ? author.split(' ') : ['', ''];
 
             setUserBooks(prevBooks => [
                 ...prevBooks,
                 {
                     title,
-                    authorFirstName,
-                    authorLastName,
+                    author,
                     copies,
-                    _id: addedBook._id // Ensure the ID returned from the backend is used
+                    _id: addedBook._id
                 }
             ]);
-            setUndoBook(addedBook); // Set the undoBook state
+            setUndoBook(addedBook);
         }
     };
 
     const handleUndo = async () => {
         if (undoBook) {
-            await deleteBook(undoBook._id); // Use the book ID for deletion
-            setUserBooks(prevBooks => prevBooks.filter(book => book._id !== undoBook._id)); // Remove the book from state
+            await deleteBook(undoBook._id);
+            setUserBooks(prevBooks => prevBooks.filter(book => book._id !== undoBook._id));
             setNotification({ show: false, message: '' });
             setUndoBook(null);
         }
@@ -199,11 +196,11 @@ const AddBySearch = () => {
                 <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2>
                 <BookSearch
                     query={query}
-                    handleChange={(e) => setQuery(e.target.value)}
-                    handleSearchTypeChange={(e) => setSearchType(e.target.value)}
+                    handleChange={handleChange}
+                    handleSearchTypeChange={handleSearchTypeChange}
                     handleSearch={handleSearch}
                     searchType={searchType}
-                    handleScanToggle={() => setScanning(!scanning)}
+                    handleScanToggle={handleScanToggle}
                     scanning={scanning}
                 />
                 {scanning && (

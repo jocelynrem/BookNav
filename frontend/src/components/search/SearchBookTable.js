@@ -1,3 +1,4 @@
+//frontend/src/components/search/SearchBookTable.js
 import React from 'react';
 import SearchBookRow from './SearchBookRow';
 

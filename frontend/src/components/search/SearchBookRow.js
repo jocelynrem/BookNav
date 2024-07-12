@@ -4,7 +4,7 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
     const { title, author, coverImage } = book || {};
     const [copies, setCopies] = useState(1);
 
-    const isInLibrary = userBooks && userBooks.some(userBook => {
+    const isInLibrary = userBooks.some(userBook => {
         const userBookTitle = userBook.title && userBook.title.toLowerCase();
         const bookTitle = title && title.toLowerCase();
         const userBookAuthor = userBook.author && userBook.author.toLowerCase();

@@ -64,16 +64,29 @@ export const logoutUser = () => {
 
 // API related functions
 export const getBooks = async () => {
-    const response = await fetch(`${apiUrl}/books/user-books`, {
-        headers: headersWithAuth(),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    try {
+        const response = await fetch(`${apiUrl}/books/user-books`, {
+            headers: headersWithAuth(),
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            if (response.status === 401) {
+                // Handle unauthorized errors (e.g., redirect to login)
+                console.error('Unauthorized, redirecting to login...');
+                localStorage.removeItem('token');
+                window.location.href = '/login'; // Redirect to login page
+                throw new Error('Unauthorized, please log in again.');
+            }
+            throw new Error('Network response was not ok');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching user books:', error);
+        throw error;
     }
-    return await response.json();
 };
+
 
 export const createBook = async (book) => {
     try {
@@ -223,12 +236,12 @@ export const fetchBooksByAuthor = async (author) => {
 };
 
 // Functions for managing user's books
-export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
+export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook, setUserBooks) => {
     const { title, author, publishedDate, pages, genre, subject, coverImage, isbn } = book;
 
     const bookData = {
         title,
-        author: author || `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim(),
+        author,
         publishedDate,
         pages,
         genre,
@@ -254,6 +267,10 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                     if (numberOfCopies && numberOfCopies > 0) {
                         await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
                         setNotification({ show: true, message: `${numberOfCopies} copies of ${title} added to your library!` });
+                        // Update the local state to reflect the additional copies
+                        setUserBooks(prevBooks => {
+                            return prevBooks.map(b => b._id === existingBook._id ? { ...b, copies: b.copies + numberOfCopies } : b);
+                        });
                     }
                 }
             });
@@ -279,6 +296,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         throw err; // Re-throw the error so it can be caught by the calling function
     }
 };
+
 
 export const getUserBooks = async () => {
     try {

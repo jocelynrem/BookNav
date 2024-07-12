@@ -110,6 +110,40 @@ describe('Student Routes', () => {
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBeTruthy();
     });
+
+    // New test for bulk-create endpoint
+    it('should allow a teacher to bulk create students', async () => {
+        const studentsData = [
+            {
+                firstName: 'Bulk1',
+                lastName: 'Student1',
+                studentId: `STUD_BULK_${Date.now()}_1`,
+                grade: 9,
+                classId: classId,
+                pin: '1111'
+            },
+            {
+                firstName: 'Bulk2',
+                lastName: 'Student2',
+                studentId: `STUD_BULK_${Date.now()}_2`,
+                grade: 10,
+                classId: classId,
+                pin: '2222'
+            }
+        ];
+
+        const res = await request(app)
+            .post('/api/students/bulk-create')
+            .set('Authorization', `Bearer ${teacherToken}`)
+            .send(studentsData);
+
+        console.log('Bulk create response:', res.body);
+        expect(res.statusCode).toEqual(201);
+        expect(res.body).toHaveProperty('success');
+        expect(res.body).toHaveProperty('failed');
+        expect(res.body.success).toEqual(2);
+        expect(res.body.failed).toEqual(0);
+    });
 });
 
 afterAll(async () => {

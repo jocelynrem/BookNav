@@ -35,6 +35,45 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     }
 });
 
+// Bulk create students
+router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const studentsData = req.body;
+        if (!Array.isArray(studentsData) || studentsData.length === 0) {
+            return res.status(400).json({ message: 'Invalid input. Expected an array of student objects.' });
+        }
+
+        const results = {
+            success: 0,
+            failed: 0,
+            errors: []
+        };
+
+        for (let studentData of studentsData) {
+            try {
+                const newStudent = new Student({
+                    firstName: studentData.firstName,
+                    lastName: studentData.lastName,
+                    studentId: studentData.studentId,
+                    grade: studentData.grade,
+                    class: studentData.classId,
+                    pin: studentData.pin || '0000' // Default PIN if not provided
+                });
+
+                await newStudent.save();
+                results.success++;
+            } catch (error) {
+                results.failed++;
+                results.errors.push(`Failed to create student ${studentData.firstName} ${studentData.lastName}: ${error.message}`);
+            }
+        }
+
+        res.status(201).json(results);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Update a student
 router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
