@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { addUserBook } from '../../services/bookService';
-import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+//frontend/src/components/slideout/SlideoutDetails.js
+import React from 'react';
+import { PlusCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
-    const [copies, setCopies] = useState(1);
-
     const getAuthorName = (book) => {
         if (book.author) return book.author;
         return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
@@ -19,58 +17,37 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
         return `${year}-${month}-${day}`;
     };
 
-    const handleAddBook = async () => {
-        if (copies > 0 && Number.isInteger(copies)) {
-            const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
-            if (addedBook) {
-                const { title, author } = book;
-
-                setUserBooks(prevBooks => [
-                    ...prevBooks,
-                    {
-                        title,
-                        author,
-                        copies,
-                        _id: addedBook._id // Use the ID returned from the backend
-                    }
-                ]);
-            }
-        } else {
-            alert('Please enter a valid number of copies.');
-        }
-    };
+    const renderField = (label, value, fieldName) => (
+        <div className="flex justify-between py-3 text-sm font-medium">
+            <dt className="text-gray-500">{label}</dt>
+            <dd className="text-gray-900 flex items-center">
+                {value || (
+                    <button
+                        onClick={() => onEdit()}
+                        className="text-teal-700 hover:text-teal-900 flex items-center"
+                    >
+                        <PlusCircleIcon className="h-5 w-5 mr-1" />
+                        Add
+                    </button>
+                )}
+            </dd>
+        </div>
+    );
 
     return (
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
-                {bookExists && (
-                    <button
-                        type="button"
-                        className="flex items-center text-teal-700 hover:text-teal-900"
-                        onClick={onEdit}
-                    >
-                        Edit book
-                        <ArrowRightIcon className="ml-1 h-5 w-5" />
-                    </button>
-                )}
-                {!bookExists && (
-                    <div className="flex items-center">
-                        <input
-                            type="number"
-                            value={copies}
-                            onChange={(e) => setCopies(parseInt(e.target.value, 10) || 1)}
-                            min="1"
-                            className="mr-2 w-16 p-1 border border-gray-300 rounded-md"
-                        />
-                        <button
-                            type="button"
-                            className="text-teal-700 hover:text-teal-900"
-                            onClick={handleAddBook}
-                        >
-                            Add<span className="sr-only">, {book.title}</span>
-                        </button>
-                    </div>
-                )}
+                <h2 className="text-base font-semibold leading-6 text-gray-900">
+                    {book.title}
+                </h2>
+                <button
+                    type="button"
+                    className="flex items-center text-teal-700 hover:text-teal-900"
+                    onClick={() => onEdit()}
+                >
+                    Edit book
+                    <ArrowRightIcon className="ml-1 h-5 w-5" />
+                </button>
             </div>
             {book.coverImage && (
                 <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
@@ -81,43 +58,20 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
                     />
                 </div>
             )}
-            <div className="mt-4 flex justify-between items-center">
-                <div>
-                    <h2 className="text-base font-semibold leading-6 text-gray-900">
-                        {book.title}
-                    </h2>
-                    <p className="text-sm font-medium text-gray-500">
-                        {getAuthorName(book) || 'Author not available'}
-                    </p>
-                </div>
-            </div>
             <div>
                 <h3 className="font-medium text-gray-900">Information</h3>
                 <dl className="mt-2 divide-y divide-gray-200 border-b border-t border-gray-200">
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">Genre</dt>
-                        <dd className="text-gray-900">{book.genre}</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">Subject</dt>
-                        <dd className="text-gray-900">{book.subject}</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">Published Date</dt>
-                        <dd className="text-gray-900">{formatDate(book.publishedDate)}</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">Pages</dt>
-                        <dd className="text-gray-900">{book.pages}</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">Copies</dt>
-                        <dd className="text-gray-900">{book.copies}</dd>
-                    </div>
-                    <div className="flex justify-between py-3 text-sm font-medium">
-                        <dt className="text-gray-500">ISBN</dt>
-                        <dd className="text-gray-900">{book.isbn}</dd>
-                    </div>
+                    {renderField("Author", getAuthorName(book), "author")}
+                    {renderField("Genre", book.genre, "genre")}
+                    {renderField("Subject", book.subject, "subject")}
+                    {renderField("Published Date", formatDate(book.publishedDate), "publishedDate")}
+                    {renderField("Pages", book.pages, "pages")}
+                    {renderField("Total Copies", book.copies, "copies")}
+                    {/* {renderField("Available Copies", book.availableCopies, "availableCopies")} */}
+                    {renderField("ISBN", book.isbn, "isbn")}
+                    {renderField("Reading Level", book.readingLevel, "readingLevel")}
+                    {renderField("Lexile Score", book.lexileScore, "lexileScore")}
+                    {renderField("AR Points", book.arPoints, "arPoints")}
                 </dl>
             </div>
         </div>

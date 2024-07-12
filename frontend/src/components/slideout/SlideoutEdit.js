@@ -1,7 +1,8 @@
+//frontend/src/components/slideout/SlideoutEdit.js
 import React, { useState, useEffect } from 'react';
 import { updateBook, deleteBook } from '../../services/bookService';
 import Swal from 'sweetalert2';
-import { ArrowRightIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     const [editingBook, setEditingBook] = useState(book);
@@ -61,20 +62,24 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = (`0${date.getMonth() + 1}`).slice(-2);
-        const day = (`0${date.getDate()}`).slice(-2);
-        return `${year}-${month}-${day}`;
-    };
+    const renderField = (label, name, type = "text") => (
+        <label className="block mb-2">
+            {label}
+            <input
+                type={type}
+                name={name}
+                value={editingBook[name] || ''}
+                onChange={handleChange}
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
+            />
+        </label>
+    );
 
     if (!editingBook) return null;
 
     return (
-        <div className="space-y-6 pb-16">
-            <div className="flex justify-between items-center pb-4">
+        <div className="space-y-4 pb-8">
+            <div className="flex justify-between items-center pb-2">
                 <button
                     type="button"
                     className="flex items-center text-teal-700 hover:text-teal-900"
@@ -84,86 +89,17 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
                     <ArrowRightIcon className="ml-1 h-5 w-5" />
                 </button>
             </div>
-            <label>
-                Title
-                <input
-                    type="text"
-                    name="title"
-                    value={editingBook.title}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Author
-                <input
-                    type="text"
-                    name="author"
-                    value={editingBook.author || ''}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Genre
-                <input
-                    type="text"
-                    name="genre"
-                    value={editingBook.genre}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Subject
-                <input
-                    type="text"
-                    name="subject"
-                    value={editingBook.subject}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Published Date
-                <input
-                    type="date"
-                    name="publishedDate"
-                    value={formatDate(editingBook.publishedDate)}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Pages
-                <input
-                    type="number"
-                    name="pages"
-                    value={editingBook.pages}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                Copies
-                <input
-                    type="number"
-                    name="copies"
-                    value={editingBook.copies}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
-            <label>
-                ISBN
-                <input
-                    type="text"
-                    name="isbn"
-                    value={editingBook.isbn}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                />
-            </label>
+            {renderField("Title", "title")}
+            {renderField("Author", "author")}
+            {renderField("Genre", "genre")}
+            {renderField("Subject", "subject")}
+            {renderField("Published Date", "publishedDate", "date")}
+            {renderField("Pages", "pages", "number")}
+            {renderField("Copies", "copies", "number")}
+            {renderField("ISBN", "isbn")}
+            {renderField("Reading Level", "readingLevel")}
+            {renderField("Lexile Score", "lexileScore")}
+            {renderField("AR Points", "arPoints")}
             <div className="flex justify-end px-4 py-4 sm:px-6">
                 <button
                     type="button"

@@ -18,7 +18,7 @@ const actions = [
     },
     {
         title: 'Add Manually',
-        description: 'IN PROGRESS: check back later for this feature',
+        description: 'Enter the book details manually',
         href: '/add-manual',
         icon: BookOpenIcon,
         iconClasses: 'text-gray-400 bg-gray-50 hover:text-pink-700 hover:bg-white',

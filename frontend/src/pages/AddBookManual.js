@@ -11,7 +11,10 @@ const AddBookManual = () => {
         genre: '',
         coverImage: '',
         pages: '',
-        copies: 1
+        copies: 1,
+        readingLevel: '',
+        lexileScore: '',
+        arPoints: ''
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -24,7 +27,6 @@ const AddBookManual = () => {
             ...prevBook,
             [name]: value
         }));
-        // Clear field-specific error when user starts typing
         if (fieldErrors[name]) {
             setFieldErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -49,14 +51,12 @@ const AddBookManual = () => {
             setSuccess('Book added successfully!');
             setError('');
 
-            // Fetch updated library
             try {
                 await getBooks();
             } catch (fetchError) {
                 console.error('Error fetching updated library:', fetchError);
             }
 
-            // Navigate to home after a short delay
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {
             console.error('Error adding book:', err);
@@ -102,34 +102,36 @@ const AddBookManual = () => {
                         type="text"
                         name="author"
                         id="author"
+                        required
                         value={book.author}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 ${fieldErrors.author ? 'border-red-500' : ''}`}
                     />
-                    {fieldErrors.authorFirstName && <p className="mt-1 text-sm text-red-500">{fieldErrors.authorFirstName}</p>}
-
+                    {fieldErrors.author && <p className="mt-1 text-sm text-red-500">{fieldErrors.author}</p>}
                 </div>
-                <div>
-                    <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">ISBN</label>
-                    <input
-                        type="text"
-                        name="isbn"
-                        id="isbn"
-                        value={book.isbn}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="publishedDate" className="block text-sm font-medium text-gray-700">Published Date</label>
-                    <input
-                        type="date"
-                        name="publishedDate"
-                        id="publishedDate"
-                        value={book.publishedDate}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                    />
+                <div className="sm:flex sm:space-x-4">
+                    <div className="flex-1 mb-4 sm:mb-0">
+                        <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">ISBN</label>
+                        <input
+                            type="text"
+                            name="isbn"
+                            id="isbn"
+                            value={book.isbn}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label htmlFor="publishedDate" className="block text-sm font-medium text-gray-700">Published Date</label>
+                        <input
+                            type="date"
+                            name="publishedDate"
+                            id="publishedDate"
+                            value={book.publishedDate}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
                 </div>
                 <div>
                     <label htmlFor="genre" className="block text-sm font-medium text-gray-700">Genre</label>
@@ -142,29 +144,66 @@ const AddBookManual = () => {
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
                     />
                 </div>
-                <div>
-                    <label htmlFor="pages" className="block text-sm font-medium text-gray-700">Number of Pages</label>
-                    <input
-                        type="number"
-                        name="pages"
-                        id="pages"
-                        value={book.pages}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                    />
+                <div className="sm:flex sm:space-x-4">
+                    <div className="flex-1 mb-4 sm:mb-0">
+                        <label htmlFor="pages" className="block text-sm font-medium text-gray-700">Number of Pages</label>
+                        <input
+                            type="number"
+                            name="pages"
+                            id="pages"
+                            value={book.pages}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label htmlFor="copies" className="block text-sm font-medium text-gray-700">Number of Copies</label>
+                        <input
+                            type="number"
+                            name="copies"
+                            id="copies"
+                            min="1"
+                            required
+                            value={book.copies}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="copies" className="block text-sm font-medium text-gray-700">Number of Copies</label>
-                    <input
-                        type="number"
-                        name="copies"
-                        id="copies"
-                        min="1"
-                        required
-                        value={book.copies}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                    />
+                <div className="sm:flex sm:space-x-4">
+                    <div className="flex-1 mb-4 sm:mb-0">
+                        <label htmlFor="readingLevel" className="block text-sm font-medium text-gray-700">Reading Level</label>
+                        <input
+                            type="text"
+                            name="readingLevel"
+                            id="readingLevel"
+                            value={book.readingLevel}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
+                    <div className="flex-1 mb-4 sm:mb-0">
+                        <label htmlFor="lexileScore" className="block text-sm font-medium text-gray-700">Lexile Score</label>
+                        <input
+                            type="text"
+                            name="lexileScore"
+                            id="lexileScore"
+                            value={book.lexileScore}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label htmlFor="arPoints" className="block text-sm font-medium text-gray-700">AR Points</label>
+                        <input
+                            type="text"
+                            name="arPoints"
+                            id="arPoints"
+                            value={book.arPoints}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                        />
+                    </div>
                 </div>
                 <div>
                     <button

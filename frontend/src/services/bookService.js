@@ -87,7 +87,6 @@ export const getBooks = async () => {
     }
 };
 
-
 export const createBook = async (book) => {
     try {
         const response = await fetch(`${apiUrl}/books`, {
@@ -179,7 +178,11 @@ export const fetchBookByISBN = async (isbn) => {
             subject: bookData.subjects ? bookData.subjects[0].name : 'Unknown Subject',
             coverImage: bookData.cover ? bookData.cover.large : '',
             isbn: isbn,
-            copies: 1
+            copies: 1,
+            readingLevel: 'Unknown',
+            lexileScore: null,
+            arPoints: null,
+            availableCopies: 1
         };
     } catch (error) {
         console.error(error);
@@ -206,7 +209,11 @@ export const fetchBooksByTitle = async (title) => {
             subject: book.subject ? book.subject[0] : 'Unknown',
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
-            copies: 1
+            copies: 1,
+            readingLevel: 'Unknown',
+            lexileScore: null,
+            arPoints: null,
+            availableCopies: 1
         };
     });
 };
@@ -230,14 +237,18 @@ export const fetchBooksByAuthor = async (author) => {
             subject: book.subject ? book.subject[0] : 'Unknown',
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
-            copies: 1
+            copies: 1,
+            readingLevel: 'Unknown',
+            lexileScore: null,
+            arPoints: null,
+            availableCopies: 1
         };
     });
 };
 
 // Functions for managing user's books
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook, setUserBooks) => {
-    const { title, author, publishedDate, pages, genre, subject, coverImage, isbn } = book;
+    const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, readingLevel, lexileScore, arPoints } = book;
 
     const bookData = {
         title,
@@ -248,6 +259,9 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         subject,
         coverImage,
         isbn,
+        readingLevel,
+        lexileScore,
+        arPoints,
         copies: parseInt(copies, 10) || 1,
     };
 
@@ -296,7 +310,6 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         throw err; // Re-throw the error so it can be caught by the calling function
     }
 };
-
 
 export const getUserBooks = async () => {
     try {
