@@ -1,8 +1,10 @@
+//backend/src/routes/students.js
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
+const CheckoutRecord = require('../models/CheckoutRecord');
 
 // Get all students
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -21,7 +23,8 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         lastName: req.body.lastName,
         studentId: req.body.studentId,
         grade: req.body.grade,
-        class: req.body.classId
+        class: req.body.classId,
+        pin: req.body.pin
     });
 
     try {
@@ -36,6 +39,9 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedStudent) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
         res.json(updatedStudent);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -53,10 +59,11 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
 });
 
 // Get student reading history
-router.get('/:id/reading-history', authenticateToken, async (req, res) => {
+router.get('/:id/reading-history', authenticateToken, roleAuth('teacher', 'student'), async (req, res) => {
     if (req.user.role !== 'teacher' && req.user.id !== req.params.id) {
         return res.status(403).json({ message: 'Forbidden' });
-    } try {
+    }
+    try {
         const checkoutRecords = await CheckoutRecord.find({ student: req.params.id })
             .populate({
                 path: 'bookCopy',

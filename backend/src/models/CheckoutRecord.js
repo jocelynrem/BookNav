@@ -1,3 +1,4 @@
+// backend/src/models/CheckoutRecord.js
 const mongoose = require('mongoose');
 
 const checkoutRecordSchema = new mongoose.Schema({

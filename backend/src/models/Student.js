@@ -1,3 +1,4 @@
+//backend/src/models/Student.js
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
@@ -28,6 +29,11 @@ const studentSchema = new mongoose.Schema({
     readingLevel: {
         type: String,
         trim: true
+    },
+    pin: {
+        type: String,
+        required: true,
+        match: /^\d{4}$/
     },
     createdAt: {
         type: Date,
