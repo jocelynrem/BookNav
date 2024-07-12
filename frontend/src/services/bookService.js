@@ -281,14 +281,12 @@ export const getUserBooks = async () => {
         const response = await fetch(`${apiUrl}/books/user-books`, {
             headers: headersWithAuth(),
         });
-        console.log('Response status:', response.status);
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error response:', errorText);
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        console.log('Received user books:', data);
         return data;
     } catch (error) {
         console.error('Error fetching user books:', error);
