@@ -17,5 +17,4 @@ afterAll(async () => {
         const collection = collections[key];
         await collection.deleteMany({});
     }
-    // await mongoose.connection.close();
 });

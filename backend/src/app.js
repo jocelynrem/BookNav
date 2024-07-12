@@ -14,17 +14,19 @@ const app = express();
 // Load appropriate .env file based on environment
 if (process.env.NODE_ENV === 'test') {
     require('dotenv').config({ path: '.env.test' });
+    console.log('Running in test environment');
 } else {
     require('dotenv').config();
+    console.log('Running in production environment');
 }
 
-const mongoUri = process.env.MONGODB_URI;
+const mongoUri = process.env.NODE_ENV === 'test' ? process.env.MONGODB_URI_TEST : process.env.MONGODB_URI;
+console.log(`MongoDB URI: ${mongoUri}`);
 
 mongoose.connect(mongoUri)
-    .then(() => console.log('MongoDB connected'))
+    .then(() => console.log(`MongoDB connected to ${process.env.NODE_ENV === 'test' ? 'test' : 'production'} database`))
     .catch(err => console.error('MongoDB connection error:', err));
 
-// Add these event listeners for better connection handling
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected');
 });
@@ -58,7 +60,6 @@ app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
