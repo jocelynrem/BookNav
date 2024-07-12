@@ -1,6 +1,10 @@
 // frontend/src/services/bookService.js
 
-const apiUrl = process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PROD_API_URL : process.env.REACT_APP_API_URL;
+const apiUrl = process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_PROD_API_URL
+    : process.env.NODE_ENV === 'test'
+        ? process.env.REACT_APP_TEST_API_URL
+        : process.env.REACT_APP_API_URL;
 
 // Navigation Functions
 export const getToken = () => localStorage.getItem('token');
