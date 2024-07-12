@@ -1,25 +1,24 @@
-//frontend/src/auth/NavigationHandler.js
-
+// frontend/src/auth/NavigationHandler.js
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const NavigationHandler = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
         const publicRoutes = ['/login', '/register', '/reset-password'];
-
-        // Check if the current path is the reset password token path
+        const isPublicRoute = publicRoutes.includes(location.pathname);
         const isResetTokenPath = location.pathname.startsWith('/reset/');
 
-        if (token && (publicRoutes.includes(location.pathname) || isResetTokenPath)) {
+        if (isAuthenticated && (isPublicRoute || isResetTokenPath)) {
             navigate('/', { replace: true });
-        } else if (!token && !publicRoutes.includes(location.pathname) && !isResetTokenPath) {
+        } else if (!isAuthenticated && !isPublicRoute && !isResetTokenPath) {
             navigate('/login', { replace: true });
         }
-    }, [location, navigate]);
+    }, [isAuthenticated, location, navigate]);
 
     return <>{children}</>;
 };

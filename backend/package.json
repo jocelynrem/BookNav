@@ -10,7 +10,8 @@
     "test:checkoutRoutes": "NODE_ENV=test jest --verbose --runInBand --detectOpenHandles backend/__tests__/CheckoutRoutes.test.js",
     "test:classRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/ClassRoutes.test.js",
     "test:roleBasedAccess": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/RoleBasedAccess.test.js",
-    "test:studentRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/StudentRoutes.test.js"
+    "test:studentRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/StudentRoutes.test.js",
+    "test:bookRoutes": "NODE_ENV=test jest --verbose --runInBand backend/__tests__/BookRoutes.test.js"
   },
   "keywords": [
     "backend",

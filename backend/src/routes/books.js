@@ -1,3 +1,4 @@
+// backend/src/routes/books.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -6,7 +7,7 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 
 // Add a book to user's collection
-router.post('/add', authenticateToken, roleAuth('teacher'), async (req, res) => {
+router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) => {
     try {
         const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
         const userId = req.user.id;
@@ -78,11 +79,16 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 
 // Get all books for a user
 router.get('/user-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    console.log('Accessing /user-books route');
+    console.log('User:', req.user);
     try {
         const userId = req.user.id;
+        console.log('Fetching books for user ID:', userId);
         const user = await User.findById(userId).populate('books');
+        console.log('User books:', user.books);
         res.status(200).json(user.books);
     } catch (err) {
+        console.error('Error in /user-books route:', err);
         res.status(500).json({ error: err.message });
     }
 });

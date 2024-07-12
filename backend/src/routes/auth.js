@@ -17,12 +17,17 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 // Register a new user
 router.post('/register', async (req, res) => {
     try {
-        const { username, password, email, role } = req.body;
-        const user = new User({ username, password, email, role });
+        const { username, password, email } = req.body;
+        const user = new User({
+            username,
+            password,
+            email,
+            role: 'teacher'  // Always set role to 'teacher'
+        });
         await user.save();
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ message: 'Teacher account created successfully' });
     } catch (err) {
-        console.error('Error registering user:', err);
+        console.error('Error registering teacher:', err);
         if (err.code === 11000) {
             return res.status(400).json({ error: 'Username or email already exists' });
         }
@@ -47,7 +52,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = user.generateJWT();
-        res.json({ token });
+        res.json({ token, role: user.role });
     } catch (err) {
         console.error('Error during login:', err);
         res.status(500).json({ error: err.message });

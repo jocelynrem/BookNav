@@ -1,16 +1,18 @@
-//backend/src/middleware/roleAuth.js
-
-const roleAuth = (roles = []) => {
-    if (typeof roles === 'string') {
-        roles = [roles];
-    }
-
+// backend/src/middleware/roleAuth.js
+const roleAuth = (roles) => {
     return (req, res, next) => {
+        console.log('User role:', req.user.role);
+        console.log('Required roles:', roles);
+
         if (!req.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        if (!roles.includes(req.user.role)) {
+        const hasRole = Array.isArray(roles)
+            ? roles.includes(req.user.role)
+            : req.user.role === roles;
+
+        if (!hasRole) {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
