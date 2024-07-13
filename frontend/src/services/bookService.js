@@ -6,6 +6,14 @@ const apiUrl = process.env.NODE_ENV === 'production'
         ? process.env.REACT_APP_TEST_API_URL
         : process.env.REACT_APP_API_URL;
 
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 // Navigation Functions
 export const getToken = () => localStorage.getItem('token');
 
@@ -172,7 +180,7 @@ export const fetchBookByISBN = async (isbn) => {
             id: isbn,
             title: bookData.title || 'Unknown Title',
             author: bookData.authors ? bookData.authors.map(author => author.name).join(', ') : 'Unknown Author',
-            publishedDate: bookData.publish_date || 'Unknown',
+            publishedDate: bookData.publish_date ? formatDate(bookData.publish_date) : 'Unknown',
             pages: bookData.number_of_pages || 0,
             genre: bookData.subjects ? bookData.subjects.map(subject => subject.name).join(', ') : 'Unknown Genre',
             subject: bookData.subjects ? bookData.subjects[0].name : 'Unknown Subject',
@@ -203,7 +211,7 @@ export const fetchBooksByTitle = async (title) => {
             id: book.key,
             title: book.title,
             author: authors,
-            publishedDate: book.first_publish_year ? new Date(book.first_publish_year, 0, 1) : null,
+            publishedDate: book.first_publish_year ? formatDate(new Date(book.first_publish_year, 0, 1)) : null,
             pages: book.number_of_pages_median || 0,
             genre: book.subject_facet ? book.subject_facet[0] : 'Unknown',
             subject: book.subject ? book.subject[0] : 'Unknown',
@@ -231,7 +239,7 @@ export const fetchBooksByAuthor = async (author) => {
             id: book.key,
             title: book.title,
             author: authors,
-            publishedDate: book.first_publish_year ? new Date(book.first_publish_year, 0, 1) : null,
+            publishedDate: book.first_publish_year ? formatDate(new Date(book.first_publish_year, 0, 1)) : null,
             pages: book.number_of_pages_median || 0,
             genre: book.subject_facet ? book.subject_facet[0] : 'Unknown',
             subject: book.subject ? book.subject[0] : 'Unknown',
@@ -307,7 +315,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
     } catch (err) {
         console.error('Failed to add book:', err);
         setNotification({ show: true, message: 'Failed to add book.', error: true });
-        throw err; // Re-throw the error so it can be caught by the calling function
+        throw err;
     }
 };
 
