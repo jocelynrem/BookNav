@@ -1,11 +1,10 @@
-//frontend/src/auth/Login.js
 import React, { useState, useEffect } from 'react';
 import { loginUser } from '../services/bookService';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LibraryImage from '../images/LibraryImage.jpg';
 
-export default function Login() {
+export default function LoginPage() {
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -18,7 +17,7 @@ export default function Login() {
         const token = params.get('token');
         if (token) {
             localStorage.setItem('token', token);
-            login();
+            login(token, 'user'); // Assuming 'user' as a default role
             navigate('/');
         }
     }, [location, login, navigate]);
@@ -28,6 +27,7 @@ export default function Login() {
         try {
             const { token, role } = await loginUser({ usernameOrEmail, password });
             login(token, role);
+            navigate('/');
         } catch (error) {
             console.error('Login failed', error);
             setError(error.message || 'Login failed');

@@ -1,8 +1,8 @@
-//frontend/src/components/classAndStudents/CSVImport.js
+//frontend/src/components/manage/CSVImport.js
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
-import { createStudent } from '../services/studentService';
+import { createStudent } from '../../services/studentService';
 
 const CSVImport = ({ onImportComplete }) => {
     const [file, setFile] = useState(null);

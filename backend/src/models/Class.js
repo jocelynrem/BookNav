@@ -18,7 +18,7 @@ const classSchema = new mongoose.Schema({
     }],
     schoolYear: {
         type: String,
-        required: true
+        required: false
     },
     createdAt: {
         type: Date,
