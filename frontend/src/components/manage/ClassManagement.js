@@ -1,23 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { PlusIcon, TrashIcon } from '@heroicons/react/20/solid';
+import React, { useState } from 'react';
+import { PlusIcon } from '@heroicons/react/20/solid';
 import Swal from 'sweetalert2';
 import { createClass, updateClass, deleteClass } from '../../services/classService';
+import ClassTable from './ClassTable';
 
-const ClassManagement = ({ classes, setClasses, selectedClass, setSelectedClass }) => {
-    const [showAddClass, setShowAddClass] = useState(classes.length === 0);
+const grades = [
+    { value: 'K', label: 'Kindergarten' },
+    { value: '1', label: '1st Grade' },
+    { value: '2', label: '2nd Grade' },
+    { value: '3', label: '3rd Grade' },
+    { value: '4', label: '4th Grade' },
+    { value: '5', label: '5th Grade' },
+    { value: '6', label: '6th Grade' },
+    { value: '7', label: '7th Grade' },
+    { value: '8', label: '8th Grade' },
+    { value: '9', label: '9th Grade' },
+    { value: '10', label: '10th Grade' },
+    { value: '11', label: '11th Grade' },
+    { value: '12', label: '12th Grade' },
+    { value: 'O', label: 'Other' },
+];
+
+const ClassManagement = ({ classes, setClasses }) => {
+    const [showManagement, setShowManagement] = useState(true);
     const [newClassName, setNewClassName] = useState('');
-    const [editClassId, setEditClassId] = useState('');
-    const [editClassName, setEditClassName] = useState('');
-
-    useEffect(() => {
-        if (classes.length === 1) {
-            setEditClassId(classes[0]._id);
-            setEditClassName(classes[0].name);
-        } else {
-            setEditClassId('');
-            setEditClassName('');
-        }
-    }, [classes]);
+    const [newClassGrade, setNewClassGrade] = useState('');
 
     const showNotification = (message, icon) => {
         Swal.fire({
@@ -32,79 +39,46 @@ const ClassManagement = ({ classes, setClasses, selectedClass, setSelectedClass 
 
     const handleCreateClass = async (e) => {
         e.preventDefault();
-        if (!newClassName.trim()) {
-            alert("Please enter a class name");
+        if (!newClassName.trim() || !newClassGrade) {
+            alert("Please enter a class name and select a grade");
             return;
         }
         try {
-            const newClass = await createClass({ name: newClassName });
-            setClasses(prevClasses => [...prevClasses, newClass]);
+            const newClass = await createClass({ name: newClassName, grade: newClassGrade });
+            setClasses(prevClasses => [...prevClasses, { ...newClass, studentCount: 0 }]);
             setNewClassName('');
-            setSelectedClass(newClass);
+            setNewClassGrade('');
             showNotification('Class has been created successfully.', 'success');
         } catch (error) {
             console.error('Failed to create class:', error);
-            alert("Failed to create class. Please try again.");
+            showNotification('Failed to create class. Please try again.', 'error');
         }
     };
 
-    const handleEditClass = async (e) => {
-        e.preventDefault();
-        if (!editClassName.trim()) {
-            alert("Please enter a class name");
-            return;
-        }
+    const handleEditClass = async (updatedClass) => {
         try {
-            const updatedClass = await updateClass(editClassId, { name: editClassName });
-            setClasses(classes.map(cls => cls._id === editClassId ? updatedClass : cls));
-            setEditClassId('');
-            setEditClassName('');
-            setSelectedClass(updatedClass);
+            const result = await updateClass(updatedClass._id, updatedClass);
+            setClasses(classes.map(cls => cls._id === updatedClass._id ? { ...result, studentCount: cls.studentCount } : cls));
             showNotification('Class has been updated successfully.', 'success');
         } catch (error) {
             console.error('Failed to update class:', error);
-            alert("Failed to update class. Please try again.");
+            showNotification('Failed to update class. Please try again.', 'error');
         }
     };
 
     const handleDeleteClass = async (classId) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel!',
-            reverseButtons: true
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    await deleteClass(classId);
-                    setClasses(classes.filter(cls => cls._id !== classId));
-                    setSelectedClass(classes.length > 1 ? classes[0] : null);
-                    setEditClassId('');
-                    setEditClassName('');
-                    showNotification('Your class has been deleted.', 'success');
-                } catch (error) {
-                    console.error('Failed to delete class:', error);
-                    Swal.fire(
-                        'Failed!',
-                        'Failed to delete class. Please try again.',
-                        'error'
-                    );
-                }
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                Swal.fire(
-                    'Cancelled',
-                    'Your class is safe :)',
-                    'error'
-                );
-            }
-        });
+        try {
+            await deleteClass(classId);
+            setClasses(classes.filter(cls => cls._id !== classId));
+            showNotification('Class has been deleted successfully.', 'success');
+        } catch (error) {
+            console.error('Failed to delete class:', error);
+            showNotification('Failed to delete class. Please try again.', 'error');
+        }
     };
 
     return (
-        <div>
+        <div className="space-y-6">
             <div className="relative">
                 <div aria-hidden="true" className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
@@ -114,113 +88,72 @@ const ClassManagement = ({ classes, setClasses, selectedClass, setSelectedClass 
                     <button
                         type="button"
                         className="inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                        onClick={() => setShowAddClass(!showAddClass)}
+                        onClick={() => setShowManagement(!showManagement)}
                     >
-                        <PlusIcon aria-hidden="true" className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400" />
-                        {showAddClass ? 'Hide' : 'Add or Edit a Class'}
+                        <PlusIcon className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+                        {showManagement ? 'Hide Management' : 'Show Management'}
                     </button>
                 </div>
             </div>
 
-            {showAddClass && (
-                <div className="mt-8 bg-white shadow sm:rounded-lg">
-                    <div className="px-4 py-5 sm:p-6">
-                        <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new class</h3>
-                        <div className="mt-2 max-w-xl text-sm text-gray-500">
-                            <p>Create a new class to manage students.</p>
+            {showManagement && (
+                <div className="space-y-6">
+                    <div className="bg-white shadow sm:rounded-lg">
+                        <div className="px-4 py-5 sm:p-6">
+                            <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new class</h3>
+                            <div className="mt-2 max-w-xl text-sm text-gray-500">
+                                <p>Create a new class to manage students.</p>
+                            </div>
+                            <form onSubmit={handleCreateClass} className="mt-5 sm:flex sm:items-center">
+                                <div className="w-full sm:max-w-xs">
+                                    <label htmlFor="className" className="sr-only">
+                                        Class name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="className"
+                                        id="className"
+                                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                        placeholder="Enter class name"
+                                        value={newClassName}
+                                        onChange={(e) => setNewClassName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className="mt-3 sm:ml-4 sm:mt-0 sm:w-40">
+                                    <label htmlFor="classGrade" className="sr-only">
+                                        Grade
+                                    </label>
+                                    <select
+                                        name="classGrade"
+                                        id="classGrade"
+                                        className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                        value={newClassGrade}
+                                        onChange={(e) => setNewClassGrade(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">Select Grade</option>
+                                        {grades.map(grade => (
+                                            <option key={grade.value} value={grade.value}>{grade.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900 sm:ml-3 sm:mt-0 sm:w-auto"
+                                >
+                                    Add Class
+                                </button>
+                            </form>
                         </div>
-                        <form onSubmit={handleCreateClass} className="mt-5 sm:flex sm:items-center">
-                            <div className="w-full sm:max-w-xs">
-                                <label htmlFor="className" className="sr-only">
-                                    Class name
-                                </label>
-                                <input
-                                    type="text"
-                                    name="className"
-                                    id="className"
-                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
-                                    placeholder="Enter class name"
-                                    value={newClassName}
-                                    onChange={(e) => setNewClassName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:ml-3 sm:mt-0 sm:w-auto"
-                            >
-                                Add
-                            </button>
-                        </form>
-                        {classes.length > 0 && (
-                            <div className="py-9">
-                                <span className="bg-white pr-3 text-base font-semibold leading-6 text-gray-900">Edit or Delete a Class</span>
-                                {classes.length > 1 && (
-                                    <div className="flex justify-between mt-2">
-                                        <div className="flex-grow">
-                                            <label htmlFor="editClassSelect" className="sr-only">
-                                                Select class to edit or delete
-                                            </label>
-                                            <select
-                                                id="editClassSelect"
-                                                name="editClassSelect"
-                                                className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 sm:text-sm"
-                                                value={editClassId}
-                                                onChange={(e) => {
-                                                    const selectedClass = classes.find(c => c._id === e.target.value);
-                                                    setEditClassId(e.target.value);
-                                                    setEditClassName(selectedClass ? selectedClass.name : '');
-                                                }}
-                                                required
-                                            >
-                                                <option value="" disabled>Select a class</option>
-                                                {classes.map((cls) => (
-                                                    <option key={cls._id} value={cls._id}>
-                                                        {cls.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                )}
-                                {editClassId && (
-                                    <div className="mt-4 sm:flex sm:items-center">
-                                        <form onSubmit={handleEditClass} className="flex items-center w-full">
-                                            <div className="flex-grow">
-                                                <label htmlFor="editClassName" className="sr-only">
-                                                    New class name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="editClassName"
-                                                    id="editClassName"
-                                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
-                                                    placeholder="Enter new class name"
-                                                    value={editClassName}
-                                                    onChange={(e) => setEditClassName(e.target.value)}
-                                                    required
-                                                />
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                className="ml-3 inline-flex items-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
-                                            >
-                                                Update Class Name
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="ml-3 inline-flex items-center rounded-md bg-red-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-900"
-                                                onClick={() => handleDeleteClass(editClassId)}
-                                            >
-                                                Delete This Class
-                                                <TrashIcon aria-hidden="true" className="-mr-0.5 h-4 w-4" />
-                                            </button>
-                                        </form>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
+
+                    <ClassTable
+                        classes={classes}
+                        setClasses={setClasses}
+                        handleEditClass={handleEditClass}
+                        handleDeleteClass={handleDeleteClass}
+                    />
                 </div>
             )}
         </div>

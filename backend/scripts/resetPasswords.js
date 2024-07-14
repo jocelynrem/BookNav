@@ -12,9 +12,7 @@ async function resetPasswords() {
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash('temporaryPassword123', salt);
             await user.save();
-            console.log(`Reset password for user: ${user.username}`);
         }
-        console.log('All passwords have been reset.');
     } catch (error) {
         console.error('Error resetting passwords:', error);
     } finally {

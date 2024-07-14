@@ -9,7 +9,7 @@ import Register from '../auth/Register';
 import PasswordReset from '../auth/PasswordReset';
 import PasswordResetRequest from '../auth/PasswordResetRequest';
 import PrivateRoute from '../auth/PrivateRoute';
-import ManagementPage from '../components/manage/ManagementPage';
+import ManagementPage from '../pages/ManagementPage';
 
 const AppRoutes = () => {
     return (

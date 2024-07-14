@@ -1,9 +1,10 @@
-//backend/src/routes/students.js
+// backend/src/routes/students.js
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
+const Class = require('../models/Class');
 const CheckoutRecord = require('../models/CheckoutRecord');
 
 // Get all students
@@ -18,16 +19,21 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 
 // Create a new student
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    const newStudent = new Student({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        studentId: req.body.studentId,
-        grade: req.body.grade,
-        class: req.body.classId,
-        pin: req.body.pin
-    });
-
     try {
+        const studentClass = await Class.findById(req.body.classId);
+        if (!studentClass) {
+            return res.status(400).json({ message: 'Class not found' });
+        }
+
+        const newStudent = new Student({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            studentId: req.body.studentId,
+            grade: studentClass.grade, // Set grade from class
+            class: req.body.classId,
+            pin: req.body.pin
+        });
+
         const savedStudent = await newStudent.save();
         res.status(201).json(savedStudent);
     } catch (error) {
@@ -51,11 +57,16 @@ router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, 
 
         for (let studentData of studentsData) {
             try {
+                const studentClass = await Class.findById(studentData.classId);
+                if (!studentClass) {
+                    throw new Error('Class not found');
+                }
+
                 const newStudent = new Student({
                     firstName: studentData.firstName,
                     lastName: studentData.lastName,
                     studentId: studentData.studentId,
-                    grade: studentData.grade,
+                    grade: studentClass.grade, // Set grade from class
                     class: studentData.classId,
                     pin: studentData.pin || '0000' // Default PIN if not provided
                 });
