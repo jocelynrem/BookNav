@@ -4,6 +4,7 @@ const Student = require('../models/Student');
 
 const authenticateToken = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
+    console.log('Received token:', token ? 'Present' : 'Not present');
 
     if (!token) {
         return res.status(401).json({ error: 'Access denied. No token provided.' });
@@ -40,6 +41,7 @@ const authenticateToken = async (req, res, next) => {
 
 // Optional: Middleware to ensure only teachers can access certain routes
 const teacherOnly = (req, res, next) => {
+    console.log('User role:', req.user ? req.user.role : 'No user');
     if (req.user && req.user.role === 'teacher') {
         return next();
     }

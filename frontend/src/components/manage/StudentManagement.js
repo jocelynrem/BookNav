@@ -1,6 +1,6 @@
-//frontend/src/components/manage/StudentManagement.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
+import Swal from 'sweetalert2';
 import { createStudent } from '../../services/studentService';
 import StudentTable from './StudentTable';
 
@@ -10,9 +10,42 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
     const [newStudentLastName, setNewStudentLastName] = useState('');
     const [newStudentPin, setNewStudentPin] = useState('');
 
+    useEffect(() => {
+        if (classes.length > 0 && !selectedClass) {
+            setSelectedClass(classes[0]); // Set default class if none is selected
+        }
+    }, [classes, selectedClass, setSelectedClass]);
+
+    const showNotification = (message, icon) => {
+        Swal.fire({
+            toast: true,
+            position: 'top-right',
+            showConfirmButton: false,
+            timer: 3000,
+            icon,
+            title: message,
+        });
+    };
+
     const handleCreateStudent = async (e) => {
         e.preventDefault();
-        if (!selectedClass) return;
+        if (!selectedClass || selectedClass._id === 'all') return;
+
+        const duplicateStudent = students.find(student =>
+            student.class === selectedClass._id &&
+            student.firstName === newStudentFirstName &&
+            student.lastName === newStudentLastName
+        );
+
+        if (duplicateStudent) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Duplicate Student',
+                text: 'A student with this first and last name already exists in this class.',
+            });
+            return;
+        }
+
         try {
             const newStudent = await createStudent({
                 firstName: newStudentFirstName,
@@ -20,31 +53,42 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
                 pin: newStudentPin,
                 classId: selectedClass._id,
             });
-            setStudents([...students, newStudent]);
+            setStudents(prevStudents => [...prevStudents, newStudent]);
             setNewStudentFirstName('');
             setNewStudentLastName('');
             setNewStudentPin('');
-            setShowAddStudent(false);
+            showNotification('Student has been created successfully.', 'success');
         } catch (error) {
-            console.error('Failed to create student:', error);
+            console.error('Failed to create student:', error.response ? error.response.data : error.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Failed to create student: ${error.response ? error.response.data.message : error.message}`,
+            });
         }
+    };
+
+    const handleClassChange = (e) => {
+        const selectedClassId = e.target.value;
+        const selectedClass = selectedClassId === 'all' ? { _id: 'all', name: 'All Classes' } : classes.find(cls => cls._id === selectedClassId);
+        setSelectedClass(selectedClass);
     };
 
     return (
         <div className="mt-8">
-            <div className="relative">
+            <div className="relative mt-8">
                 <div aria-hidden="true" className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex items-center justify-between">
                     <span className={`bg-white pr-3 text-base leading-6 ${!selectedClass ? 'text-gray-500' : 'text-gray-900 font-semibold'}`}>
-                        {!selectedClass ? "Select a class before adding students" : "Student Management"}
+                        {!selectedClass ? "Select a class before adding students" : "Add Students"}
                     </span>
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ${!selectedClass ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'}`}
+                        className={`inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ${!selectedClass || selectedClass._id === 'all' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'}`}
                         onClick={() => setShowAddStudent(!showAddStudent)}
-                        disabled={!selectedClass}
+                        disabled={!selectedClass || selectedClass._id === 'all'}
                     >
                         <PlusIcon aria-hidden="true" className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400" />
                         {showAddStudent ? 'Hide' : 'Add Student'}
@@ -52,10 +96,26 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
                 </div>
             </div>
 
-            {showAddStudent && selectedClass && (
+            {showAddStudent && selectedClass && selectedClass._id !== 'all' && (
                 <div className="mt-8 bg-gray-50 shadow sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
-                        <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new student</h3>
+                        <h3 className="text-base font-semibold leading-6 text-gray-900">
+                            Add a new student to
+                            {Array.isArray(classes) && classes.length > 1 ? (
+                                <select
+                                    value={selectedClass._id}
+                                    onChange={handleClassChange}
+                                    className="ml-2 rounded-md border-gray-300 text-base leading-6"
+                                >
+                                    <option value="" disabled>Select class</option>
+                                    {classes.map(cls => (
+                                        <option key={cls._id} value={cls._id}>{cls.name}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <span> {selectedClass.name}</span>
+                            )}
+                        </h3>
                         <div className="mt-2 max-w-xl text-sm text-gray-500">
                             <p>Add a new student to the selected class.</p>
                         </div>

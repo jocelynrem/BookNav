@@ -16,7 +16,7 @@ const classSchema = new mongoose.Schema({
         ref: 'Student'
     }],
     grade: {
-        type: String, // Changed from Number to String
+        type: String,
         required: true
     },
     schoolYear: {

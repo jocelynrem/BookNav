@@ -1,9 +1,8 @@
-//frontend/src/pages/ManagementPage.js
 import React, { useState, useEffect } from 'react';
 import ClassManagement from '../components/manage/ClassManagement';
 import StudentManagement from '../components/manage/StudentManagement';
 import { getClasses } from '../services/classService';
-import { getStudents } from '../services/studentService';
+import { getStudents, getStudentsByClass } from '../services/studentService';
 
 const ManagementPage = () => {
     const [classes, setClasses] = useState([]);
@@ -13,11 +12,14 @@ const ManagementPage = () => {
 
     useEffect(() => {
         fetchClasses();
+        fetchAllStudents();
     }, []);
 
     useEffect(() => {
         if (selectedClassForStudents) {
-            fetchStudents(selectedClassForStudents._id);
+            fetchStudentsByClass(selectedClassForStudents._id);
+        } else {
+            fetchAllStudents();
         }
     }, [selectedClassForStudents]);
 
@@ -25,21 +27,31 @@ const ManagementPage = () => {
         try {
             const fetchedClasses = await getClasses();
             setClasses(fetchedClasses);
-            if (fetchedClasses.length > 0) {
-                setSelectedClassForManagement(fetchedClasses[0]);
-                setSelectedClassForStudents(fetchedClasses[0]);
-            }
         } catch (error) {
             console.error('Failed to fetch classes:', error);
         }
     };
 
-    const fetchStudents = async (classId) => {
+    const fetchAllStudents = async () => {
         try {
-            const fetchedStudents = await getStudents(classId);
+            const fetchedStudents = await getStudents();
             setStudents(fetchedStudents || []);
         } catch (error) {
             console.error('Failed to fetch students:', error);
+            setStudents([]);
+        }
+    };
+
+    const fetchStudentsByClass = async (classId) => {
+        if (classId === 'all') {
+            fetchAllStudents();
+            return;
+        }
+        try {
+            const fetchedStudents = await getStudentsByClass(classId);
+            setStudents(fetchedStudents || []);
+        } catch (error) {
+            console.error('Failed to fetch students by class:', error);
             setStudents([]);
         }
     };

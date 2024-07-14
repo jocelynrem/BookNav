@@ -5,7 +5,6 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
-const CheckoutRecord = require('../models/CheckoutRecord');
 
 // Get all students
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -17,26 +16,50 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     }
 });
 
+// Get students by class
+router.get('/class/:classId', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const students = await Student.find({ class: req.params.classId }).populate('class', 'name');
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Create a new student
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentClass = await Class.findById(req.body.classId);
         if (!studentClass) {
+            console.log('Class not found:', req.body.classId);
             return res.status(400).json({ message: 'Class not found' });
+        }
+
+        // Check if a student with the same name already exists in the class
+        const existingStudent = await Student.findOne({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            class: req.body.classId
+        });
+
+        if (existingStudent) {
+            console.log('Duplicate student found:', existingStudent);
+            return res.status(400).json({ message: 'A student with this name already exists in the class' });
         }
 
         const newStudent = new Student({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            studentId: req.body.studentId,
-            grade: studentClass.grade, // Set grade from class
+            grade: studentClass.grade,
             class: req.body.classId,
             pin: req.body.pin
         });
 
         const savedStudent = await newStudent.save();
+        console.log('New student created:', savedStudent);
         res.status(201).json(savedStudent);
     } catch (error) {
+        console.error('Error creating student:', error);
         res.status(400).json({ message: error.message });
     }
 });
@@ -65,7 +88,6 @@ router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, 
                 const newStudent = new Student({
                     firstName: studentData.firstName,
                     lastName: studentData.lastName,
-                    studentId: studentData.studentId,
                     grade: studentClass.grade, // Set grade from class
                     class: studentData.classId,
                     pin: studentData.pin || '0000' // Default PIN if not provided
@@ -103,24 +125,6 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
     try {
         await Student.findByIdAndDelete(req.params.id);
         res.json({ message: 'Student deleted' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Get student reading history
-router.get('/:id/reading-history', authenticateToken, roleAuth('teacher', 'student'), async (req, res) => {
-    if (req.user.role !== 'teacher' && req.user.id !== req.params.id) {
-        return res.status(403).json({ message: 'Forbidden' });
-    }
-    try {
-        const checkoutRecords = await CheckoutRecord.find({ student: req.params.id })
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title author' }
-            });
-
-        res.json(checkoutRecords);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

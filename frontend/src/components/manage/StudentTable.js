@@ -6,7 +6,7 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [sortField, setSortField] = useState('name');
+    const [sortField, setSortField] = useState('firstName');
     const [sortOrder, setSortOrder] = useState('asc');
 
     const handleStudentClick = (student) => {
@@ -54,34 +54,36 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
 
     const handleClassChange = (e) => {
         const selectedClassId = e.target.value;
-        const selectedClass = classes.find(cls => cls._id === selectedClassId);
+        const selectedClass = selectedClassId === 'all' ? { _id: 'all', name: 'All Classes' } : classes.find(cls => cls._id === selectedClassId);
         setSelectedClass(selectedClass);
     };
 
     return (
         <div>
-            {selectedClass && (
-                <div className="mt-8">
-                    <div className="sm:flex sm:items-center">
-                        <div className="sm:flex-auto">
-                            <h2 className="text-base font-semibold leading-6 text-gray-900">
-                                Students in
-                                {Array.isArray(classes) && classes.length > 1 ? (
-                                    <select
-                                        value={selectedClass._id}
-                                        onChange={handleClassChange}
-                                        className="ml-2 rounded-md border-gray-300 text-base leading-6"
-                                    >
-                                        {classes.map(cls => (
-                                            <option key={cls._id} value={cls._id}>{cls.name}</option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <span> {selectedClass.name}</span>
-                                )}
-                            </h2>
-                        </div>
+            <div className="mt-8">
+                <div className="sm:flex sm:items-center">
+                    <div className="sm:flex-auto">
+                        <h2 className="text-base font-semibold leading-6 text-gray-900">
+                            View Students in
+                            {Array.isArray(classes) && classes.length > 1 ? (
+                                <select
+                                    value={selectedClass?._id || ''}
+                                    onChange={handleClassChange}
+                                    className="ml-2 rounded-md border-gray-300 text-base leading-6"
+                                >
+                                    <option value="" disabled>Select class</option>
+                                    <option value="all">All Classes</option>
+                                    {classes.map(cls => (
+                                        <option key={cls._id} value={cls._id}>{cls.name}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <span> {selectedClass?.name}</span>
+                            )}
+                        </h2>
                     </div>
+                </div>
+                {selectedClass && (
                     <div className="mt-8 flow-root">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
@@ -91,12 +93,14 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
                                             <th
                                                 scope="col"
                                                 className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
+                                                onClick={() => handleSortChange('firstName')}
                                             >
                                                 Name
                                             </th>
                                             <th
                                                 scope="col"
                                                 className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                                                onClick={() => handleSortChange('grade')}
                                             >
                                                 Grade
                                             </th>
@@ -115,7 +119,7 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
                                                                 className="font-medium text-teal-900 cursor-pointer hover:text-teal-700"
                                                                 onClick={() => handleStudentClick(student)}
                                                             >
-                                                                {student.name}
+                                                                {student.firstName} {student.lastName}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -128,7 +132,7 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
                                                         onClick={() => handleEditStudent(student)}
                                                         className="text-teal-900 hover:text-teal-800"
                                                     >
-                                                        Edit<span className="sr-only">, {student.name}</span>
+                                                        Edit<span className="sr-only">, {student.firstName} {student.lastName}</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -138,8 +142,8 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {selectedStudent && (
                 <SlideoutParent
