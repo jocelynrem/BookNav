@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
-import { updateStudent, deleteStudent } from '../../services/studentService';
+import React, { useState, useEffect } from 'react';
+import { getStudentsByClass, updateStudent, deleteStudent } from '../../services/studentService';
 import SlideoutParent from '../slideout/SlideoutParent';
 
-const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, classes }) => {
+const StudentTable = ({ students, setStudents, classes }) => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [sortField, setSortField] = useState('firstName');
     const [sortOrder, setSortOrder] = useState('asc');
+    const [selectedClassForView, setSelectedClassForView] = useState({ _id: 'all', name: 'All Classes' });
+
+    useEffect(() => {
+        fetchStudents();
+    }, [selectedClassForView]);
+
+    const fetchStudents = async () => {
+        try {
+            const students = await getStudentsByClass(selectedClassForView._id);
+            setStudents(students);
+        } catch (error) {
+            console.error('Failed to fetch students:', error);
+        }
+    };
 
     const handleStudentClick = (student) => {
         setSelectedStudent(student);
@@ -52,10 +66,10 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
         return 0;
     });
 
-    const handleClassChange = (e) => {
+    const handleClassChangeForView = (e) => {
         const selectedClassId = e.target.value;
         const selectedClass = selectedClassId === 'all' ? { _id: 'all', name: 'All Classes' } : classes.find(cls => cls._id === selectedClassId);
-        setSelectedClass(selectedClass);
+        setSelectedClassForView(selectedClass);
     };
 
     return (
@@ -67,23 +81,22 @@ const StudentTable = ({ students, setStudents, selectedClass, setSelectedClass, 
                             View Students in
                             {Array.isArray(classes) && classes.length > 1 ? (
                                 <select
-                                    value={selectedClass?._id || ''}
-                                    onChange={handleClassChange}
+                                    value={selectedClassForView._id}
+                                    onChange={handleClassChangeForView}
                                     className="ml-2 rounded-md border-gray-300 text-base leading-6"
                                 >
-                                    <option value="" disabled>Select class</option>
                                     <option value="all">All Classes</option>
                                     {classes.map(cls => (
                                         <option key={cls._id} value={cls._id}>{cls.name}</option>
                                     ))}
                                 </select>
                             ) : (
-                                <span> {selectedClass?.name}</span>
+                                <span> {selectedClassForView.name}</span>
                             )}
                         </h2>
                     </div>
                 </div>
-                {selectedClass && (
+                {selectedClassForView && (
                     <div className="mt-8 flow-root">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">

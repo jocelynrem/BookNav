@@ -4,17 +4,18 @@ import Swal from 'sweetalert2';
 import { createStudent } from '../../services/studentService';
 import StudentTable from './StudentTable';
 
-const StudentManagement = ({ students, setStudents, selectedClass, classes, setSelectedClass }) => {
+const StudentManagement = ({ students, setStudents, classes }) => {
     const [showAddStudent, setShowAddStudent] = useState(false);
     const [newStudentFirstName, setNewStudentFirstName] = useState('');
     const [newStudentLastName, setNewStudentLastName] = useState('');
     const [newStudentPin, setNewStudentPin] = useState('');
+    const [selectedClassForAdd, setSelectedClassForAdd] = useState(null);
 
     useEffect(() => {
-        if (classes.length > 0 && !selectedClass) {
-            setSelectedClass(classes[0]); // Set default class if none is selected
+        if (classes.length > 0 && !selectedClassForAdd) {
+            setSelectedClassForAdd(classes[0]); // Set the default class if none is selected
         }
-    }, [classes, selectedClass, setSelectedClass]);
+    }, [classes, selectedClassForAdd]);
 
     const showNotification = (message, icon) => {
         Swal.fire({
@@ -29,10 +30,10 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
 
     const handleCreateStudent = async (e) => {
         e.preventDefault();
-        if (!selectedClass || selectedClass._id === 'all') return;
+        if (!selectedClassForAdd) return;
 
         const duplicateStudent = students.find(student =>
-            student.class === selectedClass._id &&
+            student.class === selectedClassForAdd._id &&
             student.firstName === newStudentFirstName &&
             student.lastName === newStudentLastName
         );
@@ -51,7 +52,7 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
                 firstName: newStudentFirstName,
                 lastName: newStudentLastName,
                 pin: newStudentPin,
-                classId: selectedClass._id,
+                classId: selectedClassForAdd._id,
             });
             setStudents(prevStudents => [...prevStudents, newStudent]);
             setNewStudentFirstName('');
@@ -68,10 +69,10 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
         }
     };
 
-    const handleClassChange = (e) => {
+    const handleClassChangeForAdd = (e) => {
         const selectedClassId = e.target.value;
-        const selectedClass = selectedClassId === 'all' ? { _id: 'all', name: 'All Classes' } : classes.find(cls => cls._id === selectedClassId);
-        setSelectedClass(selectedClass);
+        const selectedClass = classes.find(cls => cls._id === selectedClassId);
+        setSelectedClassForAdd(selectedClass);
     };
 
     return (
@@ -81,14 +82,14 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
                     <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex items-center justify-between">
-                    <span className={`bg-white pr-3 text-base leading-6 ${!selectedClass ? 'text-gray-500' : 'text-gray-900 font-semibold'}`}>
-                        {!selectedClass ? "Select a class before adding students" : "Add Students"}
+                    <span className={`bg-white pr-3 text-base leading-6 ${!selectedClassForAdd ? 'text-gray-500' : 'text-gray-900 font-semibold'}`}>
+                        {!selectedClassForAdd ? "Select a class before adding students" : "Add Students"}
                     </span>
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 ${!selectedClass || selectedClass._id === 'all' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'}`}
+                        className={`inline-flex items-center gap-x-1.5 rounded-full px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-inset ${!selectedClassForAdd ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'}`}
                         onClick={() => setShowAddStudent(!showAddStudent)}
-                        disabled={!selectedClass || selectedClass._id === 'all'}
+                        disabled={!selectedClassForAdd}
                     >
                         <PlusIcon aria-hidden="true" className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400" />
                         {showAddStudent ? 'Hide' : 'Add Student'}
@@ -96,24 +97,23 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
                 </div>
             </div>
 
-            {showAddStudent && selectedClass && selectedClass._id !== 'all' && (
+            {showAddStudent && selectedClassForAdd && (
                 <div className="mt-8 bg-gray-50 shadow sm:rounded-lg">
                     <div className="px-4 py-5 sm:p-6">
                         <h3 className="text-base font-semibold leading-6 text-gray-900">
                             Add a new student to
                             {Array.isArray(classes) && classes.length > 1 ? (
                                 <select
-                                    value={selectedClass._id}
-                                    onChange={handleClassChange}
+                                    value={selectedClassForAdd._id}
+                                    onChange={handleClassChangeForAdd}
                                     className="ml-2 rounded-md border-gray-300 text-base leading-6"
                                 >
-                                    <option value="" disabled>Select class</option>
                                     {classes.map(cls => (
                                         <option key={cls._id} value={cls._id}>{cls.name}</option>
                                     ))}
                                 </select>
                             ) : (
-                                <span> {selectedClass.name}</span>
+                                <span> {selectedClassForAdd.name}</span>
                             )}
                         </h3>
                         <div className="mt-2 max-w-xl text-sm text-gray-500">
@@ -181,9 +181,7 @@ const StudentManagement = ({ students, setStudents, selectedClass, classes, setS
             <StudentTable
                 students={students}
                 setStudents={setStudents}
-                selectedClass={selectedClass}
                 classes={classes}
-                setSelectedClass={setSelectedClass}
             />
         </div>
     );

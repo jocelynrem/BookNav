@@ -9,7 +9,8 @@ import Register from '../auth/Register';
 import PasswordReset from '../auth/PasswordReset';
 import PasswordResetRequest from '../auth/PasswordResetRequest';
 import PrivateRoute from '../auth/PrivateRoute';
-import ManagementPage from '../pages/ManagementPage';
+import ManageClasses from '../pages/ManageClasses';
+import ManageStudents from '../pages/ManageStudents';
 
 const AppRoutes = () => {
     return (
@@ -18,7 +19,8 @@ const AppRoutes = () => {
             <Route path="/add" element={<PrivateRoute><AddBook /></PrivateRoute>} />
             <Route path="/add-manual" element={<PrivateRoute><AddBookManual /></PrivateRoute>} />
             <Route path="/add-search" element={<PrivateRoute><AddBySearch /></PrivateRoute>} />
-            <Route path="/manage" element={<PrivateRoute><ManagementPage /></PrivateRoute>} />
+            <Route path="/manage-classes" element={<PrivateRoute><ManageClasses /></PrivateRoute>} />
+            <Route path="/manage-students" element={<PrivateRoute><ManageStudents /></PrivateRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/reset-password" element={<PasswordResetRequest />} />

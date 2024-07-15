@@ -27,6 +27,15 @@ export const getStudentsByClass = async (classId) => {
         return response.data;
     } catch (error) {
         console.error('Failed to fetch students by class:', error);
+        if (error.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+            console.error('Response headers:', error.response.headers);
+        } else if (error.request) {
+            console.error('Request data:', error.request);
+        } else {
+            console.error('Error message:', error.message);
+        }
         throw error;
     }
 };

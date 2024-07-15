@@ -4,7 +4,6 @@ const Student = require('../models/Student');
 
 const authenticateToken = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    console.log('Received token:', token ? 'Present' : 'Not present');
 
     if (!token) {
         return res.status(401).json({ error: 'Access denied. No token provided.' });
@@ -15,7 +14,6 @@ const authenticateToken = async (req, res, next) => {
         try {
             const student = await Student.findOne({ pin: token });
             if (student) {
-                console.log('Student authenticated:', student._id);
                 req.user = { id: student._id, role: 'student' };
                 return next();
             }
@@ -27,7 +25,6 @@ const authenticateToken = async (req, res, next) => {
         // Assume it's a JWT token (for teachers)
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log('Decoded token:', decoded);
             req.user = decoded;
             return next();
         } catch (err) {
@@ -41,7 +38,6 @@ const authenticateToken = async (req, res, next) => {
 
 // Optional: Middleware to ensure only teachers can access certain routes
 const teacherOnly = (req, res, next) => {
-    console.log('User role:', req.user ? req.user.role : 'No user');
     if (req.user && req.user.role === 'teacher') {
         return next();
     }

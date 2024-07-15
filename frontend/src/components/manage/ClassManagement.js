@@ -1,3 +1,4 @@
+// frontend/src/components/manage/ClassManagement.js
 import React, { useState } from 'react';
 import { PlusIcon } from '@heroicons/react/20/solid';
 import Swal from 'sweetalert2';
@@ -22,7 +23,6 @@ const grades = [
 ];
 
 const ClassManagement = ({ classes, setClasses }) => {
-    const [showManagement, setShowManagement] = useState(true);
     const [newClassName, setNewClassName] = useState('');
     const [newClassGrade, setNewClassGrade] = useState('');
 
@@ -79,83 +79,63 @@ const ClassManagement = ({ classes, setClasses }) => {
 
     return (
         <div className="space-y-6">
-            <div className="relative">
-                <div aria-hidden="true" className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex items-center justify-between">
-                    <span className="bg-white pr-3 text-base font-semibold leading-6 text-gray-900">Class Management</span>
-                    <button
-                        type="button"
-                        className="inline-flex items-center gap-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                        onClick={() => setShowManagement(!showManagement)}
-                    >
-                        <PlusIcon className="-ml-1 -mr-0.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-                        {showManagement ? 'Hide Management' : 'Show Management'}
-                    </button>
+            <h2 className="text-xl font-bold leading-6 text-gray-900">Class Management</h2>
+            <div className="bg-white shadow sm:rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                    <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new class</h3>
+                    <div className="mt-2 max-w-xl text-sm text-gray-500">
+                        <p>Create a new class to manage students.</p>
+                    </div>
+                    <form onSubmit={handleCreateClass} className="mt-5 sm:flex sm:items-center">
+                        <div className="w-full sm:max-w-xs">
+                            <label htmlFor="className" className="sr-only">
+                                Class name
+                            </label>
+                            <input
+                                type="text"
+                                name="className"
+                                id="className"
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                placeholder="Enter class name"
+                                value={newClassName}
+                                onChange={(e) => setNewClassName(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="mt-3 sm:ml-4 sm:mt-0 sm:w-40">
+                            <label htmlFor="classGrade" className="sr-only">
+                                Grade
+                            </label>
+                            <select
+                                name="classGrade"
+                                id="classGrade"
+                                className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                value={newClassGrade}
+                                onChange={(e) => setNewClassGrade(e.target.value)}
+                                required
+                            >
+                                <option value="">Select Grade</option>
+                                {grades.map(grade => (
+                                    <option key={grade.value} value={grade.value}>{grade.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            type="submit"
+                            className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900 sm:ml-3 sm:mt-0 sm:w-auto"
+                        >
+                            Add Class
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            {showManagement && (
-                <div className="space-y-6">
-                    <div className="bg-white shadow sm:rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new class</h3>
-                            <div className="mt-2 max-w-xl text-sm text-gray-500">
-                                <p>Create a new class to manage students.</p>
-                            </div>
-                            <form onSubmit={handleCreateClass} className="mt-5 sm:flex sm:items-center">
-                                <div className="w-full sm:max-w-xs">
-                                    <label htmlFor="className" className="sr-only">
-                                        Class name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="className"
-                                        id="className"
-                                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
-                                        placeholder="Enter class name"
-                                        value={newClassName}
-                                        onChange={(e) => setNewClassName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="mt-3 sm:ml-4 sm:mt-0 sm:w-40">
-                                    <label htmlFor="classGrade" className="sr-only">
-                                        Grade
-                                    </label>
-                                    <select
-                                        name="classGrade"
-                                        id="classGrade"
-                                        className="block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-teal-600 sm:text-sm sm:leading-6"
-                                        value={newClassGrade}
-                                        onChange={(e) => setNewClassGrade(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Select Grade</option>
-                                        {grades.map(grade => (
-                                            <option key={grade.value} value={grade.value}>{grade.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-900 sm:ml-3 sm:mt-0 sm:w-auto"
-                                >
-                                    Add Class
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <ClassTable
-                        classes={classes}
-                        setClasses={setClasses}
-                        handleEditClass={handleEditClass}
-                        handleDeleteClass={handleDeleteClass}
-                    />
-                </div>
-            )}
+            <ClassTable
+                classes={classes}
+                setClasses={setClasses}
+                handleEditClass={handleEditClass}
+                handleDeleteClass={handleDeleteClass}
+            />
         </div>
     );
 };

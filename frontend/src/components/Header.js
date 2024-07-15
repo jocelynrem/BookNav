@@ -24,6 +24,21 @@ const addBookActions = [
     },
 ];
 
+const manageActions = [
+    {
+        title: 'Manage Classes',
+        description: 'View and manage all classes.',
+        href: '/manage-classes',
+        icon: AcademicCapIcon,
+    },
+    {
+        title: 'Manage Students',
+        description: 'View and manage all students.',
+        href: '/manage-students',
+        icon: UserGroupIcon,
+    },
+];
+
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ');
 }
@@ -116,9 +131,7 @@ const Header = () => {
                             <Link to="/" className="hidden md:inline text-teal-800 hover:underline">
                                 My Library
                             </Link>
-                            <Link to="/manage" className="hidden md:inline text-teal-800 hover:underline">
-                                Manage Students
-                            </Link>
+                            {renderDropdown("Manage", manageActions)}
                             {renderDropdown("Add Book", addBookActions)}
                         </div>
                     )}

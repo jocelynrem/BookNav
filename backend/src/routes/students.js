@@ -19,9 +19,16 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 // Get students by class
 router.get('/class/:classId', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const students = await Student.find({ class: req.params.classId }).populate('class', 'name');
+        const { classId } = req.params;
+        let students;
+        if (classId === 'all') {
+            students = await Student.find().populate('class', 'name');
+        } else {
+            students = await Student.find({ class: classId }).populate('class', 'name');
+        }
         res.json(students);
     } catch (error) {
+        console.error('Failed to fetch students by class:', error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -31,7 +38,6 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentClass = await Class.findById(req.body.classId);
         if (!studentClass) {
-            console.log('Class not found:', req.body.classId);
             return res.status(400).json({ message: 'Class not found' });
         }
 
@@ -43,7 +49,6 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         });
 
         if (existingStudent) {
-            console.log('Duplicate student found:', existingStudent);
             return res.status(400).json({ message: 'A student with this name already exists in the class' });
         }
 
@@ -56,7 +61,6 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         });
 
         const savedStudent = await newStudent.save();
-        console.log('New student created:', savedStudent);
         res.status(201).json(savedStudent);
     } catch (error) {
         console.error('Error creating student:', error);

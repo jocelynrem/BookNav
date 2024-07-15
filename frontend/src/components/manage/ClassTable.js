@@ -1,3 +1,4 @@
+// frontend/src/components/manage/ClassTable.js
 import React, { useState } from 'react';
 import ClassEditSlideout from '../slideout/ClassEditSlideout';
 
