@@ -51,7 +51,7 @@ const BookSearch = ({ query, handleChange, handleSearchTypeChange, handleSearch,
                     <button
                         type="button"
                         onClick={handleScanToggle}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-700 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-700 whitespace-nowrap"
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-700 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-700 whitespace-nowrap"
                     >
                         {scanning ? 'Stop Scanning' : 'Scan ISBN'}
                     </button>

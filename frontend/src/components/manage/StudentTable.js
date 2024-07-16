@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getStudentsByClass, updateStudent, deleteStudent } from '../../services/studentService';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import Swal from 'sweetalert2';
 import StudentSortHeader from './StudentSortHeader';
 import StudentDetails from '../slideout/StudentDetails';
 import StudentEdit from '../slideout/StudentEdit';
@@ -36,8 +37,10 @@ const StudentTable = ({ students, setStudents, classes }) => {
         setIsEditing(false);
     };
 
-    const handleEditStudent = () => {
+    const handleEditStudent = (student) => {
+        setSelectedStudent(student);
         setIsEditing(true);
+        setIsSlideoutOpen(true);
     };
 
     const handleSaveStudent = async (updatedStudent) => {
@@ -73,12 +76,13 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 onSave={handleSaveStudent}
                 onClose={handleCloseSlideout}
                 onView={() => setIsEditing(false)}
+                onDelete={handleDeleteStudent}  // Pass the onDelete prop here
                 classes={classes}
             />
         ) : (
             <StudentDetails
                 student={selectedStudent}
-                onEdit={handleEditStudent}
+                onEdit={() => handleEditStudent(selectedStudent)}
                 onClose={handleCloseSlideout}
             />
         )
@@ -153,7 +157,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                                 type="text"
                                 name="search"
                                 id="search"
-                                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
                                 placeholder="Search students"
                                 value={searchQuery}
                                 onChange={handleSearchChange}
@@ -217,7 +221,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                     <button
-                                                        onClick={() => handleStudentClick(student)}
+                                                        onClick={() => handleEditStudent(student)}
                                                         className="text-teal-900 hover:text-teal-800"
                                                     >
                                                         Edit<span className="sr-only">, {student.firstName} {student.lastName}</span>
@@ -241,7 +245,9 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 setNotification={setNotification}
                 dialog={dialog}
                 setDialog={setDialog}
-            />
+            >
+                {slideoutContent}
+            </SlideoutParent>
         </div>
     );
 };
