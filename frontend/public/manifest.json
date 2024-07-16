@@ -1,7 +1,18 @@
 {
-  "short_name": "BookNav",
+  "short_name": "LibraryNav",
   "name": "Book Navigation App",
-  "icons": [],
+  "icons": [
+    {
+      "src": "/book-open.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/book-open.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
