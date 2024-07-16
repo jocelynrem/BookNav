@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import BookSortHeader from './BookSortHeader';
 import SlideoutParent from '../slideout/SlideoutParent';
+import BookDetails from '../slideout/BookDetails';
+import BookEdit from '../slideout/BookEdit';
 import { updateBook } from '../../services/bookService';
 
 const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleSortChange, fetchBooks }) => {
     const [selectedBook, setSelectedBook] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
+    const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
 
     const getAuthorName = (book) => {
         if (book.author) return book.author;
@@ -24,7 +28,7 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
         setIsEditing(false);
     };
 
-    const handleEditClickInternal = (book) => {
+    const handleEditClick = (book) => {
         setSelectedBook(book);
         setIsSlideoutOpen(true);
         setIsEditing(true);
@@ -86,13 +90,12 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 w-16 hidden sm:table-cell">{book.copies}</td>
                                         <td className="relative w-12 whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                            <a
-                                                href="#"
-                                                onClick={() => handleEditClickInternal(book)}
+                                            <button
+                                                onClick={() => handleEditClick(book)}
                                                 className="text-teal-800 hover:text-teal-900"
                                             >
                                                 Edit<span className="sr-only">, {book.title}</span>
-                                            </a>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -101,16 +104,36 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                     </div>
                 </div>
             </div>
-            {selectedBook && (
-                <SlideoutParent
-                    isOpen={isSlideoutOpen}
-                    onClose={handleSlideoutClose}
-                    book={selectedBook}
-                    onSave={handleSave}
-                    isEditing={isEditing}
-                    fetchBooks={fetchBooks}
-                />
-            )}
+            <SlideoutParent
+                isOpen={isSlideoutOpen}
+                onClose={handleSlideoutClose}
+                title={isEditing ? 'Edit Book' : 'Book Details'}
+                notification={notification}
+                setNotification={setNotification}
+                dialog={dialog}
+                setDialog={setDialog}
+            >
+                {selectedBook && (
+                    isEditing ? (
+                        <BookEdit
+                            book={selectedBook}
+                            onSave={handleSave}
+                            onClose={handleSlideoutClose}
+                            fetchBooks={fetchBooks}
+                            onView={() => setIsEditing(false)}
+                        />
+                    ) : (
+                        <BookDetails
+                            book={selectedBook}
+                            onEdit={() => setIsEditing(true)}
+                            onClose={handleSlideoutClose}
+                            setNotification={setNotification}
+                            setDialog={setDialog}
+                            setBooks={setBooks}
+                        />
+                    )
+                )}
+            </SlideoutParent>
         </>
     );
 };

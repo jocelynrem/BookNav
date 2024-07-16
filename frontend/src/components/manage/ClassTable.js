@@ -1,6 +1,6 @@
 // frontend/src/components/manage/ClassTable.js
 import React, { useState } from 'react';
-import ClassEditSlideout from '../slideout/ClassEditSlideout';
+import ClassEdit from '../slideout/ClassEdit';
 
 const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass }) => {
     const [selectedClass, setSelectedClass] = useState(null);
@@ -102,7 +102,7 @@ const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass })
             </div>
 
             {selectedClass && (
-                <ClassEditSlideout
+                <ClassEdit
                     isOpen={isSlideoutOpen}
                     onClose={() => setIsSlideoutOpen(false)}
                     classItem={selectedClass}

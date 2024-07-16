@@ -4,6 +4,8 @@ import { ClipLoader } from 'react-spinners';
 import Quagga from 'quagga';
 import SearchBookTable from '../components/search/SearchBookTable';
 import SlideoutParent from '../components/slideout/SlideoutParent';
+import BookDetails from '../components/slideout/BookDetails';
+import BookEdit from '../components/slideout/BookEdit';
 import BookSearch from '../components/search/BookSearch';
 import Notification from '../components/addBookFunction/Notification';
 import ConfirmationDialog from '../components/addBookFunction/ConfirmationDialog';
@@ -18,6 +20,7 @@ const AddBySearch = () => {
     const [loading, setLoading] = useState(false);
     const [selectedBook, setSelectedBook] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
@@ -156,6 +159,13 @@ const AddBySearch = () => {
     const handleTitleClick = (book) => {
         setSelectedBook(book);
         setIsSlideoutOpen(true);
+        setIsEditing(false);
+    };
+
+    const handleEditClick = (book) => {
+        setSelectedBook(book);
+        setIsSlideoutOpen(true);
+        setIsEditing(true);
     };
 
     const handleSlideoutClose = () => {
@@ -163,21 +173,18 @@ const AddBySearch = () => {
         setSelectedBook(null);
     };
 
-    const handleAddBook = async (book, copies) => {
-        const addedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook, setUserBooks);
-        if (addedBook) {
-            const { title, author } = book;
-
-            setUserBooks(prevBooks => [
-                ...prevBooks,
-                {
-                    title,
-                    author,
-                    copies,
-                    _id: addedBook._id
-                }
-            ]);
-            setUndoBook(addedBook);
+    const handleSaveBook = async (updatedBook) => {
+        try {
+            const addedBook = await addUserBook(updatedBook, updatedBook.copies, setNotification, setDialog, setUndoBook);
+            if (addedBook) {
+                setUserBooks(prevBooks => [...prevBooks, addedBook]);
+                setNotification({ show: true, message: `Book "${updatedBook.title}" added to your library!`, undo: true });
+                setUndoBook(addedBook);
+            }
+            setIsSlideoutOpen(false);
+        } catch (error) {
+            console.error('Failed to add book:', error);
+            setNotification({ show: true, message: 'Failed to add book.', error: true });
         }
     };
 
@@ -196,8 +203,8 @@ const AddBySearch = () => {
                 <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2>
                 <BookSearch
                     query={query}
-                    handleChange={handleChange}
-                    handleSearchTypeChange={handleSearchTypeChange}
+                    handleChange={(e) => setQuery(e.target.value)}
+                    handleSearchTypeChange={(e) => setSearchType(e.target.value)}
                     handleSearch={handleSearch}
                     searchType={searchType}
                     handleScanToggle={handleScanToggle}
@@ -223,8 +230,9 @@ const AddBySearch = () => {
                         <SearchBookTable
                             books={books.slice(0, limit)}
                             userBooks={userBooks}
-                            onAddBook={handleAddBook}
+                            onAddBook={handleSaveBook}
                             onTitleClick={handleTitleClick}
+                            onEditClick={handleEditClick}
                             setDialog={setDialog}
                             setUserBooks={setUserBooks}
                         />
@@ -241,14 +249,35 @@ const AddBySearch = () => {
                         )}
                     </div>
                 )}
-                {selectedBook && (
-                    <SlideoutParent
-                        isOpen={isSlideoutOpen}
-                        onClose={handleSlideoutClose}
-                        book={selectedBook}
-                        setUserBooks={setUserBooks}
-                    />
-                )}
+                <SlideoutParent
+                    isOpen={isSlideoutOpen}
+                    onClose={handleSlideoutClose}
+                    title={isEditing ? 'Edit Book' : 'Book Details'}
+                    notification={notification}
+                    setNotification={setNotification}
+                    dialog={dialog}
+                    setDialog={setDialog}
+                >
+                    {selectedBook && (
+                        isEditing ? (
+                            <BookEdit
+                                book={selectedBook}
+                                onSave={handleSaveBook}
+                                onClose={handleSlideoutClose}
+                                onView={() => setIsEditing(false)}
+                            />
+                        ) : (
+                            <BookDetails
+                                book={selectedBook}
+                                onEdit={() => setIsEditing(true)}
+                                onClose={handleSlideoutClose}
+                                setNotification={setNotification}
+                                setDialog={setDialog}
+                                setUserBooks={setUserBooks}
+                            />
+                        )
+                    )}
+                </SlideoutParent>
                 <Notification notification={notification} setNotification={setNotification} onUndo={handleUndo} />
                 <ConfirmationDialog dialog={dialog} setDialog={setDialog} />
             </div>

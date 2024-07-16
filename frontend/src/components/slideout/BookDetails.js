@@ -1,8 +1,8 @@
-//frontend/src/components/slideout/SlideoutDetails.js
+//frontend/src/components/slideout/BookDetails.js
 import React from 'react';
 import { PlusCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
+const BookDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
     const getAuthorName = (book) => {
         if (book.author) return book.author;
         return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
@@ -78,4 +78,4 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
     );
 };
 
-export default SlideoutDetails;
+export default BookDetails;

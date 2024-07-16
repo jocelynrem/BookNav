@@ -1,3 +1,4 @@
+//frontend/src/components/slideout/ClassEdit.js
 import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -20,7 +21,7 @@ const grades = [
     { value: 'O', label: 'Other' },
 ];
 
-const ClassEditSlideout = ({ isOpen, onClose, classItem, onSave, onDelete }) => {
+const ClassEdit = ({ isOpen, onClose, classItem, onSave, onDelete }) => {
     const [editingClass, setEditingClass] = useState(classItem);
 
     useEffect(() => {
@@ -168,4 +169,4 @@ const ClassEditSlideout = ({ isOpen, onClose, classItem, onSave, onDelete }) => 
     );
 };
 
-export default ClassEditSlideout;
+export default ClassEdit;
