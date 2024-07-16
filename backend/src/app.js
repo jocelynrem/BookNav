@@ -1,4 +1,3 @@
-// backend/src/app.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -35,7 +34,13 @@ mongoose.connection.on('error', (err) => {
     console.error('MongoDB error:', err);
 });
 
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'https://booknav-sepia.vercel.app'];
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://booknav-sepia.vercel.app',
+    'https://librarynav.com',
+    'https://www.librarynav.com'
+];
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -45,7 +50,9 @@ app.use(cors({
             return callback(new Error(msg), false);
         }
         return callback(null, true);
-    }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
 }));
 
 app.use(express.json());
