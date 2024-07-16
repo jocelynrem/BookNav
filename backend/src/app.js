@@ -35,7 +35,7 @@ mongoose.connection.on('error', (err) => {
     console.error('MongoDB error:', err);
 });
 
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'https://booknav-sepia.vercel.app'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'https://booknav-sepia.vercel.app', 'https://librarynav.com'];
 
 app.use(cors({
     origin: function (origin, callback) {
