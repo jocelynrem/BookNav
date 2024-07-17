@@ -1,4 +1,4 @@
-//backend/src/models/User.js
+// backend/src/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -63,7 +63,7 @@ userSchema.methods.generateJWT = function () {
             role: this.role
         },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '24h' }
     );
 };
 

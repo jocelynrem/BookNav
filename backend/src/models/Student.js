@@ -1,4 +1,4 @@
-//backend/src/models/Student.js
+// backend/src/models/Student.js
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
@@ -12,19 +12,14 @@ const studentSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    studentId: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
     grade: {
-        type: Number,
+        type: String,
         required: true
     },
     class: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Class'
+        ref: 'Class',
+        required: true
     },
     readingLevel: {
         type: String,
@@ -49,6 +44,9 @@ studentSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
+
+// Unique combination of firstName, lastName, and class
+studentSchema.index({ firstName: 1, lastName: 1, class: 1 }, { unique: true });
 
 const Student = mongoose.model('Student', studentSchema);
 

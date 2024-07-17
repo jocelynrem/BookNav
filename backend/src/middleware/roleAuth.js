@@ -1,9 +1,6 @@
 // backend/src/middleware/roleAuth.js
 const roleAuth = (roles) => {
     return (req, res, next) => {
-        console.log('User role:', req.user.role);
-        console.log('Required roles:', roles);
-
         if (!req.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }

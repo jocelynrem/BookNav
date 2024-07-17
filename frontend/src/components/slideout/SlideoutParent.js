@@ -1,49 +1,20 @@
-//frontend/src/components/slideout/SlideoutParent.js
-
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import SlideoutDetails from './SlideoutDetails';
-import SlideoutEdit from './SlideoutEdit';
-import { getUserBooks, deleteBook } from '../../services/bookService';
 import Notification from '../addBookFunction/Notification';
 import ConfirmationDialog from '../addBookFunction/ConfirmationDialog';
 
-const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: initialIsEditing, setUserBooks }) => {
-    const [bookExists, setBookExists] = useState(false);
-    const [isEditing, setIsEditing] = useState(initialIsEditing);
-    const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
-    const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
-    const [undoBook, setUndoBook] = useState(null);
-
-    useEffect(() => {
-        const checkBookInLibrary = async () => {
-            if (isOpen && book) {
-                const existingBooks = await getUserBooks();
-                const existingBook = existingBooks.find(b =>
-                    b.title?.toLowerCase() === book.title?.toLowerCase() &&
-                    b.authorFirstName?.toLowerCase() === book.authorFirstName?.toLowerCase() &&
-                    b.authorLastName?.toLowerCase() === book.authorLastName?.toLowerCase()
-                );
-                setBookExists(!!existingBook);
-            }
-        };
-        checkBookInLibrary();
-    }, [isOpen, book]);
-
-    useEffect(() => {
-        setIsEditing(initialIsEditing);
-    }, [initialIsEditing]);
-
-    const handleUndo = async () => {
-        if (undoBook) {
-            await deleteBook(undoBook._id);
-            setUserBooks(prevBooks => prevBooks.filter(book => book._id !== undoBook._id));
-            setNotification({ show: false, message: '' });
-            setUndoBook(null);
-        }
-    };
-
+const SlideoutParent = ({
+    isOpen,
+    onClose,
+    title,
+    children,
+    notification,
+    setNotification,
+    dialog,
+    setDialog,
+    onUndo
+}) => {
     return (
         <>
             <Transition.Root show={isOpen} as={Fragment}>
@@ -77,7 +48,7 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
                                             <div className="px-4 py-6 sm:px-6">
                                                 <div className="flex items-start justify-between">
                                                     <Dialog.Title className="text-base font-semibold leading-6 text-gray-900">
-                                                        {isEditing ? 'Edit Book Details' : 'Book Details'}
+                                                        {title}
                                                     </Dialog.Title>
                                                     <div className="ml-3 flex h-7 items-center">
                                                         <button
@@ -92,27 +63,8 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="relative flex-1 py-6 px-4 sm:px-6">
-                                                {isEditing ? (
-                                                    <SlideoutEdit
-                                                        book={book}
-                                                        onSave={onSave}
-                                                        onClose={onClose}
-                                                        fetchBooks={fetchBooks}
-                                                        onView={() => setIsEditing(false)}
-                                                    />
-                                                ) : (
-                                                    <SlideoutDetails
-                                                        book={book}
-                                                        bookExists={bookExists}
-                                                        onEdit={() => setIsEditing(true)}
-                                                        onClose={onClose}
-                                                        setNotification={setNotification}
-                                                        setDialog={setDialog}
-                                                        setUndoBook={setUndoBook}
-                                                        setUserBooks={setUserBooks}
-                                                    />
-                                                )}
+                                            <div className="relative flex-1 px-4 sm:px-6">
+                                                {children}
                                             </div>
                                         </div>
                                     </Dialog.Panel>
@@ -122,7 +74,7 @@ const SlideoutParent = ({ isOpen, onClose, book, onSave, fetchBooks, isEditing: 
                     </div>
                 </Dialog>
             </Transition.Root>
-            <Notification notification={notification} setNotification={setNotification} onUndo={handleUndo} />
+            <Notification notification={notification} setNotification={setNotification} onUndo={onUndo} />
             <ConfirmationDialog dialog={dialog} setDialog={setDialog} />
         </>
     );

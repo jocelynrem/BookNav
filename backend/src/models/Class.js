@@ -1,4 +1,3 @@
-//backend/src/models/Class.js
 const mongoose = require('mongoose');
 
 const classSchema = new mongoose.Schema({
@@ -16,9 +15,13 @@ const classSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Student'
     }],
-    schoolYear: {
+    grade: {
         type: String,
         required: true
+    },
+    schoolYear: {
+        type: String,
+        required: false
     },
     createdAt: {
         type: Date,
@@ -30,8 +33,24 @@ const classSchema = new mongoose.Schema({
     }
 });
 
-classSchema.pre('save', function (next) {
+classSchema.pre('save', async function (next) {
     this.updatedAt = Date.now();
+    next();
+});
+
+// Update students' grades when class grade changes
+classSchema.pre('findOneAndUpdate', async function (next) {
+    const update = this.getUpdate();
+    if (update.grade !== undefined) {
+        const Class = this.model;
+        const doc = await Class.findOne(this.getQuery());
+        if (doc) {
+            await mongoose.model('Student').updateMany(
+                { class: doc._id },
+                { $set: { grade: update.grade } }
+            );
+        }
+    }
     next();
 });
 

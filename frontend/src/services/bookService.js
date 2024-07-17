@@ -27,41 +27,27 @@ const headersWithAuth = () => {
 
 // Authentication functions
 export const registerUser = async (userData) => {
-    const response = await fetch(`${apiUrl}/auth/register`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    try {
+        const response = await apiClient.post(`${apiUrl}/auth/register`, userData);
+        return response.data;
+    } catch (error) {
+        console.error('Error registering user:', error);
+        throw error;
     }
-    return await response.json();
 };
 
 export const loginUser = async (credentials) => {
-    const response = await fetch(`${apiUrl}/auth/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            usernameOrEmail: credentials.usernameOrEmail,
-            password: credentials.password
-        }),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Invalid credentials');
+    try {
+        const response = await apiClient.post(`${apiUrl}/auth/login`, credentials);
+        const data = response.data;
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('userRole', data.role);
+        return data;
+    } catch (error) {
+        console.error('Error logging in:', error);
+        throw error;
     }
-    const data = await response.json();
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('userRole', data.role);
-    return data;
 };
 
 export const logoutUser = () => {
@@ -73,22 +59,8 @@ export const logoutUser = () => {
 // API related functions
 export const getBooks = async () => {
     try {
-        const response = await fetch(`${apiUrl}/books/user-books`, {
-            headers: headersWithAuth(),
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            if (response.status === 401) {
-                // Handle unauthorized errors (e.g., redirect to login)
-                console.error('Unauthorized, redirecting to login...');
-                localStorage.removeItem('token');
-                window.location.href = '/login'; // Redirect to login page
-                throw new Error('Unauthorized, please log in again.');
-            }
-            throw new Error('Network response was not ok');
-        }
-        return await response.json();
+        const response = await apiClient.get(`${apiUrl}/books/user-books`);
+        return response.data;
     } catch (error) {
         console.error('Error fetching user books:', error);
         throw error;
@@ -97,70 +69,45 @@ export const getBooks = async () => {
 
 export const createBook = async (book) => {
     try {
-        const response = await fetch(`${apiUrl}/books`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            },
-            body: JSON.stringify(book),
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error('Failed to create book');
-        }
-        const createdBook = await response.json();
-        return createdBook;
+        const response = await apiClient.post(`${apiUrl}/books`, book);
+        return response.data;
     } catch (error) {
-        console.error('Error in createBook:', error);
+        console.error('Error creating book:', error);
         throw error;
     }
 };
 
 export const updateBook = async (id, book) => {
-    if (book.copies) {
-        book.copies = parseInt(book.copies, 10);
+    try {
+        if (book.copies) {
+            book.copies = parseInt(book.copies, 10);
+        }
+        const response = await apiClient.patch(`${apiUrl}/books/${id}`, book);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating book:', error);
+        throw error;
     }
-
-    const response = await fetch(`${apiUrl}/books/${id}`, {
-        method: 'PATCH',
-        headers: headersWithAuth(),
-        body: JSON.stringify(book),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
-    }
-    return await response.json();
 };
 
 export const updateBookCopies = async (id, numberOfCopies) => {
-    const response = await fetch(`${apiUrl}/books/${id}/updateCopies`, {
-        method: 'PATCH',
-        headers: headersWithAuth(),
-        body: JSON.stringify({ copies: parseInt(numberOfCopies, 10) }),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    try {
+        const response = await apiClient.patch(`${apiUrl}/books/${id}/updateCopies`, { copies: parseInt(numberOfCopies, 10) });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating book copies:', error);
+        throw error;
     }
-    return await response.json();
 };
 
 export const deleteBook = async (id) => {
-    const response = await fetch(`${apiUrl}/books/${id}`, {
-        method: 'DELETE',
-        headers: headersWithAuth(),
-    });
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error('Network response was not ok');
+    try {
+        const response = await apiClient.delete(`${apiUrl}/books/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting book:', error);
+        throw error;
     }
-    return await response.json();
 };
 
 export const fetchBookByISBN = async (isbn) => {
@@ -256,23 +203,6 @@ export const fetchBooksByAuthor = async (author) => {
 
 // Functions for managing user's books
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook, setUserBooks) => {
-    const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, readingLevel, lexileScore, arPoints } = book;
-
-    const bookData = {
-        title,
-        author,
-        publishedDate,
-        pages,
-        genre,
-        subject,
-        coverImage,
-        isbn,
-        readingLevel,
-        lexileScore,
-        arPoints,
-        copies: parseInt(copies, 10) || 1,
-    };
-
     try {
         const existingBooks = await getUserBooks();
         const existingBook = existingBooks.find(b =>
@@ -283,33 +213,22 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         if (existingBook) {
             setDialog({
                 open: true,
-                title: `The book "${title}" by ${author} already exists in your library.`,
+                title: `The book "${book.title}" by ${book.author} already exists in your library.`,
                 content: "How many additional copies would you like to add?",
                 onConfirm: async (numberOfCopies) => {
                     if (numberOfCopies && numberOfCopies > 0) {
-                        await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
-                        setNotification({ show: true, message: `${numberOfCopies} copies of ${title} added to your library!` });
-                        // Update the local state to reflect the additional copies
-                        setUserBooks(prevBooks => {
-                            return prevBooks.map(b => b._id === existingBook._id ? { ...b, copies: b.copies + numberOfCopies } : b);
-                        });
+                        const updatedBook = await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
+                        setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to your library!` });
+                        setUserBooks(prevBooks => prevBooks.map(b => b._id === existingBook._id ? updatedBook : b));
                     }
                 }
             });
+            return existingBook;
         } else {
-            const response = await fetch(`${apiUrl}/books/add`, {
-                method: 'POST',
-                headers: headersWithAuth(),
-                body: JSON.stringify(bookData),
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error('Network response was not ok');
-            }
-            const newBook = await response.json();
+            const response = await apiClient.post(`${apiUrl}/books/add`, book);
+            const newBook = response.data;
             setUndoBook(newBook);
-            setNotification({ show: true, message: `Book "${title}" added to your library!`, undo: true });
+            setNotification({ show: true, message: `Book "${book.title}" added to your library!`, undo: true });
             return newBook;
         }
     } catch (err) {
@@ -321,16 +240,8 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
 
 export const getUserBooks = async () => {
     try {
-        const response = await fetch(`${apiUrl}/books/user-books`, {
-            headers: headersWithAuth(),
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        return data;
+        const response = await apiClient.get(`${apiUrl}/books/user-books`);
+        return response.data;
     } catch (error) {
         console.error('Error fetching user books:', error);
         throw error;
