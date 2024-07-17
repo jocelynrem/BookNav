@@ -2,16 +2,22 @@
 
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+let apiUrl;
+
+if (process.env.VERCEL_ENV === 'production') {
+    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+} else {
+    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
+}
 
 export const sendPasswordResetEmail = async (email) => {
-    const response = await axios.post(`${API_URL}/auth/reset-password`, { email });
+    const response = await axios.post(`${apiUrl}/auth/reset-password`, { email });
     return response.data;
 };
 
 export const resetPassword = async (token, password) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/reset/${token}`, { password });
+        const response = await axios.post(`${apiUrl}/auth/reset/${token}`, { password });
         return response.data;
     } catch (error) {
         throw error;

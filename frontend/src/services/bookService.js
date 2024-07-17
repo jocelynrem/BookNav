@@ -1,10 +1,10 @@
-// frontend/src/services/bookService.js
+let apiUrl;
 
-const apiUrl = process.env.NODE_ENV === 'production'
-    ? process.env.REACT_APP_PROD_API_URL
-    : process.env.NODE_ENV === 'test'
-        ? process.env.REACT_APP_TEST_API_URL
-        : process.env.REACT_APP_API_URL;
+if (process.env.VERCEL_ENV === 'production') {
+    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+} else {
+    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
+}
 
 function formatDate(dateString) {
     const date = new Date(dateString);
