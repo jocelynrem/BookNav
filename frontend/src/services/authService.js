@@ -2,16 +2,20 @@
 
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const apiUrl = process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_PROD_API_URL
+    : process.env.NODE_ENV === 'development'
+        ? process.env.REACT_APP_DEV_API_URL
+        : process.env.REACT_APP_API_URL;
 
 export const sendPasswordResetEmail = async (email) => {
-    const response = await axios.post(`${API_URL}/auth/reset-password`, { email });
+    const response = await axios.post(`${apiUrl}/auth/reset-password`, { email });
     return response.data;
 };
 
 export const resetPassword = async (token, password) => {
     try {
-        const response = await axios.post(`${API_URL}/auth/reset/${token}`, { password });
+        const response = await axios.post(`${apiUrl}/auth/reset/${token}`, { password });
         return response.data;
     } catch (error) {
         throw error;
