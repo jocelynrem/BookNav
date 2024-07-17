@@ -3,9 +3,13 @@ import PropTypes from 'prop-types';
 import { Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 
-const Notification = ({ notification, setNotification, onUndo }) => {
+const Notification = ({
+    notification = { show: false, message: '', undo: false },
+    setNotification,
+    onUndo = () => { }
+}) => {
     useEffect(() => {
-        if (notification?.show) {
+        if (notification.show) {
             const timer = setTimeout(() => {
                 setNotification({ ...notification, show: false });
             }, 5000); // Close after 5 seconds
@@ -15,7 +19,7 @@ const Notification = ({ notification, setNotification, onUndo }) => {
     }, [notification, setNotification]);
 
     return (
-        <Transition show={notification?.show || false} as="div">
+        <Transition show={notification.show} as="div">
             <div
                 aria-live="assertive"
                 className="fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-[1000] pointer-events-none"
@@ -26,9 +30,9 @@ const Notification = ({ notification, setNotification, onUndo }) => {
                             <div className="flex items-center">
                                 <div className="flex w-0 flex-1 justify-between">
                                     <p className="w-0 flex-1 text-sm font-medium text-gray-900">
-                                        {notification?.message || ''}
+                                        {notification.message}
                                     </p>
-                                    {notification?.undo && (
+                                    {notification.undo && (
                                         <button
                                             type="button"
                                             className="ml-3 flex-shrink-0 rounded-md bg-white text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 pointer-events-auto"
@@ -64,15 +68,7 @@ Notification.propTypes = {
         undo: PropTypes.bool,
     }),
     setNotification: PropTypes.func.isRequired,
-    onUndo: PropTypes.func.isRequired,
-};
-
-Notification.defaultProps = {
-    notification: {
-        show: false,
-        message: '',
-        undo: false,
-    },
+    onUndo: PropTypes.func,
 };
 
 export default Notification;

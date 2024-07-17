@@ -76,7 +76,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 onSave={handleSaveStudent}
                 onClose={handleCloseSlideout}
                 onView={() => setIsEditing(false)}
-                onDelete={handleDeleteStudent}  // Pass the onDelete prop here
+                onDelete={handleDeleteStudent}
                 classes={classes}
             />
         ) : (
@@ -105,20 +105,23 @@ const StudentTable = ({ students, setStudents, classes }) => {
     };
 
     const filteredStudents = students.filter(student => {
-        const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
-        const className = student.class ? student.class.name.toLowerCase() : '';
+        const fullName = `${student.firstName || ''} ${student.lastName || ''}`.toLowerCase();
+        const className = student.class?.name ? student.class.name.toLowerCase() : '';
+        const grade = student.grade?.toString() || '';
+
         return fullName.includes(searchQuery.toLowerCase()) ||
-            student.grade.toString().includes(searchQuery.toLowerCase()) ||
+            grade.includes(searchQuery.toLowerCase()) ||
             className.includes(searchQuery.toLowerCase());
     });
+
 
     const sortedStudents = [...filteredStudents].sort((a, b) => {
         let aValue = a[sortField];
         let bValue = b[sortField];
 
         if (sortField === 'name') {
-            aValue = `${a.firstName} ${a.lastName}`;
-            bValue = `${b.firstName} ${b.lastName}`;
+            aValue = `${a.firstName || ''} ${a.lastName || ''}`;
+            bValue = `${b.firstName || ''} ${b.lastName || ''}`;
         } else if (sortField === 'class') {
             aValue = a.class ? a.class.name : '';
             bValue = b.class ? b.class.name : '';

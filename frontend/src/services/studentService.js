@@ -15,7 +15,7 @@ const getAuthHeaders = () => ({
 
 export const getStudents = async () => {
     try {
-        const response = await axios.get(`${API_URL}/students`, {
+        const response = await axios.get(`${apiUrl}/students`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -27,7 +27,7 @@ export const getStudents = async () => {
 
 export const getStudentsByClass = async (classId) => {
     try {
-        const response = await axios.get(`${API_URL}/students/class/${classId}`, {
+        const response = await axios.get(`${apiUrl}/students/class/${classId}`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -54,7 +54,7 @@ export const createStudent = async (studentData) => {
             headers: { Authorization: `Bearer ${token}` }
         };
 
-        const response = await axios.post(`${API_URL}/students`, studentData, config);
+        const response = await axios.post(`${apiUrl}/students`, studentData, config);
         return response.data;
     } catch (error) {
         console.error('Failed to create student:', error.response ? error.response.data : error.message);
@@ -64,7 +64,7 @@ export const createStudent = async (studentData) => {
 
 export const updateStudent = async (id, studentData) => {
     try {
-        const response = await axios.put(`${API_URL}/students/${id}`, studentData, {
+        const response = await axios.put(`${apiUrl}/students/${id}`, studentData, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -76,7 +76,7 @@ export const updateStudent = async (id, studentData) => {
 
 export const deleteStudent = async (id) => {
     try {
-        const response = await axios.delete(`${API_URL}/students/${id}`, {
+        const response = await axios.delete(`${apiUrl}/students/${id}`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -88,7 +88,7 @@ export const deleteStudent = async (id) => {
 
 export const bulkCreateStudents = async (studentsData) => {
     try {
-        const response = await axios.post(`${API_URL}/students/bulk-create`, studentsData, {
+        const response = await axios.post(`${apiUrl}/students/bulk-create`, studentsData, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -100,7 +100,7 @@ export const bulkCreateStudents = async (studentsData) => {
 
 export const getStudentReadingHistory = async (id) => {
     try {
-        const response = await axios.get(`${API_URL}/students/${id}/reading-history`, {
+        const response = await axios.get(`${apiUrl}/students/${id}/reading-history`, {
             headers: getAuthHeaders()
         });
         return response.data;

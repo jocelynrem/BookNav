@@ -1,9 +1,14 @@
 //frontend/src/services/classService.js
-const API_URL = process.env.REACT_APP_API_URL;
+let apiUrl;
 
+if (process.env.VERCEL_ENV === 'production') {
+    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+} else {
+    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
+}
 export const getClasses = async () => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/classes`, {
+    const response = await fetch(`${apiUrl}/classes`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -18,7 +23,7 @@ export const getClasses = async () => {
 export const createClass = async (classData) => {
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`${API_URL}/classes`, {
+    const response = await fetch(`${apiUrl}/classes`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -36,7 +41,7 @@ export const createClass = async (classData) => {
 export const updateClass = async (classId, classData) => {
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`${API_URL}/classes/${classId}`, {
+    const response = await fetch(`${apiUrl}/classes/${classId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -53,7 +58,7 @@ export const updateClass = async (classId, classData) => {
 
 export const deleteClass = async (classId) => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/classes/${classId}`, {
+    const response = await fetch(`${apiUrl}/classes/${classId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`

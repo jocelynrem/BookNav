@@ -1,3 +1,5 @@
+import apiClient from "./apiClient";
+
 let apiUrl;
 
 if (process.env.VERCEL_ENV === 'production') {

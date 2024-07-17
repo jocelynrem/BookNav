@@ -30,8 +30,6 @@ const StudentDetails = ({ student, onEdit, onClose }) => {
                     {renderField("Class", student.class ? student.class.name : 'N/A')}
                     {renderField("Reading Level", student.readingLevel)}
                     {renderField("PIN", student.pin)}
-                    {renderField("Created At", new Date(student.createdAt).toLocaleString())}
-                    {renderField("Updated At", new Date(student.updatedAt).toLocaleString())}
                 </dl>
             </div>
         </div>
