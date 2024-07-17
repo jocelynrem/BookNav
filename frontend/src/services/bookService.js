@@ -1,19 +1,16 @@
-const apiUrl = process.env.REACT_APP_API_URL;
+let apiUrl;
 
-if (!apiUrl) {
-    console.error('API URL is not set. Please check your environment variables.');
+if (process.env.VERCEL_ENV === 'production') {
+    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+    console.log('Running in Vercel production environment');
+} else {
+    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
+    console.log('Running in Vercel preview/development environment');
 }
 
 console.log('Current API URL:', apiUrl);
+console.log('VERCEL_ENV:', process.env.VERCEL_ENV);
 console.log('NODE_ENV:', process.env.NODE_ENV);
-
-if (process.env.NODE_ENV === 'development') {
-    console.log('Running in development mode');
-} else if (process.env.NODE_ENV === 'production') {
-    console.log('Running in production mode');
-} else {
-    console.log('Running in unknown mode:', process.env.NODE_ENV);
-}
 
 function formatDate(dateString) {
     const date = new Date(dateString);
