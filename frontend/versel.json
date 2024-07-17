@@ -7,6 +7,6 @@
         }
     ],
     "env": {
-        "REACT_APP_API_URL": "@react_app_api_url"
+        "VERCEL_ENV": "@vercel_env"
     }
 }
