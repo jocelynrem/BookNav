@@ -1,13 +1,11 @@
-const apiUrl = process.env.NODE_ENV === 'production'
-    ? process.env.REACT_APP_PROD_API_URL
-    : process.env.NODE_ENV === 'development'
-        ? process.env.REACT_APP_DEV_API_URL
-        : process.env.REACT_APP_API_URL;
+const apiUrl = process.env.REACT_APP_API_URL;
+
+if (!apiUrl) {
+    console.error('API URL is not set. Please check your environment variables.');
+}
 
 console.log('Current API URL:', apiUrl);
 console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('REACT_APP_PROD_API_URL:', process.env.REACT_APP_PROD_API_URL);
-console.log('REACT_APP_DEV_API_URL:', process.env.REACT_APP_DEV_API_URL);
 
 function formatDate(dateString) {
     const date = new Date(dateString);
