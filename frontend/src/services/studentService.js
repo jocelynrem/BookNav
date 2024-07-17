@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-const apiUrl = process.env.NODE_ENV === 'production'
-    ? process.env.REACT_APP_PROD_API_URL
-    : process.env.NODE_ENV === 'development'
-        ? process.env.REACT_APP_DEV_API_URL
-        : process.env.REACT_APP_API_URL;
+let apiUrl;
+
+if (process.env.VERCEL_ENV === 'production') {
+    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+} else {
+    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
+}
 
 export const getStudents = async () => {
     const response = await axios.get(`${apiUrl}/students`, {
