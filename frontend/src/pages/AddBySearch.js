@@ -4,7 +4,7 @@ import { ClipLoader } from 'react-spinners';
 import Quagga from 'quagga';
 import SearchBookTable from '../components/search/SearchBookTable';
 import SlideoutParent from '../components/slideout/SlideoutParent';
-import BookDetails from '../components/slideout/BookDetails';
+import SearchDetails from '../components/slideout/SearchDetails';
 import BookEdit from '../components/slideout/BookEdit';
 import BookSearch from '../components/search/BookSearch';
 import Notification from '../components/addBookFunction/Notification';
@@ -269,7 +269,7 @@ const AddBySearch = () => {
                                 onView={() => setIsEditing(false)}
                             />
                         ) : (
-                            <BookDetails
+                            <SearchDetails
                                 book={selectedBook}
                                 onEdit={() => setIsEditing(true)}
                                 onClose={handleSlideoutClose}
