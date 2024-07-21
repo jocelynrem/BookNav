@@ -1,10 +1,10 @@
-//frontend/src/components/slideout/SlideoutEdit.js
+//frontend/src/components/slideout/BookEdit.js
 import React, { useState, useEffect } from 'react';
 import { updateBook, deleteBook } from '../../services/bookService';
 import Swal from 'sweetalert2';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
+const BookEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     const [editingBook, setEditingBook] = useState(book);
 
     useEffect(() => {
@@ -120,4 +120,4 @@ const SlideoutEdit = ({ book, onSave, onClose, fetchBooks, onView }) => {
     );
 };
 
-export default SlideoutEdit;
+export default BookEdit;

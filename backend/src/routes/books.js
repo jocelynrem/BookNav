@@ -65,7 +65,6 @@ router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) =
 // Create a new book
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        console.log('Received request to create book:', req.body);
         const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
 
         if (!title || !author) {
@@ -87,14 +86,11 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         });
 
         await book.save();
-        console.log('Book saved:', book);
 
         // Add the book to the user's library
         const user = await User.findById(req.user.id);
         user.books.push(book._id);
         await user.save();
-        console.log('Book added to user library');
-
         res.status(201).send(book);
     } catch (error) {
         console.error('Error creating book:', error);
@@ -104,13 +100,9 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 
 // Get all books for a user
 router.get('/user-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    console.log('Accessing /user-books route');
-    console.log('User:', req.user);
     try {
         const userId = req.user.id;
-        console.log('Fetching books for user ID:', userId);
         const user = await User.findById(userId).populate('books');
-        console.log('User books:', user.books);
         res.status(200).json(user.books);
     } catch (err) {
         console.error('Error in /user-books route:', err);

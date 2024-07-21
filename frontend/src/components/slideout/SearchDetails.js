@@ -1,8 +1,8 @@
-//frontend/src/components/slideout/SlideoutDetails.js
+//frontend/src/components/slideout/SearchDetails.js
 import React from 'react';
 import { PlusCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
+const SearchDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
     const getAuthorName = (book) => {
         if (book.author) return book.author;
         return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
@@ -40,14 +40,6 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
                 <h2 className="text-base font-semibold leading-6 text-gray-900">
                     {book.title}
                 </h2>
-                <button
-                    type="button"
-                    className="flex items-center text-teal-700 hover:text-teal-900"
-                    onClick={() => onEdit()}
-                >
-                    Edit book
-                    <ArrowRightIcon className="ml-1 h-5 w-5" />
-                </button>
             </div>
             {book.coverImage && (
                 <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
@@ -69,13 +61,13 @@ const SlideoutDetails = ({ book, bookExists, onEdit, onClose, setNotification, s
                     {renderField("Total Copies", book.copies, "copies")}
                     {/* {renderField("Available Copies", book.availableCopies, "availableCopies")} */}
                     {renderField("ISBN", book.isbn, "isbn")}
-                    {renderField("Reading Level", book.readingLevel, "readingLevel")}
+                    {/* {renderField("Reading Level", book.readingLevel, "readingLevel")}
                     {renderField("Lexile Score", book.lexileScore, "lexileScore")}
-                    {renderField("AR Points", book.arPoints, "arPoints")}
+                    {renderField("AR Points", book.arPoints, "arPoints")} */}
                 </dl>
             </div>
         </div>
     );
 };
 
-export default SlideoutDetails;
+export default SearchDetails;
