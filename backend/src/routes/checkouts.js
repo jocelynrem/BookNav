@@ -105,4 +105,34 @@ router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), a
     }
 });
 
+// In your checkouts.js route file
+
+router.get('/status', async (req, res) => {
+    try {
+        const { isbn, studentId } = req.query;
+
+        // Check if the book is currently checked out by this student
+        const checkout = await CheckoutRecord.findOne({
+            book: isbn,
+            student: studentId,
+            status: 'checked out'
+        });
+
+        if (checkout) {
+            // The book is checked out by this student, so it needs to be returned
+            const book = await Book.findOne({ isbn });
+            res.json({ action: 'return', title: book.title });
+        } else {
+            // The book is not checked out by this student, so it can be checked out
+            const book = await Book.findOne({ isbn });
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found' });
+            }
+            res.json({ action: 'checkout', title: book.title });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error checking book status', error: error.message });
+    }
+});
+
 module.exports = router;

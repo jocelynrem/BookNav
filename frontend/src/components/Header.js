@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, IdentificationIcon } from '@heroicons/react/20/solid';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../services/bookService';
 
@@ -36,6 +36,18 @@ const manageActions = [
         description: 'View and manage all students.',
         href: '/manage-students',
         icon: UserGroupIcon,
+    },
+    {
+        title: 'Teacher Checkout',
+        description: 'Checkout or return books for students.',
+        href: '/teacher-checkout',
+        icon: IdentificationIcon,
+    },
+    {
+        title: 'Student Checkout',
+        description: 'Allow students to checkout or return books.',
+        href: '/student-checkout',
+        icon: BookOpenIcon,
     },
 ];
 

@@ -1,17 +1,24 @@
-//frontend/src/components/addBookFunction/ConfirmationDialog.js
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
-const ConfirmationDialog = ({ dialog, setDialog }) => {
+const ConfirmationDialog = ({ dialog = {}, setDialog }) => {
     const [inputValue, setInputValue] = useState(1);
 
     useEffect(() => {
         setInputValue(1);
     }, [dialog.open]);
 
+    if (!dialog || typeof dialog.open === 'undefined') {
+        return null; // Don't render anything if dialog is undefined or doesn't have an 'open' property
+    }
+
     return (
-        <Dialog className="fixed inset-0 z-50 overflow-y-auto" open={dialog.open} onClose={() => setDialog({ ...dialog, open: false })}>
+        <Dialog
+            className="fixed inset-0 z-50 overflow-y-auto"
+            open={dialog.open}
+            onClose={() => setDialog({ ...dialog, open: false })}
+        >
             <DialogBackdrop className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
             <div className="flex items-end justify-center min-h-screen px-4 text-center sm:block sm:p-0">
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
@@ -43,7 +50,9 @@ const ConfirmationDialog = ({ dialog, setDialog }) => {
                             type="button"
                             className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                             onClick={() => {
-                                dialog.onConfirm(inputValue);
+                                if (dialog.onConfirm) {
+                                    dialog.onConfirm(inputValue);
+                                }
                                 setDialog({ ...dialog, open: false });
                             }}
                         >
