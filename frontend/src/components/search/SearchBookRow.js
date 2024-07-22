@@ -1,7 +1,11 @@
+// frontend/src/components/search/SearchBookRow.js
 import React, { useState } from 'react';
 
 const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick }) => {
-    const { title, author, coverImage } = book || {};
+    const title = book.title || 'Unknown Title';
+    const author = book.author || 'Unknown Author';
+    const coverImage = book.thumbnail || '';
+
     const [copies, setCopies] = useState(1);
 
     const isInLibrary = userBooks.some(userBook => {
@@ -10,12 +14,27 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
         const userBookAuthor = userBook.author && userBook.author.toLowerCase();
         const bookAuthor = author && author.toLowerCase();
 
-        return userBookTitle === bookTitle && userBookAuthor === bookAuthor;
+        // Check for exact title and author match
+        const isTitleMatch = userBookTitle === bookTitle;
+        const isAuthorMatch = userBookAuthor === bookAuthor;
+
+        // Additional checks for ISBN or other metadata if available
+        const isISBNMatch = userBook.isbn === book.isbn;
+
+        // Return true if any exact match is found, considering available metadata
+        return isTitleMatch && isAuthorMatch && (isISBNMatch || (!userBook.isbn && !book.isbn));
     });
+
+
 
     const handleAddBook = async () => {
         if (copies > 0 && Number.isInteger(copies)) {
-            const addedBook = await onAddBook(book, copies);
+            const formattedBook = {
+                ...book,
+                author: author,
+                copies
+            };
+            const addedBook = await onAddBook(formattedBook, copies);
             if (addedBook) {
                 setUserBooks(prevBooks => [
                     ...prevBooks,
@@ -48,9 +67,9 @@ const SearchBookRow = ({ book, userBooks, setUserBooks, onAddBook, onTitleClick 
                             onClick={() => onTitleClick(book)}
                             title="Click to view more details"
                         >
-                            {title || 'Unknown Title'}
+                            {title}
                         </div>
-                        <div className="mt-1 text-gray-500 truncate">{author || 'Unknown Author'}</div>
+                        <div className="mt-1 text-gray-500 truncate">{author}</div>
                         {isInLibrary && (
                             <div className="mt-1 text-pink-600">This book is in your library</div>
                         )}

@@ -101,7 +101,6 @@ const AddBySearch = () => {
             setScanning(false);
             handleSearchByISBN(isbn);
         } else {
-            console.log('No code detected:', result);
         }
     };
 

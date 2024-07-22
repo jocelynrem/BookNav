@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const StudentDetails = ({ student, onEdit, onClose }) => {
-    const renderField = (label, value) => (
-        <div className="flex justify-between py-3 text-sm font-medium">
-            <dt className="text-gray-500">{label}</dt>
-            <dd className="text-gray-900">{value || 'N/A'}</dd>
-        </div>
-    );
+const StudentDetails = ({ student, onEdit, classes = [] }) => {
+    const [currentStudent, setCurrentStudent] = useState(student);
+
+    useEffect(() => {
+        setCurrentStudent(student);
+    }, [student]);
+
+    const getClassName = (classData) => {
+        if (!classData) return 'N/A';
+        if (typeof classData === 'string') {
+            if (classes.length === 0) return `Class ID: ${classData}`;
+            const fullClass = classes.find(cls => cls._id === classData);
+            return fullClass ? fullClass.name : `Class ID: ${classData}`;
+        }
+        return classData.name || `Class ID: ${classData._id}`;
+    };
 
     return (
         <div className="space-y-6 pb-16">
@@ -22,14 +31,32 @@ const StudentDetails = ({ student, onEdit, onClose }) => {
                 </button>
             </div>
             <div>
-                <h3 className="font-medium text-gray-900">{student.firstName} {student.lastName}</h3>
+                <h3 className="font-medium text-gray-900">{currentStudent.firstName} {currentStudent.lastName}</h3>
                 <dl className="mt-2 divide-y divide-gray-200 border-b border-t border-gray-200">
-                    {renderField("First Name", student.firstName)}
-                    {renderField("Last Name", student.lastName)}
-                    {renderField("Grade", student.grade)}
-                    {renderField("Class", student.class ? student.class.name : 'N/A')}
-                    {renderField("Reading Level", student.readingLevel)}
-                    {renderField("PIN", student.pin)}
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">First Name</dt>
+                        <dd className="text-gray-900">{currentStudent.firstName || 'N/A'}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">Last Name</dt>
+                        <dd className="text-gray-900">{currentStudent.lastName || 'N/A'}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">Grade</dt>
+                        <dd className="text-gray-900">{currentStudent.grade || 'N/A'}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">Class</dt>
+                        <dd className="text-gray-900">{getClassName(currentStudent.class)}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">Reading Level</dt>
+                        <dd className="text-gray-900">{currentStudent.readingLevel || 'N/A'}</dd>
+                    </div>
+                    <div className="flex justify-between py-3 text-sm font-medium">
+                        <dt className="text-gray-500">PIN</dt>
+                        <dd className="text-gray-900">{currentStudent.pin || 'N/A'}</dd>
+                    </div>
                 </dl>
             </div>
         </div>
