@@ -6,8 +6,12 @@ const StudentEdit = ({ student, onSave, onClose, onView, onDelete, classes }) =>
     const [editingStudent, setEditingStudent] = useState(student);
 
     useEffect(() => {
-        setEditingStudent(student);
-    }, [student]);
+        // If the class is just an ID, find the full class object
+        const fullClass = typeof student.class === 'string'
+            ? classes.find(cls => cls._id === student.class)
+            : student.class;
+        setEditingStudent({ ...student, class: fullClass || { _id: student.class, name: 'Unknown Class' } });
+    }, [student, classes]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

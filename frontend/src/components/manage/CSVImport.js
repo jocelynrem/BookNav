@@ -86,15 +86,15 @@ const CSVImport = ({ onImportComplete, selectedClass }) => {
     };
 
     return (
-        <div className="mt-8 bg-gray-50 shadow sm:rounded-lg">
+        <div className="mt-8 bg-gray-50 shadow sm:rounded-lg w-full sm:w-1/2 lg:w-1/3 mx-auto">
             <div className="px-4 py-5 sm:p-6">
                 <h3 className="text-base font-semibold leading-6 text-gray-900">
-                    Import Students from CSV for {selectedClass.name}
+                    {selectedClass ? `Import Students from CSV for ${selectedClass.name}` : "Select a class to import students"}
                 </h3>
                 <div className="mt-2 max-w-xl text-sm text-gray-500">
                     <p>Upload a CSV file to bulk import students into this class. Ensure your CSV has the following headers: FirstName, LastName, PIN, ReadingLevel (optional).</p>
                 </div>
-                <div {...getRootProps()} className={`mt-5 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer ${isDragActive ? 'bg-gray-100' : ''}`}>
+                <div {...getRootProps()} className={`mt-5 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer ${isDragActive ? 'bg-gray-100' : ''}`}>
                     <input {...getInputProps()} />
                     {isDragActive ? (
                         <p>Drop the CSV file here...</p>
@@ -112,7 +112,7 @@ const CSVImport = ({ onImportComplete, selectedClass }) => {
                                     <thead className="bg-gray-50">
                                         <tr>
                                             {preview[0].map((header, index) => (
-                                                <th key={index} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <th key={index} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                     {header}
                                                 </th>
                                             ))}
@@ -122,7 +122,7 @@ const CSVImport = ({ onImportComplete, selectedClass }) => {
                                         {preview.slice(1).map((row, rowIndex) => (
                                             <tr key={rowIndex}>
                                                 {row.map((cell, cellIndex) => (
-                                                    <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <td key={cellIndex} className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
                                                         {cell}
                                                     </td>
                                                 ))}

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { getStudentsByClass, updateStudent, deleteStudent } from '../../services/studentService';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import Swal from 'sweetalert2';
 import StudentSortHeader from './StudentSortHeader';
 import StudentDetails from '../slideout/StudentDetails';
 import StudentEdit from '../slideout/StudentEdit';
 import SlideoutParent from '../slideout/SlideoutParent';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 
 const StudentTable = ({ students, setStudents, classes }) => {
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -20,15 +19,24 @@ const StudentTable = ({ students, setStudents, classes }) => {
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [selectedStudents, setSelectedStudents] = useState([]);
 
     useEffect(() => {
         fetchStudents();
     }, [selectedClassForView]);
 
+    useEffect(() => {
+        if (students) {
+            // Force re-render to ensure the latest props are reflected in the component state
+            setSelectedStudent(null);
+            setIsSlideoutOpen(false);
+        }
+    }, [students]);
+
     const fetchStudents = async () => {
         try {
-            const students = await getStudentsByClass(selectedClassForView._id);
-            setStudents(students);
+            const fetchedStudents = await getStudentsByClass(selectedClassForView._id);
+            setStudents(fetchedStudents);
         } catch (error) {
             console.error('Failed to fetch students:', error);
         }
@@ -49,8 +57,14 @@ const StudentTable = ({ students, setStudents, classes }) => {
     const handleSaveStudent = async (updatedStudent) => {
         try {
             const savedStudent = await updateStudent(updatedStudent._id, updatedStudent);
-            setStudents(students.map(s => s._id === savedStudent._id ? savedStudent : s));
-            setSelectedStudent(savedStudent);
+            const fullClass = classes.find(cls => cls._id === savedStudent.class);
+            const updatedStudentWithFullClass = {
+                ...savedStudent,
+                class: fullClass || { _id: savedStudent.class, name: 'Unknown Class' }
+            };
+
+            setStudents(students.map(s => s._id === updatedStudentWithFullClass._id ? updatedStudentWithFullClass : s));
+            setSelectedStudent(updatedStudentWithFullClass);
             setIsEditing(false);
         } catch (error) {
             console.error('Failed to update student:', error);
@@ -65,6 +79,29 @@ const StudentTable = ({ students, setStudents, classes }) => {
         } catch (error) {
             console.error('Failed to delete student:', error);
         }
+    };
+
+    const handleDeleteSelectedStudents = async () => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you really want to delete the selected students and all of their data? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete them!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await Promise.all(selectedStudents.map(studentId => deleteStudent(studentId)));
+                    setStudents(students.filter(s => !selectedStudents.includes(s._id)));
+                    setSelectedStudents([]);
+                    Swal.fire('Deleted!', 'The selected students have been deleted.', 'success');
+                } catch (error) {
+                    console.error('Failed to delete students:', error);
+                }
+            }
+        });
     };
 
     const handleCloseSlideout = () => {
@@ -90,6 +127,18 @@ const StudentTable = ({ students, setStudents, classes }) => {
 
     const handlePageChange = (newPage) => {
         setCurrentPage(newPage);
+    };
+
+    const handleSelectStudent = (studentId) => {
+        setSelectedStudents(prevSelected => prevSelected.includes(studentId) ? prevSelected.filter(id => id !== studentId) : [...prevSelected, studentId]);
+    };
+
+    const handleSelectAllStudents = () => {
+        if (selectedStudents.length === currentStudents.length) {
+            setSelectedStudents([]);
+        } else {
+            setSelectedStudents(currentStudents.map(student => student._id));
+        }
     };
 
     const filteredStudents = students.filter(student => {
@@ -137,6 +186,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 student={selectedStudent}
                 onEdit={() => handleEditStudent(selectedStudent)}
                 onClose={handleCloseSlideout}
+                classes={classes}
             />
         )
     );
@@ -169,7 +219,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                                 type="text"
                                 name="search"
                                 id="search"
-                                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-pink-600 sm:text-sm sm:leading-6"
                                 placeholder="Search students"
                                 value={searchQuery}
                                 onChange={handleSearchChange}
@@ -181,31 +231,56 @@ const StudentTable = ({ students, setStudents, classes }) => {
                     <div className="mt-8 flow-root">
                         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                <div className="flex justify-end mb-4">
+                                    <button
+                                        onClick={handleDeleteSelectedStudents}
+                                        disabled={selectedStudents.length === 0}
+                                        className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Delete Selected
+                                    </button>
+                                </div>
                                 <table className="min-w-full divide-y divide-gray-300">
                                     <thead>
                                         <tr>
-                                            <StudentSortHeader
-                                                field="name"
-                                                handleSortChange={handleSortChange}
-                                                sortField={sortField}
-                                                sortOrder={sortOrder}
-                                                label="Name"
-                                            />
-                                            <StudentSortHeader
-                                                field="grade"
-                                                handleSortChange={handleSortChange}
-                                                sortField={sortField}
-                                                sortOrder={sortOrder}
-                                                label="Grade"
-                                            />
-                                            <StudentSortHeader
-                                                field="class"
-                                                handleSortChange={handleSortChange}
-                                                sortField={sortField}
-                                                sortOrder={sortOrder}
-                                                label="Class"
-                                            />
-                                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                                            <th scope="col" className="relative py-3.5 pl-4 pr-3 sm:pl-6 sm:pr-6">
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded border-gray-300 text-pink-600 shadow-sm focus:ring-pink-500"
+                                                        checked={selectedStudents.length === currentStudents.length}
+                                                        onChange={handleSelectAllStudents}
+                                                    />
+                                                </div>
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                <StudentSortHeader
+                                                    field="name"
+                                                    handleSortChange={handleSortChange}
+                                                    sortField={sortField}
+                                                    sortOrder={sortOrder}
+                                                    label="Name"
+                                                />
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                <StudentSortHeader
+                                                    field="grade"
+                                                    handleSortChange={handleSortChange}
+                                                    sortField={sortField}
+                                                    sortOrder={sortOrder}
+                                                    label="Grade"
+                                                />
+                                            </th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                <StudentSortHeader
+                                                    field="class"
+                                                    handleSortChange={handleSortChange}
+                                                    sortField={sortField}
+                                                    sortOrder={sortOrder}
+                                                    label="Class"
+                                                />
+                                            </th>
+                                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pl-6 sm:pr-6">
                                                 <span className="sr-only">Edit</span>
                                             </th>
                                         </tr>
@@ -213,6 +288,16 @@ const StudentTable = ({ students, setStudents, classes }) => {
                                     <tbody className="divide-y divide-gray-200 bg-white">
                                         {currentStudents.map((student) => (
                                             <tr key={student._id}>
+                                                <td className="relative py-5 pl-4 pr-3 sm:pl-6 sm:pr-6">
+                                                    <div className="flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="rounded border-gray-300 text-pink-600 shadow-sm focus:ring-pink-500"
+                                                            checked={selectedStudents.includes(student._id)}
+                                                            onChange={() => handleSelectStudent(student._id)}
+                                                        />
+                                                    </div>
+                                                </td>
                                                 <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                                                     <div className="flex items-center">
                                                         <div className="ml-4">
@@ -260,7 +345,6 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 isOpen={isSlideoutOpen}
                 onClose={handleCloseSlideout}
                 title={isEditing ? 'Edit Student' : 'Student Details'}
-                content={slideoutContent}
                 notification={notification}
                 setNotification={setNotification}
                 dialog={dialog}
