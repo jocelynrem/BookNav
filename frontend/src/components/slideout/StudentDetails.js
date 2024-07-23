@@ -78,6 +78,10 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                         <dt className="text-gray-500 font-medium">Reading Level</dt>
                         <dd className="text-gray-900">{currentStudent.readingLevel || 'N/A'}</dd>
                     </div>
+                    <div className="flex justify-between py-3 text-sm">
+                        <dt className="text-gray-500 font-medium">Pin</dt>
+                        <dd className="text-gray-900">{currentStudent.pin || 'N/A'}</dd>
+                    </div>
                 </dl>
             </div>
             <div>
