@@ -70,6 +70,8 @@ app.get('/api/checkouts/student/:studentId', async (req, res) => {
     res.json({ message: 'Route accessed', studentId: req.params.studentId });
 });
 
+console.log('Routes set up');
+
 // Router middleware
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
