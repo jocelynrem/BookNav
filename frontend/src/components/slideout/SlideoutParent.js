@@ -15,7 +15,6 @@ const SlideoutParent = ({
     setDialog,
     onUndo
 }) => {
-    console.log("SlideoutParent received props:", { isOpen, title, children });
     return (
         <>
             <Transition.Root show={isOpen} as={Fragment}>
@@ -66,9 +65,7 @@ const SlideoutParent = ({
                                             </div>
                                             <div className="relative flex-1 px-4 sm:px-6">
                                                 {React.Children.map(children, child => {
-                                                    console.log("Child props before cloning:", child.props);
                                                     const childProps = { ...child.props, onClose };
-                                                    console.log("SlideoutParent passing props to child:", childProps);
                                                     return React.cloneElement(child, childProps);
                                                 })}
                                             </div>
@@ -86,6 +83,5 @@ const SlideoutParent = ({
     );
 };
 
-console.log("Rendered SlideoutParent component");
 
 export default SlideoutParent;

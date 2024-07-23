@@ -7,20 +7,70 @@ if (process.env.VERCEL_ENV === 'production') {
 } else {
     apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
 }
-export const checkoutBook = async (isbn, studentId) => {
+
+const axiosInstance = axios.create({
+    baseURL: apiUrl,
+});
+
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+export const getStudentCheckouts = async (studentId) => {
     try {
-        const response = await axios.post(`${apiUrl}/checkouts`, { isbn, studentId });
-        return response.data;
+        console.log('Fetching checkouts for student:', studentId);
+        const response = await axiosInstance.get(`/checkouts/student/${studentId}`);
+        console.log('Checkout response:', response.data);
+        return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-        throw new Error(error.response.data.message || 'Error checking out book');
+        console.error('Error fetching student checkouts:', error.response ? error.response.data : error.message);
+        return [];
     }
 };
 
-export const returnBook = async (isbn) => {
+export const checkBookStatus = async (isbn, studentId) => {
     try {
-        const response = await axios.post(`${apiUrl}/checkouts/return`, { isbn });
+        const response = await axiosInstance.get(`/checkouts/status`, { params: { isbn, studentId } });
         return response.data;
     } catch (error) {
-        throw new Error(error.response.data.message || 'Error returning book');
+        console.error('Error checking book status:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const returnBook = async (checkoutRecordId, returnedOn) => {
+    try {
+        const response = await axiosInstance.put(`/checkouts/${checkoutRecordId}/return`, { returnedOn });
+        return response.data;
+    } catch (error) {
+        console.error('Error returning book:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const searchBooks = async (query) => {
+    try {
+        const response = await axiosInstance.get(`/books/search`, { params: { q: query } });
+        return response.data;
+    } catch (error) {
+        console.error('Error searching books:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const checkoutBook = async (bookCopyId, studentId, dueDate) => {
+    try {
+        const response = await axiosInstance.post(`/checkouts`, { bookCopyId, studentId, dueDate });
+        return response.data;
+    } catch (error) {
+        console.error('Error checking out book:', error.response ? error.response.data : error.message);
+        throw error;
     }
 };

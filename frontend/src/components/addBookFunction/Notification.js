@@ -5,7 +5,7 @@ import { XMarkIcon } from '@heroicons/react/20/solid';
 
 const Notification = ({
     notification = { show: false, message: '', undo: false },
-    setNotification,
+    setNotification = () => { }, // Provide a default empty function
     onUndo = () => { }
 }) => {
     useEffect(() => {
@@ -67,7 +67,7 @@ Notification.propTypes = {
         message: PropTypes.string,
         undo: PropTypes.bool,
     }),
-    setNotification: PropTypes.func.isRequired,
+    setNotification: PropTypes.func,
     onUndo: PropTypes.func,
 };
 

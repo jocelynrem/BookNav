@@ -57,16 +57,27 @@ app.use(cors({
 
 app.use(express.json());
 
+// Router middleware
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/students', studentRouter);
-app.use('/api/checkouts', checkoutRouter);
+app.use('/api/checkouts', (req, res, next) => {
+    console.log('Checkout route accessed');
+    checkoutRouter(req, res, next);
+});
 
 app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
 });
 
+// Catch-all route
+app.use('*', (req, res) => {
+    console.log('Catch-all route hit:', req.method, req.originalUrl);
+    res.status(404).send('Route not found');
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

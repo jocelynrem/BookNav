@@ -16,16 +16,12 @@ mongoose.connect(process.env.MONGODB_URI, {
 async function checkUsers() {
     try {
         const users = await User.find({}, '-password');  // Exclude password from the results
-        console.log('Users in the database:');
         users.forEach(user => {
-            console.log(`Username: ${user.username}, Email: ${user.email}, Role: ${user.role}`);
         });
-        console.log(`Total users: ${users.length}`);
     } catch (error) {
         console.error('Error checking users:', error);
     } finally {
         await mongoose.disconnect();
-        console.log('Database connection closed');
     }
 }
 

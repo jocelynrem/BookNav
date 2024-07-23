@@ -8,7 +8,6 @@ import StudentEdit from '../slideout/StudentEdit';
 import StudentDetails from '../slideout/StudentDetails';
 
 const StudentManagement = ({ students, setStudents, classes, selectedClass, setSelectedClass }) => {
-    console.log("StudentManagement rendering with classes:", classes);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -44,7 +43,6 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
     };
 
     const handleSaveStudent = async (updatedStudent) => {
-        console.log("Saving student:", updatedStudent);
 
         try {
             // Ensure we're sending the class ID, not the whole object
@@ -54,7 +52,6 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
             };
 
             const savedStudent = await updateStudent(updatedStudent._id, studentToUpdate);
-            console.log("Saved student from API call:", savedStudent);
 
             // Find the full class object
             const fullClass = classes.find(cls => cls._id === savedStudent.class);
@@ -64,8 +61,6 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
                 ...savedStudent,
                 class: fullClass || { _id: savedStudent.class, name: 'Unknown Class' }
             };
-
-            console.log("Updated student with full class:", updatedStudentWithFullClass);
 
             // Update the students array
             setStudents(prevStudents => prevStudents.map(s =>
@@ -83,7 +78,6 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
     };
 
     const handleEditStudent = (student) => {
-        console.log("Editing student:", student);
         setSelectedStudent(student);
         setIsEditing(true);
         setIsSlideoutOpen(true);
@@ -199,7 +193,5 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
         </div>
     );
 };
-
-console.log("Rendered StudentManagement component");
 
 export default StudentManagement;

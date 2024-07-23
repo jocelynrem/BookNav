@@ -28,14 +28,6 @@ const checkoutRecordSchema = new mongoose.Schema({
         type: String,
         enum: ['checked out', 'returned', 'overdue'],
         default: 'checked out'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
     }
 });
 

@@ -136,7 +136,7 @@ export const fetchBookByISBN = async (isbn) => {
             coverImage: bookData.cover ? bookData.cover.large : '',
             isbn: isbn,
             copies: 1,
-            readingLevel: 'Unknown',
+            readingLevel: null,
             lexileScore: null,
             arPoints: null,
             availableCopies: 1
@@ -167,7 +167,7 @@ export const fetchBooksByTitle = async (title) => {
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
             copies: 1,
-            readingLevel: 'Unknown',
+            readingLevel: null,
             lexileScore: null,
             arPoints: null,
             availableCopies: 1
@@ -195,7 +195,7 @@ export const fetchBooksByAuthor = async (author) => {
             coverImage: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
             isbn: book.isbn ? book.isbn[0] : 'N/A',
             copies: 1,
-            readingLevel: 'Unknown',
+            readingLevel: null,
             lexileScore: null,
             arPoints: null,
             availableCopies: 1
