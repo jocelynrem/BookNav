@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QrCodeIcon, XMarkIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import ISBNScanner from './ISBNScanner';
 import { getStudentCheckouts, returnBook, checkoutBook, searchBooks } from '../../services/checkoutService';
+import Swal from 'sweetalert2';
 
 const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConfirmAction }) => {
     const [isScanning, setIsScanning] = useState(false);
@@ -18,10 +19,18 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
 
     const fetchCheckedOutBooks = async () => {
         try {
+            console.log('Fetching checked out books for student:', student._id);
             const books = await getStudentCheckouts(student._id);
-            setCheckedOutBooks(books);
+            console.log('Fetched books:', books);
+            if (Array.isArray(books)) {
+                setCheckedOutBooks(books);
+            } else {
+                console.error('Fetched data is not an array:', books);
+                setCheckedOutBooks([]);
+            }
         } catch (error) {
             console.error('Failed to fetch checked out books:', error);
+            setCheckedOutBooks([]);
         }
     };
 
@@ -42,6 +51,11 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);
+            let errorMessage = 'Failed to search books. Please try again.';
+            if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+            Swal.fire('Error', errorMessage, 'error');
         } finally {
             setIsSearching(false);
         }

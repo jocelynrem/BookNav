@@ -6,6 +6,7 @@ const BookCopy = require('../models/BookCopy');
 const Student = require('../models/Student');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
+const Book = require('../models/Book');
 
 // Get all checkouts (teachers only)
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -109,34 +110,30 @@ router.get('/status', async (req, res) => {
     try {
         const { isbn, studentId } = req.query;
 
-        // Check if the book is currently checked out by this student
+        const book = await Book.findOne({ isbn });
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
         const checkout = await CheckoutRecord.findOne({
-            book: isbn,
+            book: book._id,
             student: studentId,
             status: 'checked out'
         });
 
         if (checkout) {
-            // The book is checked out by this student, so it needs to be returned
-            const book = await Book.findOne({ isbn });
-            res.json({ action: 'return', title: book.title });
+            res.json({ action: 'return', title: book.title, bookId: book._id });
         } else {
-            // The book is not checked out by this student, so it can be checked out
-            const book = await Book.findOne({ isbn });
-            if (!book) {
-                return res.status(404).json({ message: 'Book not found' });
-            }
-            res.json({ action: 'checkout', title: book.title });
+            res.json({ action: 'checkout', title: book.title, bookId: book._id });
         }
     } catch (error) {
+        console.error('Error checking book status:', error);
         res.status(500).json({ message: 'Error checking book status', error: error.message });
     }
 });
 
 // Get all checkouts for a student
-router.get('/student/:studentId', async (req, res) => {
-    console.log('Route hit: GET /student/:studentId');
-    console.log('StudentId:', req.params.studentId);
+router.get('/student/:studentId', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentId = req.params.studentId;
         const checkouts = await CheckoutRecord.find({ student: studentId })
@@ -147,37 +144,32 @@ router.get('/student/:studentId', async (req, res) => {
             });
 
         console.log('Checkouts found:', checkouts.length);
-        res.status(200).json(checkouts);
+        res.status(200).json(checkouts); // This will be an empty array if no checkouts are found
     } catch (error) {
         console.error('Error in /student/:studentId route:', error);
         res.status(500).json({ message: 'Error fetching student checkouts', error: error.message });
     }
 });
 
-// Add this test route
-router.get('/test', (req, res) => {
-    console.log('Test route hit');
-    res.json({ message: 'Checkouts router is working' });
-});
-
-router.get('/student/:studentId', async (req, res) => {
-    console.log('Route hit: GET /student/:studentId');
-    console.log('StudentId:', req.params.studentId);
+router.get('/search', async (req, res) => {
     try {
-        const studentId = req.params.studentId;
-        console.log('Searching for checkouts with student ID:', studentId);
-        const checkouts = await CheckoutRecord.find({ student: studentId })
-            .populate('bookCopy')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book' }
-            });
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Search query is required' });
+        }
 
-        console.log('Checkouts found:', checkouts.length);
-        res.status(200).json(checkouts);
+        const books = await Book.find({
+            $or: [
+                { title: { $regex: q, $options: 'i' } },
+                { author: { $regex: q, $options: 'i' } },
+                { isbn: { $regex: q, $options: 'i' } }
+            ]
+        }).limit(20);
+
+        res.json(books);
     } catch (error) {
-        console.error('Error in /student/:studentId route:', error);
-        res.status(500).json({ message: 'Error fetching student checkouts', error: error.message });
+        console.error('Error searching books:', error);
+        res.status(500).json({ message: 'Error searching books', error: error.message });
     }
 });
 

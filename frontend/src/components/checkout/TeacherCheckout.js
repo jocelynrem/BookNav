@@ -75,7 +75,15 @@ const TeacherCheckout = () => {
             setBookStatus(status);
         } catch (error) {
             console.error('Error checking book status:', error);
-            Swal.fire('Error', 'Failed to check book status. Please try again.', 'error');
+            let errorMessage = 'Failed to check book status. Please try again.';
+            if (error.response) {
+                if (error.response.status === 404) {
+                    errorMessage = 'Book not found. Please check the ISBN and try again.';
+                } else if (error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                }
+            }
+            Swal.fire('Error', errorMessage, 'error');
         }
     };
 

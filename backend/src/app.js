@@ -57,21 +57,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Test route
-app.get('/api/test', (req, res) => {
-    console.log('Test route hit');
-    res.json({ message: 'Test route is working' });
-});
-
-// Direct route for student checkouts
-app.get('/api/checkouts/student/:studentId', async (req, res) => {
-    console.log('Direct route hit: GET /api/checkouts/student/:studentId');
-    console.log('StudentId:', req.params.studentId);
-    res.json({ message: 'Route accessed', studentId: req.params.studentId });
-});
-
-console.log('Routes set up');
-
 // Router middleware
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);

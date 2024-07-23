@@ -20,12 +20,20 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
             const history = await getStudentReadingHistory(student._id);
             setReadingHistory(history);
         } catch (error) {
-            console.error('Error fetching reading history:', error);
-            setError('Failed to load reading history. Please try again.');
+            if (error.response && error.response.status === 404) {
+                // If the reading history is not found (404), set an empty array
+                console.warn(`Reading history not found for student ID: ${student._id}`);
+                setReadingHistory([]);
+            } else {
+                // For other errors, set an appropriate error message
+                console.error('Error fetching reading history:', error);
+                setError('Failed to load reading history. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
     };
+
 
     const getClassName = (classData) => {
         if (!classData) return 'N/A';

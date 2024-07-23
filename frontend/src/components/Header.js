@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, IdentificationIcon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, IdentificationIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../services/bookService';
 
@@ -56,6 +56,7 @@ function classNames(...classes) {
 }
 
 const Header = () => {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated, logout } = useAuth();
@@ -79,7 +80,7 @@ const Header = () => {
     const mobileLink = getMobileLink();
 
     const renderDropdown = (buttonText, actions) => (
-        <Popover className="relative hidden md:inline-block">
+        <Popover className="relative">
             {({ open, close }) => (
                 <>
                     <PopoverButton className="inline-flex items-center text-teal-800 hover:underline focus:outline-none">
@@ -87,7 +88,7 @@ const Header = () => {
                         <ChevronDownIcon className="ml-2 h-5 w-5 text-teal-800" aria-hidden="true" />
                     </PopoverButton>
                     {open && (
-                        <PopoverPanel className="absolute left-0 mt-3 px-4 transition-transform transform-gpu duration-200 ease-out w-auto min-w-full sm:min-w-0 sm:w-screen sm:max-w-md lg:max-w-2xl">
+                        <PopoverPanel className="absolute left-0 mt-3 px-4 w-screen max-w-md lg:max-w-2xl">
                             <div className="overflow-hidden rounded-3xl bg-white text-sm leading-6 shadow-lg ring-1 ring-gray-900/5">
                                 <div className="grid gap-4 p-4">
                                     {actions.map((action) => (
@@ -130,23 +131,29 @@ const Header = () => {
                     <div className="-m-1.5 p-1.5">
                         <BuildingLibraryIcon className="h-8 w-8 text-teal-600" />
                     </div>
-                    {isAuthenticated && (
-                        <div className="flex items-center space-x-6">
-                            {mobileLink && (
-                                <Link
-                                    to={mobileLink.to}
-                                    className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg md:hidden"
-                                >
-                                    {mobileLink.text}
-                                </Link>
+                    <div className="flex items-center md:hidden">
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="text-teal-800 hover:bg-gray-50 p-2 rounded-lg"
+                        >
+                            {mobileMenuOpen ? (
+                                <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                            ) : (
+                                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
                             )}
-                            <Link to="/" className="hidden md:inline text-teal-800 hover:underline">
-                                My Library
-                            </Link>
-                            {renderDropdown("Manage", manageActions)}
-                            {renderDropdown("Add Book", addBookActions)}
-                        </div>
-                    )}
+                        </button>
+                    </div>
+                    <div className="hidden md:flex items-center space-x-6">
+                        {isAuthenticated && (
+                            <>
+                                <Link to="/" className="text-teal-800 hover:underline">
+                                    My Library
+                                </Link>
+                                {renderDropdown("Manage", manageActions)}
+                                {renderDropdown("Add Book", addBookActions)}
+                            </>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center space-x-6">
                     {isAuthenticated ? (
@@ -174,6 +181,36 @@ const Header = () => {
                     )}
                 </div>
             </nav>
+            {mobileMenuOpen && (
+                <div className="md:hidden bg-white shadow-lg">
+                    {isAuthenticated && (
+                        <div className="px-4 py-6 space-y-4">
+                            {mobileLink && (
+                                <Link
+                                    to={mobileLink.to}
+                                    className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    {mobileLink.text}
+                                </Link>
+                            )}
+                            <Link
+                                to="/"
+                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                My Library
+                            </Link>
+                            <div>
+                                {renderDropdown("Manage", manageActions)}
+                            </div>
+                            <div>
+                                {renderDropdown("Add Book", addBookActions)}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </header>
     );
 };
