@@ -57,16 +57,40 @@ app.use(cors({
 
 app.use(express.json());
 
+// Test route
+app.get('/api/test', (req, res) => {
+    console.log('Test route hit');
+    res.json({ message: 'Test route is working' });
+});
+
+// Direct route for student checkouts
+app.get('/api/checkouts/student/:studentId', async (req, res) => {
+    console.log('Direct route hit: GET /api/checkouts/student/:studentId');
+    console.log('StudentId:', req.params.studentId);
+    res.json({ message: 'Route accessed', studentId: req.params.studentId });
+});
+
+// Router middleware
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/students', studentRouter);
-app.use('/api/checkouts', checkoutRouter);
+app.use('/api/checkouts', (req, res, next) => {
+    console.log('Checkout route accessed');
+    checkoutRouter(req, res, next);
+});
 
 app.get('/', (req, res) => {
     res.send('Welcome to the BookNav API!');
 });
 
+// Catch-all route
+app.use('*', (req, res) => {
+    console.log('Catch-all route hit:', req.method, req.originalUrl);
+    res.status(404).send('Route not found');
+});
+
+// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

@@ -105,8 +105,6 @@ router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), a
     }
 });
 
-// In your checkouts.js route file
-
 router.get('/status', async (req, res) => {
     try {
         const { isbn, studentId } = req.query;
@@ -132,6 +130,54 @@ router.get('/status', async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ message: 'Error checking book status', error: error.message });
+    }
+});
+
+// Get all checkouts for a student
+router.get('/student/:studentId', async (req, res) => {
+    console.log('Route hit: GET /student/:studentId');
+    console.log('StudentId:', req.params.studentId);
+    try {
+        const studentId = req.params.studentId;
+        const checkouts = await CheckoutRecord.find({ student: studentId })
+            .populate('bookCopy')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book' }
+            });
+
+        console.log('Checkouts found:', checkouts.length);
+        res.status(200).json(checkouts);
+    } catch (error) {
+        console.error('Error in /student/:studentId route:', error);
+        res.status(500).json({ message: 'Error fetching student checkouts', error: error.message });
+    }
+});
+
+// Add this test route
+router.get('/test', (req, res) => {
+    console.log('Test route hit');
+    res.json({ message: 'Checkouts router is working' });
+});
+
+router.get('/student/:studentId', async (req, res) => {
+    console.log('Route hit: GET /student/:studentId');
+    console.log('StudentId:', req.params.studentId);
+    try {
+        const studentId = req.params.studentId;
+        console.log('Searching for checkouts with student ID:', studentId);
+        const checkouts = await CheckoutRecord.find({ student: studentId })
+            .populate('bookCopy')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book' }
+            });
+
+        console.log('Checkouts found:', checkouts.length);
+        res.status(200).json(checkouts);
+    } catch (error) {
+        console.error('Error in /student/:studentId route:', error);
+        res.status(500).json({ message: 'Error fetching student checkouts', error: error.message });
     }
 });
 
