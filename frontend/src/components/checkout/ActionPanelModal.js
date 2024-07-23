@@ -89,7 +89,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                                     <span className="text-sm text-gray-900">{book.title}</span>
                                                     <button
                                                         onClick={() => handleReturn(book._id)}
-                                                        className="text-sm text-indigo-600 hover:text-indigo-900"
+                                                        className="text-sm text-pink-600 hover:text-pink-900"
                                                     >
                                                         Return
                                                     </button>
@@ -108,11 +108,11 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder="Search by title or author"
-                                            className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                            className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                                         />
                                         <button
                                             onClick={handleSearch}
-                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                                         >
                                             Search
                                         </button>
@@ -126,7 +126,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                                     <span className="text-sm text-gray-900">{book.title}</span>
                                                     <button
                                                         onClick={() => handleCheckout(book._id)}
-                                                        className="text-sm text-indigo-600 hover:text-indigo-900"
+                                                        className="text-sm text-pink-600 hover:text-pink-900"
                                                     >
                                                         Check Out
                                                     </button>
@@ -145,7 +145,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                                 <ISBNScanner onScan={onScan} />
                                                 <button
                                                     onClick={() => setIsScanning(false)}
-                                                    className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                                    className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                                 >
                                                     Stop Scanning
                                                 </button>
@@ -153,7 +153,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                         ) : (
                                             <button
                                                 onClick={() => setIsScanning(true)}
-                                                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                             >
                                                 <QrCodeIcon className="mr-2 h-5 w-5" aria-hidden="true" />
                                                 Start Scanning
@@ -170,7 +170,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                         <p className="mt-1 text-lg font-medium text-gray-900">{bookStatus.title}</p>
                                         <button
                                             onClick={onConfirmAction}
-                                            className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                                            className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                         >
                                             {bookStatus.action === 'checkout' ? 'Confirm Checkout' : 'Confirm Return'}
                                         </button>
@@ -182,7 +182,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                     <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button
                             type="button"
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-800 text-base font-medium text-white hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto sm:text-sm"
                             onClick={onClose}
                         >
                             Close
