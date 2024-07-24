@@ -64,7 +64,8 @@ app.use('/api/classes', classRouter);
 app.use('/api/students', (req, res, next) => {
     console.log(`Incoming request to /api/students: ${req.method} ${req.url}`);
     next();
-}, studentRouter); app.use('/api/checkouts', (req, res, next) => {
+}, studentRouter);
+app.use('/api/checkouts', (req, res, next) => {
     console.log('Checkout route accessed');
     checkoutRouter(req, res, next);
 });
