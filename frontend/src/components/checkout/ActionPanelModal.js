@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { QrCodeIcon, XMarkIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useRef } from 'react';
+import { QrCodeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ISBNScanner from './ISBNScanner';
 import { getStudentCheckouts, returnBook, checkoutBook, searchBooks } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
@@ -10,6 +10,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const modalRef = useRef();
 
     useEffect(() => {
         if (isOpen && student) {
@@ -17,11 +18,22 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
         }
     }, [isOpen, student]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [onClose]);
+
     const fetchCheckedOutBooks = async () => {
         try {
-            console.log('Fetching checked out books for student:', student._id);
             const books = await getStudentCheckouts(student._id);
-            console.log('Fetched books:', books);
             if (Array.isArray(books)) {
                 setCheckedOutBooks(books);
             } else {
@@ -83,8 +95,18 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div
+                    ref={modalRef}
+                    className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                >
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                        <button
+                            type="button"
+                            className="absolute top-0 right-0 mt-3 mr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            onClick={onClose}
+                        >
+                            <XMarkIcon className="h-6 w-6" />
+                        </button>
                         <div className="sm:flex sm:items-start">
                             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -192,15 +214,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                 )}
                             </div>
                         </div>
-                    </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button
-                            type="button"
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-800 text-base font-medium text-white hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto sm:text-sm"
-                            onClick={onClose}
-                        >
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>
