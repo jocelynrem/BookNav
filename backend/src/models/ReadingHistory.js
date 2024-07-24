@@ -1,3 +1,4 @@
+// backend/src/models/ReadingHistory.js
 const mongoose = require('mongoose');
 
 const readingHistorySchema = new mongoose.Schema({

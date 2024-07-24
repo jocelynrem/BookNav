@@ -5,6 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
+const ReadingHistory = require('../models/ReadingHistory');
 
 // Get all students
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -146,6 +147,21 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
         res.json({ message: 'Student deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+// Get reading history for a student
+router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    console.log('Reading history route hit');
+    try {
+        const studentId = req.params.id;
+        console.log(`Fetching reading history for student ID: ${studentId}`);
+        const readingHistory = await ReadingHistory.find({ student: studentId }).sort({ date: -1 });
+        console.log('Reading history found:', readingHistory);
+        res.json(readingHistory);
+    } catch (error) {
+        console.error('Error fetching reading history:', error);
+        res.status(500).json({ message: 'Error fetching reading history', error: error.message });
     }
 });
 

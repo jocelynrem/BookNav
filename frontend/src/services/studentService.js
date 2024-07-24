@@ -13,6 +13,21 @@ const getAuthHeaders = () => ({
     'Authorization': `Bearer ${localStorage.getItem('token')}`
 });
 
+const axiosInstance = axios.create({
+    baseURL: apiUrl,
+});
+
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 export const getStudents = async () => {
     try {
         const response = await axios.get(`${apiUrl}/students`, {
@@ -90,12 +105,16 @@ export const bulkCreateStudents = async (studentsData) => {
 
 export const getStudentReadingHistory = async (studentId) => {
     try {
-        const response = await axios.get(`${apiUrl}/students/${studentId}/reading-history`, {
-            headers: getAuthHeaders()
-        });
+        console.log(`Fetching reading history for student ID: ${studentId}`);
+        console.log('API URL:', apiUrl);
+        console.log('Full request URL:', `${apiUrl}/students/${studentId}/reading-history`);
+        const response = await axiosInstance.get(`/students/${studentId}/reading-history`);
+        console.log('Reading history response:', response.data);
         return response.data;
     } catch (error) {
-        console.error('Failed to fetch student reading history:', error);
+        console.error('Failed to fetch student reading history:', error.response ? error.response.data : error.message);
+        console.error('Error details:', error);
         throw error;
     }
 };
+

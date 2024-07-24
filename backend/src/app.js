@@ -61,8 +61,10 @@ app.use(express.json());
 app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/classes', classRouter);
-app.use('/api/students', studentRouter);
-app.use('/api/checkouts', (req, res, next) => {
+app.use('/api/students', (req, res, next) => {
+    console.log(`Incoming request to /api/students: ${req.method} ${req.url}`);
+    next();
+}, studentsRouter); app.use('/api/checkouts', (req, res, next) => {
     console.log('Checkout route accessed');
     checkoutRouter(req, res, next);
 });

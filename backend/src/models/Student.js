@@ -1,6 +1,6 @@
 // backend/src/models/Student.js
 const mongoose = require('mongoose');
-const ReadingHistory = require('./ReadingHistory'); // Import the ReadingHistory model
+const ReadingHistory = require('./ReadingHistory');
 
 const studentSchema = new mongoose.Schema({
     firstName: {
