@@ -74,3 +74,13 @@ export const checkoutBook = async (bookCopyId, studentId, dueDate) => {
         throw error;
     }
 };
+
+export const getBookCopyCheckouts = async (bookCopyId) => {
+    try {
+        const response = await axiosInstance.get(`/checkouts/bookcopy/${bookCopyId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching checkout history for book copy:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};

@@ -27,34 +27,24 @@ export const getStudents = async () => {
 
 export const getStudentsByClass = async (classId) => {
     try {
-        const response = await axios.get(`${apiUrl}/students/class/${classId}`, {
+        const url = classId === 'all'
+            ? `${apiUrl}/students`
+            : `${apiUrl}/students/class/${classId}`;
+        const response = await axios.get(url, {
             headers: getAuthHeaders()
         });
         return response.data;
     } catch (error) {
         console.error('Failed to fetch students by class:', error);
-        if (error.response) {
-            console.error('Response data:', error.response.data);
-            console.error('Response status:', error.response.status);
-            console.error('Response headers:', error.response.headers);
-        } else if (error.request) {
-            console.error('Request data:', error.request);
-        } else {
-            console.error('Error message:', error.message);
-        }
         throw error;
     }
 };
 
 export const createStudent = async (studentData) => {
     try {
-        const token = localStorage.getItem('token');
-
-        const config = {
-            headers: { Authorization: `Bearer ${token}` }
-        };
-
-        const response = await axios.post(`${apiUrl}/students`, studentData, config);
+        const response = await axios.post(`${apiUrl}/students`, studentData, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
         console.error('Failed to create student:', error.response ? error.response.data : error.message);
@@ -98,9 +88,9 @@ export const bulkCreateStudents = async (studentsData) => {
     }
 };
 
-export const getStudentReadingHistory = async (id) => {
+export const getStudentReadingHistory = async (studentId) => {
     try {
-        const response = await axios.get(`${apiUrl}/students/${id}/reading-history`, {
+        const response = await axios.get(`${apiUrl}/students/${studentId}/reading-history`, {
             headers: getAuthHeaders()
         });
         return response.data;

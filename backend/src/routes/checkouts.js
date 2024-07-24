@@ -173,4 +173,20 @@ router.get('/search', async (req, res) => {
     }
 });
 
+router.get('/bookcopy/:bookCopyId', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const { bookCopyId } = req.params;
+        const checkoutRecords = await CheckoutRecord.find({ bookCopy: bookCopyId })
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title author' }
+            });
+        res.json(checkoutRecords);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 module.exports = router;
