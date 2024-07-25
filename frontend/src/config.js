@@ -1,6 +1,7 @@
-// src/config.js
-
 let apiUrl;
+
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('STAGING_API_URL:', process.env.REACT_APP_STAGING_API_URL);
 
 if (process.env.NODE_ENV === 'production') {
     apiUrl = process.env.REACT_APP_PROD_API_URL;
