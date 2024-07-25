@@ -7,6 +7,28 @@ const BookCopy = require('../models/BookCopy');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 
+router.get('/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Search query is required' });
+        }
+
+        const books = await Book.find({
+            $or: [
+                { title: { $regex: q, $options: 'i' } },
+                { author: { $regex: q, $options: 'i' } },
+                { isbn: { $regex: q, $options: 'i' } }
+            ]
+        }).limit(20);
+
+        res.json(books);
+    } catch (error) {
+        console.error('Error searching books:', error);
+        res.status(500).json({ message: 'Error searching books', error: error.message });
+    }
+});
+
 // Add a book to user's collection
 router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) => {
     try {
@@ -65,20 +87,20 @@ router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) =
 // Create a new book
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+        const { title, authors, publishedDate, pageCount, categories, thumbnail, description, isbn, copies } = req.body;
 
-        if (!title || !author) {
-            return res.status(400).send('Title and Author are required');
+        if (!title || !authors) {
+            return res.status(400).send('Title and Authors are required');
         }
 
         const book = new Book({
             title,
-            author,
+            authors,
             publishedDate,
-            pages,
-            genre,
-            subject,
-            coverImage,
+            pageCount,
+            categories,
+            thumbnail,
+            description,
             isbn,
             copies: copies || 1,
             availableCopies: copies || 1,
@@ -87,10 +109,21 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 
         await book.save();
 
+        // Create BookCopy instances
+        for (let i = 0; i < book.copies; i++) {
+            const bookCopy = new BookCopy({
+                book: book._id,
+                status: 'available',
+                copyNumber: i + 1
+            });
+            await bookCopy.save();
+        }
+
         // Add the book to the user's library
         const user = await User.findById(req.user.id);
         user.books.push(book._id);
         await user.save();
+
         res.status(201).send(book);
     } catch (error) {
         console.error('Error creating book:', error);

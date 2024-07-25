@@ -26,42 +26,39 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 // Checkout a book
 router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
     try {
-        const { bookCopyId, studentId, dueDate } = req.body;
-        console.log('Checkout request received:', { bookCopyId, studentId, dueDate });
+        const { bookId, studentId } = req.body;
 
-        // Check if the book copy is available
-        const bookCopy = await BookCopy.findById(bookCopyId);
-        if (!bookCopy || bookCopy.status !== 'available') {
-            console.log('Book copy not available:', bookCopy);
-            return res.status(400).json({ message: 'Book copy not available' });
+        // Find an available book copy
+        const bookCopy = await BookCopy.findOneAndUpdate(
+            { book: bookId, status: 'available' },
+            { status: 'checked out' },
+            { new: true }
+        );
+
+        if (!bookCopy) {
+            return res.status(400).json({ message: 'No available copies of this book' });
         }
 
         // Check if the student exists
         const student = await Student.findById(studentId);
         if (!student) {
-            console.log('Student not found:', studentId);
             return res.status(400).json({ message: 'Student not found' });
         }
 
-        // If the user is a student, ensure they're checking out for themselves
+        // Ensure students can only check out for themselves
         if (req.user.role === 'student' && req.user.id !== studentId) {
             return res.status(403).json({ message: 'Students can only check out books for themselves' });
         }
 
         // Create checkout record
         const checkoutRecord = new CheckoutRecord({
-            bookCopy: bookCopyId,
+            bookCopy: bookCopy._id,
             student: studentId,
             checkoutDate: new Date(),
-            dueDate: new Date(dueDate)
+            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
         });
 
         await checkoutRecord.save();
-        console.log('Checkout record created:', checkoutRecord);
-
-        // Update book copy status
-        bookCopy.status = 'checked out';
-        await bookCopy.save();
 
         res.status(201).json(checkoutRecord);
     } catch (error) {
@@ -70,21 +67,15 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
     }
 });
 
+
 // Return a book
 router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
     try {
-        console.log('Return request received for ID:', req.params.id);
-        console.log('Request body:', req.body);
-
         const checkoutRecord = await CheckoutRecord.findById(req.params.id);
-        console.log('Checkout record found:', checkoutRecord);
-
         if (!checkoutRecord) {
-            console.log('Checkout record not found for ID:', req.params.id);
             return res.status(404).json({ message: 'Checkout record not found' });
         }
 
-        // If the user is a student, ensure they're returning their own book
         if (req.user.role === 'student' && req.user.id !== checkoutRecord.student.toString()) {
             return res.status(403).json({ message: 'Students can only return their own books' });
         }
@@ -92,25 +83,31 @@ router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), a
         checkoutRecord.returnDate = new Date(req.body.returnedOn);
         checkoutRecord.status = 'returned';
         await checkoutRecord.save();
-        console.log('Updated checkout record:', checkoutRecord);
 
         const bookCopy = await BookCopy.findById(checkoutRecord.bookCopy);
         bookCopy.status = 'available';
         await bookCopy.save();
-        console.log('Updated book copy:', bookCopy);
 
-        res.json(checkoutRecord);
+        const book = await Book.findById(bookCopy.book);
+        book.availableCopies += 1;
+        book.checkedOutCopies -= 1;
+        await book.save();
+
+        res.json({ message: 'Book returned successfully', checkoutRecord, bookCopy, book });
     } catch (error) {
         console.error('Error in return route:', error);
         res.status(400).json({ message: error.message });
     }
 });
 
+
 router.get('/status', async (req, res) => {
     try {
         const { isbn, studentId } = req.query;
 
-        const book = await Book.findOne({ isbn });
+        const normalizedISBN = isbn.replace(/[-\s]/g, '').trim();
+        const book = await Book.findOne({ isbn: { $regex: new RegExp('^' + normalizedISBN + '$', 'i') } });
+
         if (!book) {
             return res.status(404).json({ message: 'Book not found' });
         }
@@ -132,8 +129,8 @@ router.get('/status', async (req, res) => {
     }
 });
 
-// Get all checkouts for a student
-router.get('/student/:studentId', authenticateToken, roleAuth('teacher'), async (req, res) => {
+// Get entire checkout history for a student
+router.get('/student/:studentId/history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentId = req.params.studentId;
         const checkouts = await CheckoutRecord.find({ student: studentId })
@@ -143,11 +140,28 @@ router.get('/student/:studentId', authenticateToken, roleAuth('teacher'), async 
                 populate: { path: 'book' }
             });
 
-        console.log('Checkouts found:', checkouts.length);
-        res.status(200).json(checkouts); // This will be an empty array if no checkouts are found
+        res.status(200).json(checkouts);
     } catch (error) {
-        console.error('Error in /student/:studentId route:', error);
-        res.status(500).json({ message: 'Error fetching student checkouts', error: error.message });
+        console.error('Error in /student/:studentId/history route:', error);
+        res.status(500).json({ message: 'Error fetching checkout history', error: error.message });
+    }
+});
+
+// Get all current checkouts for a student
+router.get('/student/:studentId/current', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+        const checkouts = await CheckoutRecord.find({ student: studentId, status: 'checked out' })
+            .populate('bookCopy')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book' }
+            });
+
+        res.status(200).json(checkouts);
+    } catch (error) {
+        console.error('Error in /student/:studentId/current route:', error);
+        res.status(500).json({ message: 'Error fetching current checkouts', error: error.message });
     }
 });
 

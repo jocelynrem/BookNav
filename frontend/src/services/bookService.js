@@ -1,12 +1,5 @@
 import apiClient from "./apiClient";
-
-let apiUrl;
-
-if (process.env.VERCEL_ENV === 'production') {
-    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
-} else {
-    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
-}
+import apiUrl from '../config';
 
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -227,7 +220,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
             });
             return existingBook;
         } else {
-            const response = await apiClient.post(`${apiUrl}/books/add`, book);
+            const response = await apiClient.post(`${apiUrl}/books/add`, { ...book, copies });
             const newBook = response.data;
             setUndoBook(newBook);
             setNotification({ show: true, message: `Book "${book.title}" added to your library!`, undo: true });

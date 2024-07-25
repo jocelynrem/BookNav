@@ -1,13 +1,7 @@
 //frontend/src/services/studentService.js
 import axios from 'axios';
+import apiUrl from '../config';
 
-let apiUrl;
-
-if (process.env.VERCEL_ENV === 'production') {
-    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
-} else {
-    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
-}
 
 const getAuthHeaders = () => ({
     'Authorization': `Bearer ${localStorage.getItem('token')}`

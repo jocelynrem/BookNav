@@ -9,7 +9,7 @@ import ActionPanelModal from './ActionPanelModal';
 import Swal from 'sweetalert2';
 
 function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+    return classes.filter(Boolean).join(' ');
 }
 
 const getColorForClass = (className) => {
@@ -75,16 +75,17 @@ const TeacherCheckout = () => {
             setBookStatus(status);
         } catch (error) {
             console.error('Error checking book status:', error);
-            let errorMessage = 'Failed to check book status. Please try again.';
-            if (error.response) {
-                if (error.response.status === 404) {
-                    errorMessage = 'Book not found. Please check the ISBN and try again.';
-                } else if (error.response.data && error.response.data.message) {
-                    errorMessage = error.response.data.message;
-                }
+            if (error.message === 'Book not found') {
+                Swal.fire('Error', 'The scanned book was not found in the library. Please add it first.', 'error');
+            } else {
+                Swal.fire('Error', 'Failed to check book status. Please try again.', 'error');
             }
-            Swal.fire('Error', errorMessage, 'error');
         }
+    };
+
+    const handleStopScanning = () => {
+        setIsActionPanelOpen(false); // Close the modal
+        setBookStatus(null); // Reset the book status
     };
 
     const handleConfirmAction = async () => {
@@ -104,9 +105,7 @@ const TeacherCheckout = () => {
         }
     };
 
-    const getInitials = (firstName, lastName) => {
-        return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    };
+    const getInitials = (firstName, lastName) => `${firstName[0]}${lastName[0]}`.toUpperCase();
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -121,7 +120,7 @@ const TeacherCheckout = () => {
                     id="class-select"
                     value={selectedClass}
                     onChange={handleClassSelect}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md"
                 >
                     <option value="">Select a class</option>
                     {classes.map((classItem) => (
@@ -185,7 +184,7 @@ const TeacherCheckout = () => {
             {/* Action Panel Modal */}
             <ActionPanelModal
                 isOpen={isActionPanelOpen}
-                onClose={() => setIsActionPanelOpen(false)}
+                onClose={handleStopScanning}
                 student={selectedStudent}
                 onScan={handleScan}
                 bookStatus={bookStatus}

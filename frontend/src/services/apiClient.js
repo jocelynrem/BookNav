@@ -1,14 +1,15 @@
-// frontend/src/services/apiClient.js
+// src/services/apiClient.js
 
 import axios from 'axios';
+import apiUrl from '../config';
 import { refreshToken } from './authService';
 
 const apiClient = axios.create({
-    baseURL: process.env.REACT_APP_API_URL,
+    baseURL: apiUrl,
 });
 
 apiClient.interceptors.request.use(
-    async (config) => {
+    (config) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
@@ -26,10 +27,10 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 const newToken = await refreshToken();
+                localStorage.setItem('token', newToken);
                 axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
                 return apiClient(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, redirect to login
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             }

@@ -152,12 +152,9 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
 
 // Get reading history for a student
 router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    console.log('Reading history route hit');
     try {
         const studentId = req.params.id;
-        console.log(`Fetching reading history for student ID: ${studentId}`);
         const readingHistory = await ReadingHistory.find({ student: studentId }).sort({ date: -1 });
-        console.log('Reading history found:', readingHistory);
         res.json(readingHistory);
     } catch (error) {
         console.error('Error fetching reading history:', error);

@@ -94,15 +94,18 @@ const AddBySearch = () => {
         if (result && result.codeResult && result.codeResult.code) {
             const scannedCode = result.codeResult.code;
 
-            // Validate the scanned code
+            // Normalize the scanned code
             const isbn = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
 
             setQuery(isbn);
             setScanning(false);
-            handleSearchByISBN(isbn);
+            handleSearchByISBN(isbn); // Assuming this function handles the search and adding the book to the system
         } else {
+            // Handle the case where scanning failed or did not return a valid code
+            console.error('Failed to scan ISBN.');
         }
     };
+
 
     const handleChange = (e) => {
         setQuery(e.target.value);

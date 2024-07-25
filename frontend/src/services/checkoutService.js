@@ -1,12 +1,6 @@
 import axios from 'axios';
+import apiUrl from '../config';
 
-let apiUrl;
-
-if (process.env.VERCEL_ENV === 'production') {
-    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
-} else {
-    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
-}
 
 const axiosInstance = axios.create({
     baseURL: apiUrl,
@@ -23,14 +17,24 @@ axiosInstance.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-export const getStudentCheckouts = async (studentId) => {
+// Fetch only current checkouts for a student
+export const getCurrentCheckouts = async (studentId) => {
     try {
-        console.log('Fetching checkouts for student:', studentId);
-        const response = await axiosInstance.get(`/checkouts/student/${studentId}`);
-        console.log('Checkout response:', response.data);
+        const response = await axiosInstance.get(`/checkouts/student/${studentId}/current`);
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
-        console.error('Error fetching student checkouts:', error.response ? error.response.data : error.message);
+        console.error('Error fetching current checkouts:', error.response ? error.response.data : error.message);
+        return [];
+    }
+};
+
+// Fetch the entire checkout history for a student
+export const getCheckoutHistory = async (studentId) => {
+    try {
+        const response = await axiosInstance.get(`/checkouts/student/${studentId}/history`);
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching checkout history:', error.response ? error.response.data : error.message);
         return [];
     }
 };
@@ -40,14 +44,21 @@ export const checkBookStatus = async (isbn, studentId) => {
         const response = await axiosInstance.get(`/checkouts/status`, { params: { isbn, studentId } });
         return response.data;
     } catch (error) {
+        if (error.response && error.response.status === 404) {
+            console.error('Book not found:', error.response.data.message);
+            throw new Error('Book not found');
+        }
         console.error('Error checking book status:', error.response ? error.response.data : error.message);
         throw error;
     }
 };
 
-export const returnBook = async (checkoutRecordId, returnedOn) => {
+export const returnBook = async (checkoutRecordId) => {
     try {
-        const response = await axiosInstance.put(`/checkouts/${checkoutRecordId}/return`, { returnedOn });
+        // Send a request to mark the book as returned
+        const response = await axiosInstance.put(`/checkouts/${checkoutRecordId}/return`, {
+            returnedOn: new Date().toISOString() // Send the current date as an ISO string
+        });
         return response.data;
     } catch (error) {
         console.error('Error returning book:', error.response ? error.response.data : error.message);
@@ -65,9 +76,9 @@ export const searchBooks = async (query) => {
     }
 };
 
-export const checkoutBook = async (bookCopyId, studentId, dueDate) => {
+export const checkoutBook = async (bookId, studentId) => {
     try {
-        const response = await axiosInstance.post(`/checkouts`, { bookCopyId, studentId, dueDate });
+        const response = await axiosInstance.post('/checkouts', { bookId, studentId });
         return response.data;
     } catch (error) {
         console.error('Error checking out book:', error.response ? error.response.data : error.message);

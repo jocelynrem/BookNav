@@ -52,16 +52,10 @@ studentSchema.index({ firstName: 1, lastName: 1, class: 1 }, { unique: true });
 // Post-save hook to create a reading history entry
 studentSchema.post('save', async function (student, next) {
     try {
-        const formattedDate = student.createdAt.toLocaleDateString('en-US', {
-            month: '2-digit',
-            day: '2-digit',
-            year: 'numeric'
-        });
-
         await ReadingHistory.create({
             student: student._id,
-            entry: `Student created on ${formattedDate}`,
-            date: student.createdAt
+            entry: `Student account created`,
+            date: new Date()
         });
         next();
     } catch (error) {
