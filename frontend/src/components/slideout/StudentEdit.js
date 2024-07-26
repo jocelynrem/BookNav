@@ -85,17 +85,23 @@ const StudentEdit = ({ student, onSave, onClose, onView, onDelete, classes }) =>
                 <div className="flex-grow">
                     <label className="block mb-2">
                         Class
-                        <select
-                            name="class"
-                            value={editingStudent.class ? editingStudent.class._id : ''}
-                            onChange={handleClassChange}
-                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                        >
-                            <option value="">Select a class</option>
-                            {classes.map((cls) => (
-                                <option key={cls._id} value={cls._id}>{cls.name}</option>
-                            ))}
-                        </select>
+                        {classes.length === 1 ? (
+                            <div className="block w-full rounded-md border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 sm:text-sm">
+                                {editingStudent.class.name}
+                            </div>
+                        ) : (
+                            <select
+                                name="class"
+                                value={editingStudent.class ? editingStudent.class._id : ''}
+                                onChange={handleClassChange}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
+                            >
+                                <option value="">Select a class</option>
+                                {classes.map((cls) => (
+                                    <option key={cls._id} value={cls._id}>{cls.name}</option>
+                                ))}
+                            </select>
+                        )}
                     </label>
                 </div>
                 <div className="w-1/4">

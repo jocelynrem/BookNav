@@ -20,20 +20,12 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
             const history = await getStudentReadingHistory(student._id);
             setReadingHistory(history);
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                // If the reading history is not found (404), set an empty array
-                console.warn(`Reading history not found for student ID: ${student._id}`);
-                setReadingHistory([]);
-            } else {
-                // For other errors, set an appropriate error message
-                console.error('Error fetching reading history:', error);
-                setError('Failed to load reading history. Please try again.');
-            }
+            console.error('Error fetching reading history:', error);
+            setError('Failed to load reading history. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
-
 
     const getClassName = (classData) => {
         if (!classData) return 'N/A';
@@ -98,20 +90,13 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                                     <div className="flex items-center">
                                         <BookOpenIcon className="h-5 w-5 text-gray-400 mr-2" />
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900">{record.book.title}</p>
-                                            <p className="text-xs text-gray-500">{record.book.author}</p>
+                                            <p className="text-sm font-medium text-gray-900">{record.entry}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-gray-900">{formatDate(record.checkoutDate)}</p>
-                                        <p className="text-xs text-gray-500">{record.status}</p>
+                                        <p className="text-sm text-gray-500">{formatDate(record.date)}</p>
                                     </div>
                                 </div>
-                                {record.returnDate && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Returned: {formatDate(record.returnDate)}
-                                    </p>
-                                )}
                             </li>
                         ))}
                     </ul>

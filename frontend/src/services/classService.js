@@ -1,11 +1,6 @@
 //frontend/src/services/classService.js
-let apiUrl;
+import apiUrl from '../config';
 
-if (process.env.VERCEL_ENV === 'production') {
-    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
-} else {
-    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
-}
 export const getClasses = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${apiUrl}/classes`, {

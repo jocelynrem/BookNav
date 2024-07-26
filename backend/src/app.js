@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,24 +8,35 @@ const authRouter = require('./routes/auth');
 const classRouter = require('./routes/classes');
 const studentRouter = require('./routes/students');
 const checkoutRouter = require('./routes/checkouts');
+const dashboardRouter = require('./routes/dashboard');
 
 const app = express();
 
 // Load appropriate .env file based on environment
-if (process.env.NODE_ENV === 'test') {
-    require('dotenv').config({ path: '.env.test' });
-    console.log('Running in test environment');
-} else {
-    require('dotenv').config();
-    console.log('Running in production environment');
+switch (process.env.NODE_ENV) {
+    case 'development':
+        require('dotenv').config({ path: '.env' });
+        console.log('Running in development environment');
+        break;
+    case 'staging':
+        require('dotenv').config({ path: '.env.staging' });
+        console.log('Running in staging environment');
+        break;
+    case 'production':
+        require('dotenv').config({ path: '.env.production' });
+        console.log('Running in production environment');
+        break;
+    default:
+        console.error('No valid NODE_ENV set');
+        process.exit(1);
 }
 
-const mongoUri = process.env.NODE_ENV === 'test' ? process.env.MONGODB_URI_TEST : process.env.MONGODB_URI;
-console.log(`MongoDB URI: ${mongoUri}`);
+const mongoUri = process.env.MONGODB_URI;
 
 mongoose.connect(mongoUri)
-    .then(() => console.log(`MongoDB connected to ${process.env.NODE_ENV === 'test' ? 'test' : 'production'} database`))
+    .then(() => console.log(`MongoDB connected to ${process.env.NODE_ENV} database`))
     .catch(err => console.error('MongoDB connection error:', err));
+console.log("mongoUri: ", mongoUri)
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected');
@@ -51,7 +63,7 @@ app.use(cors({
         }
         return callback(null, true);
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
 }));
 
@@ -62,9 +74,11 @@ app.use('/api/books', bookRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/students', studentRouter);
-app.use('/api/checkouts', (req, res, next) => {
-    console.log('Checkout route accessed');
-    checkoutRouter(req, res, next);
+app.use('/api/checkouts', checkoutRouter);
+app.use('/api/dashboard', dashboardRouter);
+
+app.use((req, res, next) => {
+    next();
 });
 
 app.get('/', (req, res) => {
@@ -73,7 +87,6 @@ app.get('/', (req, res) => {
 
 // Catch-all route
 app.use('*', (req, res) => {
-    console.log('Catch-all route hit:', req.method, req.originalUrl);
     res.status(404).send('Route not found');
 });
 

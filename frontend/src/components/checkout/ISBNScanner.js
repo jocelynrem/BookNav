@@ -25,7 +25,7 @@ const ISBNScanner = ({ onScan }) => {
             },
             (err) => {
                 if (err) {
-                    console.error(err);
+                    console.error('Error initializing Quagga:', err);
                     return;
                 }
                 Quagga.start();
@@ -33,7 +33,7 @@ const ISBNScanner = ({ onScan }) => {
         );
 
         Quagga.onDetected((result) => {
-            if (result.codeResult.code) {
+            if (result && result.codeResult && result.codeResult.code) {
                 onScan(result.codeResult.code);
                 Quagga.stop();
             }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { updateStudent, deleteStudent } from '../../services/studentService';
+import { updateStudent, deleteStudent, getStudentsByClass } from '../../services/studentService';
 import StudentTable from './StudentTable';
 import SlideoutParent from '../slideout/SlideoutParent';
 import StudentAdd from '../slideout/StudentAdd';
@@ -14,6 +14,7 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
     const [isAdding, setIsAdding] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
+    const [selectedClassForView, setSelectedClassForView] = useState({ _id: 'all', name: 'All Classes' });
 
     useEffect(() => {
         if (classes.length > 0 && !selectedClass) {
@@ -21,31 +22,26 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
         }
     }, [classes, selectedClass]);
 
-    if (!classes || classes.length === 0) {
-        return <div>Loading classes...</div>;
-    }
-
-    const showNotification = (message, icon) => {
-        Swal.fire({
-            toast: true,
-            position: 'bottom-right',
-            showConfirmButton: false,
-            timer: 3000,
-            icon,
-            title: message,
-            timerProgressBar: true,
-        });
+    const fetchStudents = async () => {
+        try {
+            const fetchedStudents = await getStudentsByClass(selectedClass ? selectedClass._id : 'all');
+            setStudents(fetchedStudents);
+        } catch (error) {
+            console.error('Failed to fetch students:', error);
+        }
     };
 
     const handleCSVImportComplete = () => {
-        showNotification('CSV import completed successfully.', 'success');
-        fetchStudents(selectedClass._id); // Refresh the student list
+        Swal.fire('Success', 'CSV import completed successfully.', 'success');
+        setIsSlideoutOpen(false); // Close the AddStudent panel
+        setSelectedClassForView({ _id: 'all', name: 'All Classes' }); // Reset dropdown to 'All Classes'
+        setSelectedClass(null); // Reset selectedClass if needed
+        fetchStudents(); // Refresh the student list
     };
 
-    const handleSaveStudent = async (updatedStudent) => {
 
+    const handleSaveStudent = async (updatedStudent) => {
         try {
-            // Ensure we're sending the class ID, not the whole object
             const studentToUpdate = {
                 ...updatedStudent,
                 class: updatedStudent.class._id
@@ -53,27 +49,24 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
 
             const savedStudent = await updateStudent(updatedStudent._id, studentToUpdate);
 
-            // Find the full class object
             const fullClass = classes.find(cls => cls._id === savedStudent.class);
 
-            // Create a new student object with the full class information
             const updatedStudentWithFullClass = {
                 ...savedStudent,
                 class: fullClass || { _id: savedStudent.class, name: 'Unknown Class' }
             };
 
-            // Update the students array
             setStudents(prevStudents => prevStudents.map(s =>
                 s._id === updatedStudentWithFullClass._id ? updatedStudentWithFullClass : s
             ));
 
             setSelectedStudent(updatedStudentWithFullClass);
-            showNotification('Student updated successfully.', 'success');
+            Swal.fire('Success', 'Student updated successfully.', 'success');
             setIsEditing(false);
             setIsSlideoutOpen(true);
         } catch (error) {
             console.error('Failed to update student:', error);
-            showNotification('Failed to update student.', 'error');
+            Swal.fire('Error', 'Failed to update student. Please try again.', 'error');
         }
     };
 
@@ -89,10 +82,10 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
             setStudents(prevStudents => prevStudents.filter(s => s._id !== studentId));
             setSelectedStudent(null);
             setIsSlideoutOpen(false);
-            showNotification('Student deleted successfully.', 'success');
+            Swal.fire('Success', 'Student deleted successfully.', 'success');
         } catch (error) {
             console.error('Failed to delete student:', error);
-            showNotification('Failed to delete student.', 'error');
+            Swal.fire('Error', 'Failed to delete student. Please try again.', 'error');
         }
     };
 
@@ -110,7 +103,7 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
 
     return (
         <div className="mt-8">
-            <div className="relative mt-8">
+            <div className="relative mt-8 mb-8">
                 <div aria-hidden="true" className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
                 </div>

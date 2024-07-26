@@ -5,6 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
+const ReadingHistory = require('../models/ReadingHistory');
 
 // Get all students
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -76,40 +77,55 @@ router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, 
             return res.status(400).json({ message: 'Invalid input. Expected an array of student objects.' });
         }
 
-        const results = {
-            success: 0,
-            failed: 0,
-            errors: []
-        };
+        const createdStudents = await bulkCreateStudents(studentsData);
 
-        for (let studentData of studentsData) {
-            try {
-                const studentClass = await Class.findById(studentData.classId);
-                if (!studentClass) {
-                    throw new Error('Class not found');
-                }
-
-                const newStudent = new Student({
-                    firstName: studentData.firstName,
-                    lastName: studentData.lastName,
-                    grade: studentClass.grade, // Set grade from class
-                    class: studentData.classId,
-                    pin: studentData.pin || '0000' // Default PIN if not provided
-                });
-
-                await newStudent.save();
-                results.success++;
-            } catch (error) {
-                results.failed++;
-                results.errors.push(`Failed to create student ${studentData.firstName} ${studentData.lastName}: ${error.message}`);
-            }
-        }
-
-        res.status(201).json(results);
+        res.status(201).json({
+            message: `Successfully created ${createdStudents.length} students`,
+            students: createdStudents
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Failed to bulk create students:', error);
+        res.status(500).json({ message: 'Error creating students', error: error.message });
     }
 });
+
+async function bulkCreateStudents(studentsData) {
+    const createdStudents = [];
+    for (const data of studentsData) {
+        try {
+            const studentClass = await Class.findById(data.classId);
+            if (!studentClass) {
+                throw new Error(`Class not found for student: ${data.firstName} ${data.lastName}`);
+            }
+
+            // Check for existing student with the same name in the same class
+            const existingStudent = await Student.findOne({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                class: data.classId
+            });
+
+            if (existingStudent) {
+                throw new Error(`A student with this name already exists in the class: ${data.firstName} ${data.lastName}`);
+            }
+
+            const newStudent = new Student({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                grade: studentClass.grade,
+                class: data.classId,
+                pin: data.pin
+            });
+
+            const savedStudent = await newStudent.save();
+            createdStudents.push(savedStudent);
+        } catch (error) {
+            console.error(`Error creating student: ${data.firstName} ${data.lastName}`, error);
+            // Continue with the next student
+        }
+    }
+    return createdStudents;
+}
 
 // Update a student
 router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -131,6 +147,18 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
         res.json({ message: 'Student deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+// Get reading history for a student
+router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const studentId = req.params.id;
+        const readingHistory = await ReadingHistory.find({ student: studentId }).sort({ date: -1 });
+        res.json(readingHistory);
+    } catch (error) {
+        console.error('Error fetching reading history:', error);
+        res.status(500).json({ message: 'Error fetching reading history', error: error.message });
     }
 });
 

@@ -9,7 +9,7 @@ import ActionPanelModal from './ActionPanelModal';
 import Swal from 'sweetalert2';
 
 function classNames(...classes) {
-    return classes.filter(Boolean).join(' ')
+    return classes.filter(Boolean).join(' ');
 }
 
 const getColorForClass = (className) => {
@@ -35,6 +35,9 @@ const TeacherCheckout = () => {
             try {
                 const fetchedClasses = await getClasses();
                 setClasses(fetchedClasses);
+                if (fetchedClasses.length === 1) {
+                    setSelectedClass(fetchedClasses[0]._id);
+                }
             } catch (error) {
                 console.error('Error fetching classes:', error);
                 Swal.fire('Error', 'Failed to fetch classes. Please try again.', 'error');
@@ -69,22 +72,23 @@ const TeacherCheckout = () => {
         setIsActionPanelOpen(true);
     };
 
-    const handleScan = async (scannedISBN) => {
+    const handleScanTeacherCheckout = async (scannedISBN) => {
         try {
             const status = await checkBookStatus(scannedISBN, selectedStudent._id);
             setBookStatus(status);
         } catch (error) {
             console.error('Error checking book status:', error);
-            let errorMessage = 'Failed to check book status. Please try again.';
-            if (error.response) {
-                if (error.response.status === 404) {
-                    errorMessage = 'Book not found. Please check the ISBN and try again.';
-                } else if (error.response.data && error.response.data.message) {
-                    errorMessage = error.response.data.message;
-                }
+            if (error.message === 'Book not found') {
+                Swal.fire('Error', 'The scanned book was not found in the library. Please add it first.', 'error');
+            } else {
+                Swal.fire('Error', 'Failed to check book status. Please try again.', 'error');
             }
-            Swal.fire('Error', errorMessage, 'error');
         }
+    };
+
+    const handleStopScanning = () => {
+        setIsActionPanelOpen(false); // Close the modal
+        setBookStatus(null); // Reset the book status
     };
 
     const handleConfirmAction = async () => {
@@ -104,32 +108,38 @@ const TeacherCheckout = () => {
         }
     };
 
-    const getInitials = (firstName, lastName) => {
-        return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    };
+    const getInitials = (firstName, lastName) => `${firstName[0]}${lastName[0]}`.toUpperCase();
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h2 className="text-2xl font-bold mb-6">Teacher Checkout</h2>
 
-            {/* Class selection dropdown */}
+            {/* Class selection or single class name */}
             <div className="mb-8">
-                <label htmlFor="class-select" className="block text-sm font-medium text-gray-700">
-                    Select a Class
-                </label>
-                <select
-                    id="class-select"
-                    value={selectedClass}
-                    onChange={handleClassSelect}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                >
-                    <option value="">Select a class</option>
-                    {classes.map((classItem) => (
-                        <option key={classItem._id} value={classItem._id}>
-                            {classItem.name}
-                        </option>
-                    ))}
-                </select>
+                {classes.length === 1 ? (
+                    <div className="text-lg font-medium text-gray-700">
+                        {classes[0].name}
+                    </div>
+                ) : (
+                    <>
+                        <label htmlFor="class-select" className="block text-sm font-medium text-gray-700">
+                            Select a Class
+                        </label>
+                        <select
+                            id="class-select"
+                            value={selectedClass}
+                            onChange={handleClassSelect}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md"
+                        >
+                            <option value="">Select a class</option>
+                            {classes.map((classItem) => (
+                                <option key={classItem._id} value={classItem._id}>
+                                    {classItem.name}
+                                </option>
+                            ))}
+                        </select>
+                    </>
+                )}
             </div>
 
             {/* Student selection grid */}
@@ -185,9 +195,9 @@ const TeacherCheckout = () => {
             {/* Action Panel Modal */}
             <ActionPanelModal
                 isOpen={isActionPanelOpen}
-                onClose={() => setIsActionPanelOpen(false)}
+                onClose={handleStopScanning}
                 student={selectedStudent}
-                onScan={handleScan}
+                onScan={handleScanTeacherCheckout}
                 bookStatus={bookStatus}
                 onConfirmAction={handleConfirmAction}
             />

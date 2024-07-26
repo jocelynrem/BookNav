@@ -14,7 +14,7 @@ const NavigationHandler = ({ children }) => {
         const isResetTokenPath = location.pathname.startsWith('/reset/');
 
         if (isAuthenticated && (isPublicRoute || isResetTokenPath)) {
-            navigate('/', { replace: true });
+            navigate('/dashboard', { replace: true });
         } else if (!isAuthenticated && !isPublicRoute && !isResetTokenPath) {
             navigate('/login', { replace: true });
         }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loginUser } from '../services/bookService';
+import { loginUser } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LibraryImage from '../images/LibraryImage.jpg';
@@ -18,7 +18,7 @@ export default function LoginPage() {
         if (token) {
             localStorage.setItem('token', token);
             login(token, 'user'); // Assuming 'user' as a default role
-            navigate('/');
+            navigate('/dashboard');
         }
     }, [location, login, navigate]);
 
@@ -27,7 +27,7 @@ export default function LoginPage() {
         try {
             const { token, role } = await loginUser({ usernameOrEmail, password });
             login(token, role);
-            navigate('/');
+            navigate('/dashboard');
         } catch (error) {
             console.error('Login failed', error);
             setError(error.message || 'Login failed');

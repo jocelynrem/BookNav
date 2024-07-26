@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { QrCodeIcon, XMarkIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useRef } from 'react';
+import { QrCodeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ISBNScanner from './ISBNScanner';
-import { getStudentCheckouts, returnBook, checkoutBook, searchBooks } from '../../services/checkoutService';
+import { getCurrentCheckouts, returnBook, checkoutBook, searchBooks } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 
-const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConfirmAction }) => {
+const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmAction }) => {
     const [isScanning, setIsScanning] = useState(false);
     const [checkedOutBooks, setCheckedOutBooks] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false); // Add this line
+    const modalRef = useRef();
+    const streamRef = useRef(null);
 
     useEffect(() => {
         if (isOpen && student) {
@@ -17,33 +20,78 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
         }
     }, [isOpen, student]);
 
+    const startScanning = async () => {
+        setIsScanning(true);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            streamRef.current = stream;
+        } catch (error) {
+            console.error('Failed to start scanning:', error);
+            setIsScanning(false);
+        }
+    };
+
+    const stopScanning = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        setIsScanning(false);
+    };
+
+    useEffect(() => {
+        if (!isOpen) {
+            stopScanning();
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                stopScanning();
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            stopScanning();
+        };
+    }, [onClose]);
+
     const fetchCheckedOutBooks = async () => {
         try {
-            console.log('Fetching checked out books for student:', student._id);
-            const books = await getStudentCheckouts(student._id);
-            console.log('Fetched books:', books);
-            if (Array.isArray(books)) {
-                setCheckedOutBooks(books);
-            } else {
-                console.error('Fetched data is not an array:', books);
-                setCheckedOutBooks([]);
-            }
+            const books = await getCurrentCheckouts(student._id);
+            setCheckedOutBooks(books); // Update state with the latest list of checked-out books
         } catch (error) {
             console.error('Failed to fetch checked out books:', error);
-            setCheckedOutBooks([]);
         }
     };
 
-    const handleReturn = async (bookId) => {
+    const handleReturn = async (checkoutRecordId) => {
         try {
-            await returnBook(bookId);
-            fetchCheckedOutBooks(); // Refresh the list after returning
+            if (isProcessing) return; // Prevent multiple submissions
+            setIsProcessing(true);
+
+            const updatedCheckout = await returnBook(checkoutRecordId);
+            Swal.fire('Success', 'Book returned successfully', 'success');
+
+            // Refresh the list of checked-out books
+            await fetchCheckedOutBooks();
         } catch (error) {
             console.error('Failed to return book:', error);
+            let errorMessage = 'Failed to return book. Please try again.';
+            if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+            Swal.fire('Error', errorMessage, 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
-    const handleSearch = async () => {
+    const handleSearchActionPanel = async () => {
         if (!searchQuery.trim()) return;
         setIsSearching(true);
         try {
@@ -63,13 +111,88 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
 
     const handleCheckout = async (bookId) => {
         try {
-            await checkoutBook(bookId, student._id);
-            fetchCheckedOutBooks(); // Refresh the list after checkout
-            setSearchResults([]); // Clear search results
-            setSearchQuery(''); // Clear search query
+            if (isProcessing) return;
+            setIsProcessing(true);
+
+            // Check if the book is already checked out by the student
+            const currentCheckouts = await getCurrentCheckouts(student._id);
+            console.log('Current checkouts:', currentCheckouts);
+            const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
+                checkout.bookCopy && checkout.bookCopy.book && checkout.bookCopy.book._id === bookId
+            );
+
+            if (isAlreadyCheckedOut) {
+                Swal.fire('Error', 'This book is already checked out.', 'error');
+                return;
+            }
+
+            // Proceed with checkout if the book is not already checked out
+            const checkoutResult = await checkoutBook(bookId, student._id);
+            console.log('Checkout result:', checkoutResult);
+            await fetchCheckedOutBooks();
+            setSearchResults([]);
+            setSearchQuery('');
+            Swal.fire('Success', 'Book checked out successfully', 'success');
         } catch (error) {
             console.error('Failed to check out book:', error);
+            let errorMessage = 'Failed to check out book. Please try again.';
+            if (error.response && error.response.data && error.response.data.message) {
+                errorMessage = error.response.data.message;
+            }
+            Swal.fire('Error', errorMessage, 'error');
+        } finally {
+            setIsProcessing(false);
         }
+    };
+
+    const handleCheckoutScan = async (scannedCode) => {
+        if (scannedCode && !isProcessing) {
+            let normalizedISBN = scannedCode;
+
+            // Convert to ISBN-13 if necessary
+            if (scannedCode.length === 10) {
+                normalizedISBN = convertToISBN13(scannedCode);
+            } else if (!scannedCode.startsWith('978')) {
+                normalizedISBN = `978${scannedCode}`; // Ensure it starts with '978' for ISBN-13 format
+            }
+            // setQuery(normalizedISBN); // Remove or replace this line if needed
+            setIsScanning(false);
+
+            setIsProcessing(true);
+            try {
+                const results = await searchBooks(normalizedISBN);
+                if (results.length === 0) {
+                    Swal.fire('Error', 'Book not found in the library system.', 'error');
+                } else {
+                    // Assuming the first result is the desired book
+                    const book = results[0];
+                    await handleCheckout(book._id);
+                }
+            } catch (error) {
+                console.error('Error during book search or checkout:', error);
+                Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
+            } finally {
+                setIsProcessing(false);
+            }
+        } else {
+            console.error('Invalid barcode scanned');
+            setError('Invalid barcode scanned');
+        }
+    };
+
+    const convertToISBN13 = (isbn10) => {
+        // Convert ISBN-10 to ISBN-13
+        return `978${isbn10.substring(0, 9)}` + calculateCheckDigit(`978${isbn10.substring(0, 9)}`);
+    };
+
+    const calculateCheckDigit = (isbn) => {
+        // Calculate the check digit for the ISBN-13
+        let sum = 0;
+        for (let i = 0; i < isbn.length; i++) {
+            sum += (i % 2 === 0 ? 1 : 3) * parseInt(isbn.charAt(i), 10);
+        }
+        let checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit.toString();
     };
 
     if (!isOpen) return null;
@@ -83,8 +206,21 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div
+                    ref={modalRef}
+                    className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                >
+                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                        <button
+                            type="button"
+                            className="absolute top-0 right-0 mt-3 mr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            onClick={() => {
+                                stopScanning();
+                                onClose();
+                            }}
+                        >
+                            <XMarkIcon className="h-6 w-6" />
+                        </button>
                         <div className="sm:flex sm:items-start">
                             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
@@ -98,11 +234,13 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                         <p className="text-sm text-gray-500">No books currently checked out.</p>
                                     ) : (
                                         <ul className="mt-2 divide-y divide-gray-200">
-                                            {checkedOutBooks.map((book) => (
-                                                <li key={book._id} className="py-2 flex justify-between items-center">
-                                                    <span className="text-sm text-gray-900">{book.title}</span>
+                                            {checkedOutBooks.map((bookCopy) => (
+                                                <li key={bookCopy._id} className="py-2 flex justify-between items-center">
+                                                    <span className="text-sm text-gray-900">
+                                                        {bookCopy.bookCopy?.book?.title || 'Unknown Title'}
+                                                    </span>
                                                     <button
-                                                        onClick={() => handleReturn(book._id)}
+                                                        onClick={() => handleReturn(bookCopy._id)}
                                                         className="text-sm text-pink-600 hover:text-pink-900"
                                                     >
                                                         Return
@@ -125,7 +263,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                             className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                                         />
                                         <button
-                                            onClick={handleSearch}
+                                            onClick={handleSearchActionPanel}
                                             className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                                         >
                                             Search
@@ -156,9 +294,9 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                     <div className="mt-2">
                                         {isScanning ? (
                                             <>
-                                                <ISBNScanner onScan={onScan} />
+                                                <ISBNScanner onScan={handleCheckoutScan} />
                                                 <button
-                                                    onClick={() => setIsScanning(false)}
+                                                    onClick={stopScanning}
                                                     className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                                 >
                                                     Stop Scanning
@@ -166,7 +304,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                             </>
                                         ) : (
                                             <button
-                                                onClick={() => setIsScanning(true)}
+                                                onClick={startScanning}
                                                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                             >
                                                 <QrCodeIcon className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -192,15 +330,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, onScan, bookStatus, onConf
                                 )}
                             </div>
                         </div>
-                    </div>
-                    <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button
-                            type="button"
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-800 text-base font-medium text-white hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:ml-3 sm:w-auto sm:text-sm"
-                            onClick={onClose}
-                        >
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>

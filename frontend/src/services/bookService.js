@@ -1,12 +1,5 @@
 import apiClient from "./apiClient";
-
-let apiUrl;
-
-if (process.env.VERCEL_ENV === 'production') {
-    apiUrl = 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
-} else {
-    apiUrl = 'https://booknav-backend-d849f051372e.herokuapp.com/api';
-}
+import apiUrl from '../config';
 
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -27,38 +20,6 @@ const headersWithAuth = () => {
     };
 };
 
-// Authentication functions
-export const registerUser = async (userData) => {
-    try {
-        const response = await apiClient.post(`${apiUrl}/auth/register`, userData);
-        return response.data;
-    } catch (error) {
-        console.error('Error registering user:', error);
-        throw error;
-    }
-};
-
-export const loginUser = async (credentials) => {
-    try {
-        const response = await apiClient.post(`${apiUrl}/auth/login`, credentials);
-        const data = response.data;
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('refreshToken', data.refreshToken);
-        localStorage.setItem('userRole', data.role);
-        return data;
-    } catch (error) {
-        console.error('Error logging in:', error);
-        throw error;
-    }
-};
-
-export const logoutUser = () => {
-    localStorage.removeItem('token'); // Remove token from local storage
-    localStorage.removeItem('currentRoute'); // Clear the saved route
-    localStorage.removeItem('userBooks'); // Clear user-specific books data
-};
-
-// API related functions
 export const getBooks = async () => {
     try {
         const response = await apiClient.get(`${apiUrl}/books/user-books`);
@@ -69,6 +30,7 @@ export const getBooks = async () => {
     }
 };
 
+//manually add a book
 export const createBook = async (book) => {
     try {
         const response = await apiClient.post(`${apiUrl}/books`, book);
@@ -203,8 +165,8 @@ export const fetchBooksByAuthor = async (author) => {
     });
 };
 
-// Functions for managing user's books
-export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook, setUserBooks) => {
+//add books from API search
+export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
     try {
         const existingBooks = await getUserBooks();
         const existingBook = existingBooks.find(b =>
@@ -213,28 +175,43 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         );
 
         if (existingBook) {
-            setDialog({
-                open: true,
-                title: `The book "${book.title}" by ${book.author} already exists in your library.`,
-                content: "How many additional copies would you like to add?",
-                onConfirm: async (numberOfCopies) => {
-                    if (numberOfCopies && numberOfCopies > 0) {
-                        const updatedBook = await updateBookCopies(existingBook._id, parseInt(existingBook.copies, 10) + parseInt(numberOfCopies, 10));
-                        setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to your library!` });
-                        setUserBooks(prevBooks => prevBooks.map(b => b._id === existingBook._id ? updatedBook : b));
+            return new Promise((resolve) => {
+                setDialog({
+                    open: true,
+                    title: `The book "${book.title}" by ${book.author} already exists in your library.`,
+                    content: "How many additional copies would you like to add?",
+                    onConfirm: async (numberOfCopies) => {
+                        if (numberOfCopies && numberOfCopies > 0) {
+                            try {
+                                console.log('Sending request to add copies:', { bookId: existingBook._id, numberOfCopies });
+                                const response = await apiClient.post(`${apiUrl}/books/add-copies`, {
+                                    bookId: existingBook._id,
+                                    numberOfCopies: parseInt(numberOfCopies, 10)
+                                });
+                                console.log('Response from add-copies:', response.data);
+                                const updatedBook = response.data;
+                                setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to your library!` });
+                                resolve(updatedBook);
+                            } catch (error) {
+                                console.error('Failed to add copies:', error.response ? error.response.data : error);
+                                setNotification({ show: true, message: 'Failed to add copies.', error: true });
+                                resolve(null);
+                            }
+                        } else {
+                            resolve(null);
+                        }
                     }
-                }
+                });
             });
-            return existingBook;
         } else {
-            const response = await apiClient.post(`${apiUrl}/books/add`, book);
+            const response = await apiClient.post(`${apiUrl}/books/add`, { ...book, copies });
             const newBook = response.data;
             setUndoBook(newBook);
             setNotification({ show: true, message: `Book "${book.title}" added to your library!`, undo: true });
             return newBook;
         }
     } catch (err) {
-        console.error('Failed to add book:', err);
+        console.error('Failed to add book:', err.response ? err.response.data : err);
         setNotification({ show: true, message: 'Failed to add book.', error: true });
         throw err;
     }
@@ -246,6 +223,19 @@ export const getUserBooks = async () => {
         return response.data;
     } catch (error) {
         console.error('Error fetching user books:', error);
+        throw error;
+    }
+};
+
+export const addBookCopies = async (bookId, numberOfCopies) => {
+    try {
+        const response = await apiClient.post(`${apiUrl}/books/add-copies`, {
+            bookId,
+            numberOfCopies: parseInt(numberOfCopies, 10)
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding book copies:', error);
         throw error;
     }
 };

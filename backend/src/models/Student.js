@@ -1,5 +1,6 @@
 // backend/src/models/Student.js
 const mongoose = require('mongoose');
+const ReadingHistory = require('./ReadingHistory');
 
 const studentSchema = new mongoose.Schema({
     firstName: {
@@ -47,6 +48,21 @@ studentSchema.pre('save', function (next) {
 
 // Unique combination of firstName, lastName, and class
 studentSchema.index({ firstName: 1, lastName: 1, class: 1 }, { unique: true });
+
+// Post-save hook to create a reading history entry
+studentSchema.post('save', async function (student, next) {
+    try {
+        await ReadingHistory.create({
+            student: student._id,
+            entry: `Student account created`,
+            date: new Date()
+        });
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 
 const Student = mongoose.model('Student', studentSchema);
 

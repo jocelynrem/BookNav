@@ -5,7 +5,14 @@ const bookCopySchema = new mongoose.Schema({
     book: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Book',
-        required: true
+        required: true,
+        validate: {
+            validator: async function (bookId) {
+                const book = await mongoose.model('Book').findById(bookId);
+                return book != null;
+            },
+            message: 'Referenced book does not exist'
+        }
     },
     copyNumber: {
         type: Number,
