@@ -79,7 +79,6 @@ const ClassManagement = ({ classes, setClasses }) => {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold leading-6 text-gray-900">Class Management</h2>
             <div className="bg-white shadow sm:rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                     <h3 className="text-base font-semibold leading-6 text-gray-900">Add a new class</h3>

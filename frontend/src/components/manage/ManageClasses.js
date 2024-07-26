@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import ClassManagement from '../components/manage/ClassManagement';
-import { getClasses } from '../services/classService';
-import { getStudents } from '../services/studentService';
+import ClassManagement from './ClassManagement';
+import { getClasses } from '../../services/classService';
+import { getStudents } from '../../services/studentService';
 
 const ManageClasses = () => {
     const [classes, setClasses] = useState([]);

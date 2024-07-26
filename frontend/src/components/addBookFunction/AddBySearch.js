@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../services/bookService';
+import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../../services/bookService';
 import { ClipLoader } from 'react-spinners';
 import Quagga from 'quagga';
-import SearchBookTable from '../components/search/SearchBookTable';
-import SlideoutParent from '../components/slideout/SlideoutParent';
-import SearchDetails from '../components/slideout/SearchDetails';
-import BookEdit from '../components/slideout/BookEdit';
-import BookSearch from '../components/search/BookSearch';
-import Notification from '../components/addBookFunction/Notification';
-import ConfirmationDialog from '../components/addBookFunction/ConfirmationDialog';
+import SearchBookTable from '../search/SearchBookTable';
+import SlideoutParent from '../slideout/SlideoutParent';
+import SearchDetails from '../slideout/SearchDetails';
+import BookEdit from '../slideout/BookEdit';
+import BookSearch from '../search/BookSearch';
+import Notification from './Notification';
+import ConfirmationDialog from './ConfirmationDialog';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 
 const AddBySearch = () => {
