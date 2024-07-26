@@ -19,14 +19,12 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
     useEffect(() => {
         if (selectedClass && selectedClass._id !== 'all') {
             setSelectedClassForAdd(selectedClass);
+        } else if (classes.length === 1) {
+            setSelectedClassForAdd(classes[0]);
         } else {
             setSelectedClassForAdd(null);
         }
-    }, [selectedClass]);
-
-    useEffect(() => {
-        setSelectedClassForAdd(null);
-    }, []); // Reset dropdown on component mount
+    }, [selectedClass, classes]);
 
     const onDrop = useCallback((acceptedFiles) => {
         const file = acceptedFiles[0];
