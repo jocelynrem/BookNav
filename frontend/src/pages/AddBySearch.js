@@ -81,16 +81,16 @@ const AddBySearch = () => {
                 }
             });
 
-            Quagga.onDetected(handleScan);
+            Quagga.onDetected(handleSearchScan);
 
             return () => {
-                Quagga.offDetected(handleScan);
+                Quagga.offDetected(handleSearchScan);
                 Quagga.stop();
             };
         }
     }, [scanning]);
 
-    const handleScan = (result) => {
+    const handleSearchScan = (result) => {
         if (result && result.codeResult && result.codeResult.code) {
             const scannedCode = result.codeResult.code;
 
@@ -177,9 +177,18 @@ const AddBySearch = () => {
         try {
             const addedBook = await addUserBook(updatedBook, updatedBook.copies, setNotification, setDialog, setUndoBook);
             if (addedBook) {
-                setUserBooks(prevBooks => [...prevBooks, addedBook]);
-                setNotification({ show: true, message: `Book "${updatedBook.title}" added to your library!`, undo: true });
-                setUndoBook(addedBook);
+                setUserBooks(prevBooks => {
+                    const existingBookIndex = prevBooks.findIndex(b => b._id === addedBook._id);
+                    if (existingBookIndex !== -1) {
+                        // Update existing book
+                        return prevBooks.map((book, index) =>
+                            index === existingBookIndex ? addedBook : book
+                        );
+                    } else {
+                        // Add new book
+                        return [...prevBooks, addedBook];
+                    }
+                });
             }
             setIsSlideoutOpen(false);
         } catch (error) {
@@ -239,7 +248,6 @@ const AddBySearch = () => {
                             userBooks={userBooks}
                             onAddBook={handleSaveBook}
                             onTitleClick={handleTitleClick}
-                            onEditClick={handleEditClick}
                             setDialog={setDialog}
                             setUserBooks={setUserBooks}
                         />

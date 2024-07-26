@@ -5,7 +5,14 @@ const checkoutRecordSchema = new mongoose.Schema({
     bookCopy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'BookCopy',
-        required: true
+        required: true,
+        validate: {
+            validator: async function (bookCopyId) {
+                const bookCopy = await mongoose.model('BookCopy').findById(bookCopyId);
+                return bookCopy != null;
+            },
+            message: 'Referenced book copy does not exist'
+        }
     },
     student: {
         type: mongoose.Schema.Types.ObjectId,

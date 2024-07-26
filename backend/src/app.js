@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth');
 const classRouter = require('./routes/classes');
 const studentRouter = require('./routes/students');
 const checkoutRouter = require('./routes/checkouts');
+const dashboardRouter = require('./routes/dashboard');
 
 const app = express();
 
@@ -35,6 +36,7 @@ const mongoUri = process.env.MONGODB_URI;
 mongoose.connect(mongoUri)
     .then(() => console.log(`MongoDB connected to ${process.env.NODE_ENV} database`))
     .catch(err => console.error('MongoDB connection error:', err));
+console.log("mongoUri: ", mongoUri)
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected');
@@ -73,6 +75,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/classes', classRouter);
 app.use('/api/students', studentRouter);
 app.use('/api/checkouts', checkoutRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.use((req, res, next) => {
     next();

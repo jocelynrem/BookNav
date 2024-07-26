@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
-import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, IdentificationIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon, MagnifyingGlassIcon, BookOpenIcon, BuildingLibraryIcon, UserGroupIcon, AcademicCapIcon, IdentificationIcon, Bars3Icon, XMarkIcon, HomeIcon } from '@heroicons/react/20/solid';
 import { useAuth } from '../contexts/AuthContext';
-import { logoutUser } from '../services/bookService';
+import { logoutUser } from '../services/authService';
 
 const addBookActions = [
     {
@@ -67,18 +67,6 @@ const Header = () => {
         navigate('/login');
     };
 
-    const getMobileLink = () => {
-        if (location.pathname === '/add-search') {
-            return { to: '/', text: 'View Library' };
-        } else if (location.pathname === '/') {
-            return { to: '/add-search', text: 'Add a Book' };
-        } else {
-            return null;
-        }
-    };
-
-    const mobileLink = getMobileLink();
-
     const renderDropdown = (buttonText, actions) => (
         <Popover className="relative">
             {({ open, close }) => (
@@ -129,7 +117,7 @@ const Header = () => {
             <nav className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 w-full" aria-label="Global">
                 <div className="flex items-center space-x-6 py-4">
                     <div className="-m-1.5 p-1.5">
-                        <BuildingLibraryIcon className="h-8 w-8 text-teal-600" />
+                        <BuildingLibraryIcon className="h-8 w-8 text-teal-800" />
                     </div>
                     <div className="flex items-center md:hidden">
                         <button
@@ -146,6 +134,9 @@ const Header = () => {
                     <div className="hidden md:flex items-center space-x-6">
                         {isAuthenticated && (
                             <>
+                                <Link to="/dashboard" className="text-teal-800 hover:underline">
+                                    Dashboard
+                                </Link>
                                 <Link to="/" className="text-teal-800 hover:underline">
                                     My Library
                                 </Link>
@@ -185,15 +176,13 @@ const Header = () => {
                 <div className="md:hidden bg-white shadow-lg">
                     {isAuthenticated && (
                         <div className="px-4 py-6 space-y-4">
-                            {mobileLink && (
-                                <Link
-                                    to={mobileLink.to}
-                                    className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    {mobileLink.text}
-                                </Link>
-                            )}
+                            <Link
+                                to="/dashboard"
+                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Dashboard
+                            </Link>
                             <Link
                                 to="/"
                                 className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"

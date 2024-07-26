@@ -91,7 +91,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         }
     };
 
-    const handleSearch = async () => {
+    const handleSearchActionPanel = async () => {
         if (!searchQuery.trim()) return;
         setIsSearching(true);
         try {
@@ -111,23 +111,27 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
     const handleCheckout = async (bookId) => {
         try {
+            if (isProcessing) return;
+            setIsProcessing(true);
+
             // Check if the book is already checked out by the student
             const currentCheckouts = await getCurrentCheckouts(student._id);
-            const isAlreadyCheckedOut = currentCheckouts.some(checkout => checkout.book._id === bookId);
+            console.log('Current checkouts:', currentCheckouts);
+            const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
+                checkout.bookCopy && checkout.bookCopy.book && checkout.bookCopy.book._id === bookId
+            );
 
             if (isAlreadyCheckedOut) {
                 Swal.fire('Error', 'This book is already checked out.', 'error');
                 return;
             }
 
-            if (isProcessing) return; // Prevent multiple submissions
-            setIsProcessing(true);
-
             // Proceed with checkout if the book is not already checked out
-            await checkoutBook(bookId, student._id);
-            await fetchCheckedOutBooks(); // Refresh the list of checked-out books
-            setSearchResults([]);   // Clear search results
-            setSearchQuery('');     // Clear the search query
+            const checkoutResult = await checkoutBook(bookId, student._id);
+            console.log('Checkout result:', checkoutResult);
+            await fetchCheckedOutBooks();
+            setSearchResults([]);
+            setSearchQuery('');
             Swal.fire('Success', 'Book checked out successfully', 'success');
         } catch (error) {
             console.error('Failed to check out book:', error);
@@ -259,7 +263,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                             className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                                         />
                                         <button
-                                            onClick={handleSearch}
+                                            onClick={handleSearchActionPanel}
                                             className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                                         >
                                             Search

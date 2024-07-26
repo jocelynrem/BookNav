@@ -55,13 +55,48 @@ export const checkBookStatus = async (isbn, studentId) => {
 
 export const returnBook = async (checkoutRecordId) => {
     try {
-        // Send a request to mark the book as returned
         const response = await axiosInstance.put(`/checkouts/${checkoutRecordId}/return`, {
-            returnedOn: new Date().toISOString() // Send the current date as an ISO string
+            returnedOn: new Date().toISOString()
         });
         return response.data;
     } catch (error) {
         console.error('Error returning book:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+// Convert ISBN-10 to ISBN-13
+const convertToISBN13 = (isbn10) => {
+    const prefix = '978';
+    const isbn13WithoutChecksum = prefix + isbn10.slice(0, -1);
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+        sum += parseInt(isbn13WithoutChecksum[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checksum = (10 - (sum % 10)) % 10;
+    return isbn13WithoutChecksum + checksum;
+};
+
+// return a book by ISBN
+export const returnBookByISBN = async (isbn) => {
+    try {
+        let normalizedISBN = isbn;
+
+        // Convert to ISBN-13 if necessary
+        if (isbn.length === 10) {
+            normalizedISBN = convertToISBN13(isbn);
+        } else if (!isbn.startsWith('978')) {
+            normalizedISBN = `978${isbn}`; // Ensure it starts with '978' for ISBN-13 format
+        }
+        console.log(`Sending return request for ISBN: ${normalizedISBN}`);
+        const response = await axiosInstance.put('/checkouts/return-by-isbn', { isbn: normalizedISBN });
+        console.log('Return book response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error returning book by ISBN:', error);
+        console.error('Error details:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+        // Error handling...
         throw error;
     }
 };

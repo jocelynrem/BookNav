@@ -13,6 +13,7 @@ import ManageClasses from '../pages/ManageClasses';
 import ManageStudents from '../pages/ManageStudents';
 import TeacherCheckout from '../components/checkout/TeacherCheckout';
 import StudentCheckout from '../components/checkout/StudentCheckout';
+import Dashboard from '../pages/Dashboard';
 
 const AppRoutes = () => {
     return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
             <Route path="/reset/:token" element={<PasswordReset />} />
             <Route path="/teacher-checkout" element={<PrivateRoute><TeacherCheckout /></PrivateRoute>} />
             <Route path="/student-checkout" element={<StudentCheckout />} />
+            <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
     );
 };

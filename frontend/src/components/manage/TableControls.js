@@ -1,4 +1,3 @@
-// TableControls.js
 import React from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
@@ -12,27 +11,29 @@ const TableControls = ({
     onClassChange
 }) => (
     <div className="sm:flex sm:items-center sm:justify-between">
-        <div className="sm:flex-auto">
-            <h2 className="text-base font-semibold leading-6 text-gray-900">
-                View Students in
-                <select
-                    value={selectedClassForView ? selectedClassForView._id : 'all'}
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        const selectedClass = value === 'all'
-                            ? { _id: 'all', name: 'All Classes' }
-                            : classes.find(cls => cls._id === value);
-                        onClassChange(selectedClass);
-                    }}
-                    className="ml-2 rounded-md border-gray-300 text-base leading-6 focus:ring-pink-500 focus:border-pink-500 outline-none"
-                >
-                    <option value="all">All Classes</option>
-                    {classes.map(cls => (
-                        <option key={cls._id} value={cls._id}>{cls.name}</option>
-                    ))}
-                </select>
-            </h2>
-        </div>
+        {classes.length > 1 && (
+            <div className="sm:flex-auto">
+                <h2 className="text-base font-semibold leading-6 text-gray-900">
+                    View Students in
+                    <select
+                        value={selectedClassForView ? selectedClassForView._id : 'all'}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            const selectedClass = value === 'all'
+                                ? { _id: 'all', name: 'All Classes' }
+                                : classes.find(cls => cls._id === value);
+                            onClassChange(selectedClass);
+                        }}
+                        className="ml-2 rounded-md border-gray-300 text-base leading-6 focus:ring-pink-500 focus:border-pink-500 outline-none"
+                    >
+                        <option value="all">All Classes</option>
+                        {classes.map(cls => (
+                            <option key={cls._id} value={cls._id}>{cls.name}</option>
+                        ))}
+                    </select>
+                </h2>
+            </div>
+        )}
         <div className="mt-4 sm:mt-0 sm:flex-none flex items-center space-x-4">
             <div className="relative rounded-md shadow-sm">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">

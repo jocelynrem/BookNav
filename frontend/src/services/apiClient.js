@@ -6,6 +6,9 @@ import { refreshToken } from './authService';
 
 const apiClient = axios.create({
     baseURL: apiUrl,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
 apiClient.interceptors.request.use(
@@ -16,7 +19,9 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        return Promise.reject(error);
+    }
 );
 
 apiClient.interceptors.response.use(
