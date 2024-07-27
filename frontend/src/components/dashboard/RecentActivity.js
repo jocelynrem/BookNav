@@ -18,7 +18,6 @@ const ActivityItem = ({ activity, onBookReturn, handleReturnBook }) => {
             onBookReturn(); // Refresh the activity list
         } catch (error) {
             console.error('Error checking in book:', error);
-            // Error handling is done in handleReturnBook, so we don't need to repeat it here
         } finally {
             setIsProcessing(false);
         }
@@ -79,15 +78,12 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    // Calculate the current page's activities
     const indexOfLastActivity = currentPage * itemsPerPage;
     const indexOfFirstActivity = indexOfLastActivity - itemsPerPage;
     const currentActivities = activities.slice(indexOfFirstActivity, indexOfLastActivity);
 
-    // Calculate the total number of pages
     const totalPages = Math.ceil(activities.length / itemsPerPage);
 
-    // Handlers for pagination controls
     const handlePrevious = () => {
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
@@ -102,48 +98,48 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
 
     return (
         <div className="flex flex-col bg-gray-50 rounded-lg min-h-[520px]">
-            <div className="px-4 py-5 sm:p-3">
+            <div className="px-4 py-5 sm:px-6 flex-none">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h2>
-                <div className="flex-grow">
-                    <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
-                </div>
-                <nav className="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
-                    <div className="-mt-px flex w-0 flex-1">
-                        <button
-                            onClick={handlePrevious}
-                            disabled={currentPage === 1}
-                            className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                        >
-                            <ArrowLongLeftIcon aria-hidden="true" className="mr-3 h-5 w-5 text-gray-400" />
-                            Previous
-                        </button>
-                    </div>
-                    <div className="hidden md:-mt-px md:flex">
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${currentPage === i + 1
-                                    ? 'border-pink-500 text-pink-600'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="-mt-px flex w-0 flex-1 justify-end">
-                        <button
-                            onClick={handleNext}
-                            disabled={currentPage === totalPages}
-                            className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                        >
-                            Next
-                            <ArrowLongRightIcon aria-hidden="true" className="ml-3 h-5 w-5 text-gray-400" />
-                        </button>
-                    </div>
-                </nav>
             </div>
+            <div className="flex-grow overflow-y-auto px-4 sm:px-6">
+                <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
+            </div>
+            <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">
+                <div className="-mt-px flex w-0 flex-1">
+                    <button
+                        onClick={handlePrevious}
+                        disabled={currentPage === 1}
+                        className="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    >
+                        <ArrowLongLeftIcon aria-hidden="true" className="mr-3 h-5 w-5 text-gray-400" />
+                        Previous
+                    </button>
+                </div>
+                <div className="hidden md:-mt-px md:flex">
+                    {Array.from({ length: totalPages }, (_, i) => (
+                        <button
+                            key={i + 1}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${currentPage === i + 1
+                                ? 'border-pink-500 text-pink-600'
+                                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                                }`}
+                        >
+                            {i + 1}
+                        </button>
+                    ))}
+                </div>
+                <div className="-mt-px flex w-0 flex-1 justify-end">
+                    <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages}
+                        className="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    >
+                        Next
+                        <ArrowLongRightIcon aria-hidden="true" className="ml-3 h-5 w-5 text-gray-400" />
+                    </button>
+                </div>
+            </nav>
         </div>
     );
 };

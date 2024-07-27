@@ -2,7 +2,7 @@ import React from 'react';
 import { QrCodeIcon, BookOpenIcon, CogIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const ActionCard = ({ title, description, icon, onClick }) => (
-    <div className="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer" onClick={onClick}>
+    <div className="bg-white overflow-hidden shadow-lg rounded-lg border-l-4 border-pink-600 hover:shadow-2xl transition-shadow duration-300 cursor-pointer" onClick={onClick}>
         <div className="p-5">
             <div className="flex items-center">
                 <div className="flex-shrink-0">{icon}</div>

@@ -111,19 +111,80 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const popularBooks = await CheckoutRecord.aggregate([
-            { $match: { status: 'checked out' } },
-            { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 },
-            { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
-            { $unwind: '$bookDetails' },
-            { $project: { name: '$bookDetails.title', checkouts: '$count' } }
+        const [popularBooks, averageCheckoutDuration, topStudents, longestDurationBooks, shortestDurationBooks] = await Promise.all([
+            CheckoutRecord.aggregate([
+                { $match: { status: 'checked out' } },
+                { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 5 },
+                { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', checkouts: '$count' } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                {
+                    $group: {
+                        _id: null,
+                        avgDuration: { $avg: { $subtract: ['$returnDate', '$checkoutDate'] } }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] }
+                    }
+                }
+            ]),
+            CheckoutRecord.aggregate([
+                { $group: { _id: '$student', count: { $sum: 1 }, avgDuration: { $avg: { $subtract: ['$returnDate', '$checkoutDate'] } } } },
+                { $sort: { count: -1 } },
+                { $limit: 3 },
+                { $lookup: { from: 'students', localField: '_id', foreignField: '_id', as: 'studentDetails' } },
+                { $unwind: '$studentDetails' },
+                { $project: { studentName: { $concat: ['$studentDetails.firstName', ' ', '$studentDetails.lastName'] }, checkouts: '$count', avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] } } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
+                { $sort: { duration: -1 } },
+                { $limit: 1 },
+                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
+                { $sort: { duration: 1 } },
+                { $limit: 1 },
+                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
+            ])
         ]);
 
-        res.json({ popularBooks });
+        // Log the retrieved data for debugging purposes
+        console.log('Reading Trends Data:', {
+            popularBooks,
+            averageCheckoutDuration,
+            topStudents,
+            longestDurationBooks,
+            shortestDurationBooks
+        });
+
+        // Return the aggregated data in a consistent JSON format
+        res.status(200).json({
+            popularBooks,
+            averageCheckoutDuration,
+            topStudents,
+            longestDurationBooks,
+            shortestDurationBooks
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Log the error and send a 500 response with the error message in JSON format
+        console.error('Error retrieving reading trends:', error);
+        res.status(500).json({ message: 'Failed to fetch reading trends', error: error.message });
     }
 });
 

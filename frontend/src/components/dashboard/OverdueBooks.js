@@ -2,13 +2,15 @@ import React from 'react';
 
 const OverdueBooks = ({ overdueBooks }) => {
     return (
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-3">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Overdue Books</h3>
+        <div className="bg-white shadow rounded-lg flex flex-col h-full w-full">
+            <div className="px-4 py-2 sm:p-2">
+                <h3 className="text-md leading-6 font-medium text-gray-900">Overdue Books</h3>
+            </div>
+            <div className="px-4 py-2 sm:p-2 overflow-y-auto flex-1">
                 {overdueBooks.length === 0 ? (
-                    <p className="mt-2 text-sm text-gray-600">No overdue books! 🎉</p>
+                    <p className="text-sm text-gray-600">No overdue books! 🎉</p>
                 ) : (
-                    <ul className="mt-3 divide-y divide-gray-200">
+                    <ul className="mt-1 divide-y divide-gray-200">
                         {overdueBooks.map((book) => (
                             <li key={book._id} className="py-3">
                                 <div className="flex items-center space-x-4">
