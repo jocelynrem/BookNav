@@ -47,11 +47,10 @@ export const getReadingTrends = async () => {
 
 export const getUpcomingDueDates = async () => {
     try {
-        const response = await apiClient.get('/dashboard/upcoming-due-dates');
+        const response = await apiClient.get(`${apiUrl}/dashboard/upcoming-due-dates`);
         return response.data;
     } catch (error) {
-        console.error('Error details:', error.response ? error.response.data : 'No response data');
-        console.error('Request config:', error.config);
+        console.error('Error fetching upcoming due dates:', error);
         throw error;
     }
 };

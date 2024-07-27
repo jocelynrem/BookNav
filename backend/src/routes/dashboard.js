@@ -71,7 +71,7 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
                 path: 'bookCopy',
                 populate: {
                     path: 'book',
-                    select: 'title'
+                    select: 'title _id'
                 }
             });
 
@@ -83,16 +83,22 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
                 path: 'bookCopy',
                 populate: {
                     path: 'book',
-                    select: 'title'
+                    select: 'title _id'
                 }
             });
 
         const activity = [...recentCheckouts, ...recentReturns]
-            .sort((a, b) => b.checkoutDate - a.checkoutDate) // Sort by checkoutDate or returnDate
+            .sort((a, b) => {
+                const dateA = a.status === 'checked out' ? a.checkoutDate : a.returnDate;
+                const dateB = b.status === 'checked out' ? b.checkoutDate : b.returnDate;
+                return dateB - dateA;
+            })
             .map(record => ({
                 action: record.status === 'checked out' ? 'Checkout' : 'Return',
                 details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy && record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book (Deleted)'}`,
-                time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A')
+                time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A'),
+                checkoutId: record._id,
+                bookId: record.bookCopy && record.bookCopy.book ? record.bookCopy.book._id : null
             }));
 
         res.json(activity);
@@ -102,23 +108,83 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
     }
 });
 
-
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const popularBooks = await CheckoutRecord.aggregate([
-            { $match: { status: 'checked out' } },
-            { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 },
-            { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
-            { $unwind: '$bookDetails' },
-            { $project: { name: '$bookDetails.title', checkouts: '$count' } }
+        const [popularBooks, averageCheckoutDuration, topStudents, longestDurationBooks, shortestDurationBooks] = await Promise.all([
+            CheckoutRecord.aggregate([
+                { $match: { status: 'checked out' } },
+                { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 5 },
+                { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', checkouts: '$count' } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                {
+                    $group: {
+                        _id: null,
+                        avgDuration: { $avg: { $subtract: ['$returnDate', '$checkoutDate'] } }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] }
+                    }
+                }
+            ]),
+            CheckoutRecord.aggregate([
+                { $group: { _id: '$student', count: { $sum: 1 }, avgDuration: { $avg: { $subtract: ['$returnDate', '$checkoutDate'] } } } },
+                { $sort: { count: -1 } },
+                { $limit: 3 },
+                { $lookup: { from: 'students', localField: '_id', foreignField: '_id', as: 'studentDetails' } },
+                { $unwind: '$studentDetails' },
+                { $project: { studentName: { $concat: ['$studentDetails.firstName', ' ', '$studentDetails.lastName'] }, checkouts: '$count', avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] } } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
+                { $sort: { duration: -1 } },
+                { $limit: 1 },
+                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
+            ]),
+            CheckoutRecord.aggregate([
+                { $match: { status: 'returned' } },
+                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
+                { $sort: { duration: 1 } },
+                { $limit: 1 },
+                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
+                { $unwind: '$bookDetails' },
+                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
+            ])
         ]);
 
-        res.json({ popularBooks });
+        // Log the retrieved data for debugging purposes
+        console.log('Reading Trends Data:', {
+            popularBooks,
+            averageCheckoutDuration,
+            topStudents,
+            longestDurationBooks,
+            shortestDurationBooks
+        });
+
+        // Return the aggregated data in a consistent JSON format
+        res.status(200).json({
+            popularBooks,
+            averageCheckoutDuration,
+            topStudents,
+            longestDurationBooks,
+            shortestDurationBooks
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Log the error and send a 500 response with the error message in JSON format
+        console.error('Error retrieving reading trends:', error);
+        res.status(500).json({ message: 'Failed to fetch reading trends', error: error.message });
     }
 });
 
@@ -135,13 +201,18 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
             .sort('dueDate')
             .limit(10)
             .populate('student', 'firstName lastName')
-            .populate('bookCopy', 'book')
-            .populate('bookCopy.book', 'title');
+            .populate({
+                path: 'bookCopy',
+                populate: {
+                    path: 'book',
+                    select: 'title'
+                }
+            });
 
         const formattedDueDates = upcomingDueDates.map(record => ({
-            book: record.bookCopy.book.title,
-            date: record.dueDate.toLocaleDateString(),
-            student: `${record.student.firstName} ${record.student.lastName}`
+            book: record.bookCopy?.book?.title || 'Unknown Title',
+            date: record.dueDate ? record.dueDate.toLocaleDateString() : 'Unknown Date',
+            student: record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student'
         }));
 
         res.json(formattedDueDates);
@@ -149,5 +220,6 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;

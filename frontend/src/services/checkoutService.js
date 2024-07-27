@@ -90,9 +90,7 @@ export const returnBookByISBN = async (isbn) => {
         } else if (!isbn.startsWith('978')) {
             normalizedISBN = `978${isbn}`; // Ensure it starts with '978' for ISBN-13 format
         }
-        console.log(`Sending return request for ISBN: ${normalizedISBN}`);
         const response = await axiosInstance.put('/checkouts/return-by-isbn', { isbn: normalizedISBN });
-        console.log('Return book response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error returning book by ISBN:', error);
@@ -120,7 +118,6 @@ export const getCurrentCheckoutsForBook = async (bookId) => {
 
         // Filter for only 'checked out' status
         const currentCheckouts = allCheckouts.filter(checkout => checkout.status === 'checked out');
-        console.log(`Current checkouts for book ID ${bookId}:`, currentCheckouts);
 
         return { currentCheckouts, allCheckouts };
     } catch (error) {
@@ -132,7 +129,6 @@ export const getCurrentCheckoutsForBook = async (bookId) => {
 export const checkoutBook = async (bookId, studentId) => {
     try {
         const response = await apiClient.post(`${apiUrl}/checkouts`, { bookId, studentId });
-        console.log('Checkout response:', JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
         console.error('Error checking out book:', error.response ? error.response.data : error.message);
