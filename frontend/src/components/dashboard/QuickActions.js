@@ -18,7 +18,7 @@ const ActionCard = ({ title, description, icon, onClick }) => (
 const QuickActions = ({ onScanReturn, onManualReturn, onSettings, onCheckout }) => {
     return (
         <div className="mt-8">
-            <h2 className="text-lg font-medium text-teal-800">Quick Actions</h2>
+            {/* <h2 className="text-lg font-medium text-teal-800">Quick Actions</h2> */}
             <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <ActionCard
                     title="Scan Return"
