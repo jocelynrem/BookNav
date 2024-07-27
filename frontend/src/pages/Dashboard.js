@@ -208,7 +208,7 @@ const Dashboard = () => {
                 onCheckout={handleCheckout}
             />
 
-            <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <RecentActivity
                     activities={recentActivity}
                     onBookReturn={refreshRecentActivity}
@@ -224,8 +224,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-
-            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-1">
+            <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-1">
                 <ReadingTrends data={readingTrends} />
             </div>
 

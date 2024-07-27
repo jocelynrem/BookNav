@@ -24,7 +24,7 @@ const ReadingTrends = ({
     ];
 
     return (
-        <div className="bg-white py-8 lg:py-16 w-full">
+        <div className="bg-white shadow border- py-4 rounded-lg lg:py-8 w-full">
             <h2 className="sr-only">Reading Trends</h2>
             <div className="mx-auto max-w-full lg:max-w-7xl divide-y divide-gray-200 lg:flex lg:justify-center lg:divide-x lg:divide-y-0 lg:py-8">
                 {trends.map((trend, trendIdx) => (
