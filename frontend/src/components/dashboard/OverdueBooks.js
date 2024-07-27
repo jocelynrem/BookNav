@@ -2,7 +2,7 @@ import React from 'react';
 
 const OverdueBooks = ({ overdueBooks }) => {
     return (
-        <div className="bg-white shadow rounded-lg flex flex-col h-full w-full">
+        <div className="bg-white shadow rounded-lg flex flex-col h-full w-full p-4">
             <div className="px-4 py-2 sm:p-2">
                 <h3 className="text-md leading-6 font-medium text-gray-900">Overdue Books</h3>
             </div>

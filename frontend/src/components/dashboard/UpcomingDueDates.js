@@ -2,7 +2,7 @@ import React from 'react';
 
 const UpcomingDueDates = ({ dueDates }) => {
     return (
-        <div className="bg-white shadow rounded-lg flex flex-col h-full w-full">
+        <div className="bg-white shadow rounded-lg flex flex-col h-full w-full pt-4 pb-4 pl-4">
             <div className="px-4 py-2 sm:p-2">
                 <h3 className="text-md leading-6 font-medium text-gray-900">Upcoming Due Dates</h3>
             </div>
