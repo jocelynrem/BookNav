@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getBooks, updateBook } from '../services/bookService';
-import BookTable from '../components/library/BookTable';
-import SlideoutParent from '../components/slideout/SlideoutParent';
+import { getBooks, updateBook } from '../../services/bookService';
+import BookTable from './BookTable';
+import SlideoutParent from '../slideout/SlideoutParent';
 import { Link } from 'react-router-dom';
 
 const MyLibrary = () => {

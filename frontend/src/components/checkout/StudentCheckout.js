@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
 import { getStudents } from '../../services/studentService';
-import { checkoutBook, returnBook } from '../../services/checkoutService';
+import { checkoutBook, returnBook, getCurrentCheckouts } from '../../services/checkoutService';
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -23,6 +23,7 @@ const StudentCheckout = () => {
     const [isbn, setIsbn] = useState('');
     const [action, setAction] = useState('checkout');
     const [message, setMessage] = useState('');
+    const [checkedOutBooks, setCheckedOutBooks] = useState([]);
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -36,6 +37,32 @@ const StudentCheckout = () => {
         };
         fetchStudents();
     }, []);
+
+    useEffect(() => {
+        if (selectedStudent) {
+            fetchCheckedOutBooks();
+        }
+    }, [selectedStudent]);
+
+    const fetchCheckedOutBooks = async () => {
+        try {
+            const books = await getCurrentCheckouts(selectedStudent._id);
+            setCheckedOutBooks(books);
+        } catch (error) {
+            console.error('Failed to fetch checked out books:', error);
+        }
+    };
+
+    const handleReturn = async (checkoutId) => {
+        try {
+            await returnBook(checkoutId);
+            Swal.fire('Success', 'Book returned successfully', 'success');
+            fetchCheckedOutBooks();
+        } catch (error) {
+            console.error('Failed to return book:', error);
+            Swal.fire('Error', 'Failed to return book. Please try again.', 'error');
+        }
+    };
 
     const handleStudentSelect = (student) => {
         setSelectedStudent(student);
@@ -117,63 +144,37 @@ const StudentCheckout = () => {
             </ul>
 
             {selectedStudent && (
-                <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-                    <div>
-                        <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">
-                            ISBN
-                        </label>
-                        <input
-                            type="text"
-                            id="isbn"
-                            value={isbn}
-                            onChange={(e) => setIsbn(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 sm:text-sm"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Action
-                        </label>
-                        <div className="mt-1 space-x-4">
-                            <button
-                                type="button"
-                                onClick={() => handleActionSelect('checkout')}
-                                className={classNames(
-                                    "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm",
-                                    action === 'checkout'
-                                        ? "text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                        : "text-pink-700 bg-pink-100 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                )}
-                            >
-                                Checkout
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleActionSelect('return')}
-                                className={classNames(
-                                    "inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm",
-                                    action === 'return'
-                                        ? "text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                        : "text-pink-700 bg-pink-100 hover:bg-pink-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                )}
-                            >
-                                Return
-                            </button>
-                        </div>
-                    </div>
-                    <button
-                        type="submit"
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                    >
-                        Submit
-                    </button>
-                </form>
-            )}
+                <div className="mt-8">
+                    <h3 className="text-lg font-medium text-gray-900">Checked Out Books</h3>
+                    {checkedOutBooks.length === 0 ? (
+                        <p className="mt-2 text-gray-600">No books currently checked out.</p>
+                    ) : (
+                        <ul className="mt-4 space-y-4">
+                            {checkedOutBooks.map((checkout) => {
+                                const dueDate = new Date(checkout.dueDate);
+                                const today = new Date();
+                                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
-            {message && (
-                <div className="mt-4 p-4 rounded-md bg-blue-50 text-blue-700">
-                    {message}
+                                return (
+                                    <li key={checkout._id} className="bg-white shadow overflow-hidden sm:rounded-md">
+                                        <div className="px-4 py-5 sm:px-6">
+                                            <h4 className="text-lg font-medium text-gray-900">{checkout.bookCopy.book.title}</h4>
+                                            <p className="mt-1 text-sm text-gray-600">
+                                                Due: {dueDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                {daysUntilDue > 0 ? ` (in ${daysUntilDue} days)` : ' (overdue)'}
+                                            </p>
+                                            <button
+                                                onClick={() => handleReturn(checkout._id)}
+                                                className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                            >
+                                                Return Book
+                                            </button>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
                 </div>
             )}
         </div>

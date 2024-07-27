@@ -9,6 +9,8 @@ const classRouter = require('./routes/classes');
 const studentRouter = require('./routes/students');
 const checkoutRouter = require('./routes/checkouts');
 const dashboardRouter = require('./routes/dashboard');
+const libraryRouter = require('./routes/library');
+require('./models/LibrarySettings');
 
 const app = express();
 
@@ -76,6 +78,7 @@ app.use('/api/classes', classRouter);
 app.use('/api/students', studentRouter);
 app.use('/api/checkouts', checkoutRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/library', libraryRouter);
 
 app.use((req, res, next) => {
     next();

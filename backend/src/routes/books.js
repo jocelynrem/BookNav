@@ -3,11 +3,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../models/User');
-const Book = require('../models/Book');
-const BookCopy = require('../models/BookCopy');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
+const Book = require('../models/Book');
+const BookCopy = require('../models/BookCopy');
 const CheckoutRecord = require('../models/CheckoutRecord');
+
 
 router.get('/search', async (req, res) => {
     try {
@@ -24,7 +25,23 @@ router.get('/search', async (req, res) => {
             ]
         }).limit(20);
 
-        res.json(books);
+        // Calculate available copies for each book
+        const booksWithAvailability = await Promise.all(books.map(async book => {
+            const totalCopies = await BookCopy.countDocuments({ book: book._id });
+            const checkedOutCount = await CheckoutRecord.countDocuments({
+                bookCopy: { $in: (await BookCopy.find({ book: book._id })).map(copy => copy._id) },
+                status: 'checked out'
+            });
+
+            const availableCopies = totalCopies - checkedOutCount;
+
+            return {
+                ...book.toObject(),
+                availableCopies
+            };
+        }));
+
+        res.json(booksWithAvailability);
     } catch (error) {
         console.error('Error searching books:', error);
         res.status(500).json({ message: 'Error searching books', error: error.message });
@@ -316,6 +333,16 @@ router.get('/:id/history', authenticateToken, roleAuth('teacher'), async (req, r
         }).populate('student', 'firstName lastName');
 
         res.json(checkoutRecords);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+//get checkout status
+router.get('/:id/copies', async (req, res) => {
+    try {
+        const bookCopies = await BookCopy.find({ book: req.params.id });
+        res.json(bookCopies);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

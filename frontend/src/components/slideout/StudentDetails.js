@@ -1,29 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRightIcon, BookOpenIcon } from '@heroicons/react/24/outline';
-import { getStudentReadingHistory } from '../../services/studentService';
+import { getDetailedReadingHistory } from '../../services/checkoutService';
+import { getCurrentCheckouts, returnBook } from '../../services/checkoutService';
+import Swal from 'sweetalert2';
 
 const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
     const [currentStudent, setCurrentStudent] = useState(student);
     const [readingHistory, setReadingHistory] = useState([]);
+    const [currentCheckouts, setCurrentCheckouts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         setCurrentStudent(student);
         fetchReadingHistory();
+        fetchCurrentCheckouts();
     }, [student]);
 
     const fetchReadingHistory = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const history = await getStudentReadingHistory(student._id);
+            const history = await getDetailedReadingHistory(student._id);
             setReadingHistory(history);
         } catch (error) {
             console.error('Error fetching reading history:', error);
             setError('Failed to load reading history. Please try again.');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchCurrentCheckouts = async () => {
+        try {
+            const checkouts = await getCurrentCheckouts(student._id);
+            setCurrentCheckouts(checkouts);
+        } catch (error) {
+            console.error('Error fetching current checkouts:', error);
+            setError('Failed to load current checkouts. Please try again.');
+        }
+    };
+
+    const handleReturn = async (checkoutId) => {
+        try {
+            await returnBook(checkoutId);
+            Swal.fire('Success', 'Book returned successfully', 'success');
+            fetchCurrentCheckouts(); // Refresh the list of current checkouts
+            fetchReadingHistory(); // Refresh the reading history
+        } catch (error) {
+            console.error('Error returning book:', error);
+            Swal.fire('Error', 'Failed to return book. Please try again.', 'error');
         }
     };
 
@@ -77,6 +103,29 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                 </dl>
             </div>
             <div>
+                <h3 className="text-lg font-medium text-gray-900">Current Checkouts</h3>
+                {currentCheckouts.length > 0 ? (
+                    <ul className="mt-2 divide-y divide-gray-200 border-b border-t border-gray-200">
+                        {currentCheckouts.map((checkout) => (
+                            <li key={checkout._id} className="py-3 flex justify-between items-center">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
+                                    <p className="text-sm text-gray-500">Checked out on: {formatDate(checkout.checkoutDate)}</p>
+                                </div>
+                                <button
+                                    onClick={() => handleReturn(checkout._id)}
+                                    className="ml-4 px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                                >
+                                    Return
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-gray-500 mt-2">No books currently checked out.</p>
+                )}
+            </div>
+            <div>
                 <h3 className="text-lg font-medium text-gray-900">Reading History</h3>
                 {isLoading ? (
                     <p className="text-gray-500 mt-2">Loading reading history...</p>
@@ -90,11 +139,14 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                                     <div className="flex items-center">
                                         <BookOpenIcon className="h-5 w-5 text-gray-400 mr-2" />
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900">{record.entry}</p>
+                                            <p className="text-sm font-medium text-gray-900">{record.bookTitle}</p>
+                                            <p className="text-sm text-gray-500">Returned on: {formatDate(record.returnDate)}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-gray-500">{formatDate(record.date)}</p>
+                                        <p className="text-sm text-gray-500">
+                                            Kept for {record.daysKept} days
+                                        </p>
                                     </div>
                                 </div>
                             </li>

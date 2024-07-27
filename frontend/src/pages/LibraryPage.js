@@ -1,7 +1,7 @@
 import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LibraryTabs from './tabs/LibraryTabs';
-import MyLibrary from './MyLibrary';
+import MyLibrary from '../components/library/MyLibrary';
 import AddBookManual from '../components/addBookFunction/AddBookManual';
 import AddBySearch from '../components/addBookFunction/AddBySearch';
 

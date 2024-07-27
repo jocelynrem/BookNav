@@ -10,7 +10,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false); // Add this line
+    const [isProcessing, setIsProcessing] = useState(false);
     const modalRef = useRef();
     const streamRef = useRef(null);
 
@@ -63,7 +63,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     const fetchCheckedOutBooks = async () => {
         try {
             const books = await getCurrentCheckouts(student._id);
-            setCheckedOutBooks(books); // Update state with the latest list of checked-out books
+            setCheckedOutBooks(books);
         } catch (error) {
             console.error('Failed to fetch checked out books:', error);
         }
@@ -71,13 +71,11 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
     const handleReturn = async (checkoutRecordId) => {
         try {
-            if (isProcessing) return; // Prevent multiple submissions
+            if (isProcessing) return;
             setIsProcessing(true);
 
             const updatedCheckout = await returnBook(checkoutRecordId);
             Swal.fire('Success', 'Book returned successfully', 'success');
-
-            // Refresh the list of checked-out books
             await fetchCheckedOutBooks();
         } catch (error) {
             console.error('Failed to return book:', error);
@@ -96,6 +94,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         setIsSearching(true);
         try {
             const results = await searchBooks(searchQuery);
+            console.log('Search results:', results);  // Debugging log
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);
@@ -114,9 +113,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             if (isProcessing) return;
             setIsProcessing(true);
 
-            // Check if the book is already checked out by the student
             const currentCheckouts = await getCurrentCheckouts(student._id);
-            console.log('Current checkouts:', currentCheckouts);
             const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
                 checkout.bookCopy && checkout.bookCopy.book && checkout.bookCopy.book._id === bookId
             );
@@ -126,13 +123,33 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                 return;
             }
 
-            // Proceed with checkout if the book is not already checked out
             const checkoutResult = await checkoutBook(bookId, student._id);
-            console.log('Checkout result:', checkoutResult);
             await fetchCheckedOutBooks();
-            setSearchResults([]);
-            setSearchQuery('');
-            Swal.fire('Success', 'Book checked out successfully', 'success');
+
+            const bookTitle = checkoutResult.bookCopy.book ? checkoutResult.bookCopy.book.title : 'Unknown Title';
+            const dueDate = new Date(checkoutResult.dueDate);
+            const formattedDueDate = dueDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            Swal.fire({
+                title: 'Success',
+                html: `
+                    <p>${bookTitle} has been checked out successfully.</p>
+                    <p>Due Date: <strong>${formattedDueDate}</strong></p>
+                `,
+                icon: 'success'
+            });
+
+            setSearchResults(prevResults =>
+                prevResults.map(book =>
+                    book._id === bookId
+                        ? { ...book, availableCopies: book.availableCopies - 1 }
+                        : book
+                )
+            );
         } catch (error) {
             console.error('Failed to check out book:', error);
             let errorMessage = 'Failed to check out book. Please try again.';
@@ -146,53 +163,51 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     };
 
     const handleCheckoutScan = async (scannedCode) => {
-        if (scannedCode && !isProcessing) {
-            let normalizedISBN = scannedCode;
+        if (!scannedCode || isProcessing) return;
 
-            // Convert to ISBN-13 if necessary
-            if (scannedCode.length === 10) {
-                normalizedISBN = convertToISBN13(scannedCode);
-            } else if (!scannedCode.startsWith('978')) {
-                normalizedISBN = `978${scannedCode}`; // Ensure it starts with '978' for ISBN-13 format
-            }
-            // setQuery(normalizedISBN); // Remove or replace this line if needed
-            setIsScanning(false);
+        let normalizedISBN = scannedCode;
 
-            setIsProcessing(true);
-            try {
-                const results = await searchBooks(normalizedISBN);
-                if (results.length === 0) {
-                    Swal.fire('Error', 'Book not found in the library system.', 'error');
-                } else {
-                    // Assuming the first result is the desired book
-                    const book = results[0];
-                    await handleCheckout(book._id);
-                }
-            } catch (error) {
-                console.error('Error during book search or checkout:', error);
-                Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
-            } finally {
-                setIsProcessing(false);
+        if (scannedCode.length === 10) {
+            normalizedISBN = convertToISBN13(scannedCode);
+        } else if (!scannedCode.startsWith('978')) {
+            normalizedISBN = `978${scannedCode}`;
+        }
+        setIsScanning(false);
+        setIsProcessing(true);
+
+        try {
+            const results = await searchBooks(normalizedISBN);
+            if (results.length === 0) {
+                Swal.fire('Error', 'Book not found in the library system.', 'error');
+            } else {
+                const book = results[0];
+                await handleCheckout(book._id);
             }
-        } else {
-            console.error('Invalid barcode scanned');
-            setError('Invalid barcode scanned');
+        } catch (error) {
+            console.error('Error during book search or checkout:', error);
+            Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const convertToISBN13 = (isbn10) => {
-        // Convert ISBN-10 to ISBN-13
         return `978${isbn10.substring(0, 9)}` + calculateCheckDigit(`978${isbn10.substring(0, 9)}`);
     };
 
     const calculateCheckDigit = (isbn) => {
-        // Calculate the check digit for the ISBN-13
         let sum = 0;
         for (let i = 0; i < isbn.length; i++) {
             sum += (i % 2 === 0 ? 1 : 3) * parseInt(isbn.charAt(i), 10);
         }
         let checkDigit = (10 - (sum % 10)) % 10;
         return checkDigit.toString();
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleSearchActionPanel();
+        }
     };
 
     if (!isOpen) return null;
@@ -261,6 +276,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             placeholder="Search by title or author"
                                             className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                                            onKeyDown={handleKeyDown}
                                         />
                                         <button
                                             onClick={handleSearchActionPanel}
@@ -275,20 +291,29 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                         <ul className="mt-2 divide-y divide-gray-200">
                                             {searchResults.map((book) => (
                                                 <li key={book._id} className="py-2 flex justify-between items-center">
-                                                    <span className="text-sm text-gray-900">{book.title}</span>
-                                                    <button
-                                                        onClick={() => handleCheckout(book._id)}
-                                                        className="text-sm text-pink-600 hover:text-pink-900"
-                                                    >
-                                                        Check Out
-                                                    </button>
+                                                    <div>
+                                                        <span className="text-sm font-medium text-gray-900">{book.title}</span>
+                                                        <p className="text-xs text-gray-500">by {book.author}</p>
+                                                    </div>
+                                                    {book.availableCopies > 0 ? (
+                                                        <button
+                                                            onClick={() => handleCheckout(book._id)}
+                                                            className="text-sm text-pink-600 hover:text-pink-900"
+                                                            disabled={isProcessing}
+                                                        >
+                                                            Check Out ({book.availableCopies} available)
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-400">No copies available</span>
+                                                    )}
                                                 </li>
                                             ))}
                                         </ul>
+                                    ) : searchQuery && !isSearching ? (
+                                        <p className="mt-2 text-sm text-gray-500">No books found matching your search.</p>
                                     ) : null}
                                 </div>
 
-                                {/* ISBN Scanning Section */}
                                 <div className="mt-6">
                                     <h4 className="text-md font-medium text-gray-700">Scan ISBN to Check Out</h4>
                                     <div className="mt-2">

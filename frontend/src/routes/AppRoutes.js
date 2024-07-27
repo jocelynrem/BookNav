@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import MyLibrary from '../pages/MyLibrary';
+import MyLibrary from '../components/library/MyLibrary';
 import AddBook from '../components/search/AddBook';
 import Login from '../auth/Login';
 import Register from '../auth/Register';
