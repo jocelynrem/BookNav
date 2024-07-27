@@ -8,6 +8,34 @@ const CheckoutRecord = require('../models/CheckoutRecord');
 const Student = require('../models/Student');
 const moment = require('moment');
 
+// Get overdue books
+router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const overdueBooks = await CheckoutRecord.find({
+            status: 'checked out',
+            dueDate: { $lt: new Date() }
+        })
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title' }
+            })
+            .lean();
+
+        const formattedOverdueBooks = overdueBooks.map(record => ({
+            _id: record._id,
+            student: record.student,
+            bookCopy: record.bookCopy,
+            daysOverdue: Math.ceil((new Date() - new Date(record.dueDate)) / (1000 * 60 * 60 * 24))
+        }));
+
+        res.json(formattedOverdueBooks);
+    } catch (error) {
+        console.error('Error fetching overdue books:', error);
+        res.status(500).json({ message: 'Error fetching overdue books', error: error.message });
+    }
+});
+
 // Get overview statistics
 router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
@@ -17,31 +45,27 @@ router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) =>
             status: 'checked out',
             dueDate: { $lt: new Date() }
         });
-        const dueTodayBooks = await CheckoutRecord.countDocuments({
-            status: 'checked out',
-            dueDate: {
-                $gte: new Date().setHours(0, 0, 0, 0),
-                $lt: new Date().setHours(23, 59, 59, 999)
-            }
-        });
 
         res.json({
             totalBooks,
             checkedOutBooks,
-            overdueBooks,
-            dueTodayBooks
+            overdueBooks
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching dashboard stats:', error);
+        res.status(500).json({ message: 'Error fetching dashboard stats', error: error.message });
     }
 });
+
 
 // Get recent activity
 router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
+        const limit = 50; // Set the limit to 50 for both checkouts and returns
+
         const recentCheckouts = await CheckoutRecord.find({ status: 'checked out' })
             .sort('-checkoutDate')
-            .limit(5)
+            .limit(limit)
             .populate('student', 'firstName lastName')
             .populate({
                 path: 'bookCopy',
@@ -53,7 +77,7 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
 
         const recentReturns = await CheckoutRecord.find({ status: 'returned' })
             .sort('-returnDate')
-            .limit(5)
+            .limit(limit)
             .populate('student', 'firstName lastName')
             .populate({
                 path: 'bookCopy',
@@ -64,8 +88,7 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
             });
 
         const activity = [...recentCheckouts, ...recentReturns]
-            .sort((a, b) => b.checkoutDate - a.checkoutDate)
-            .slice(0, 5)
+            .sort((a, b) => b.checkoutDate - a.checkoutDate) // Sort by checkoutDate or returnDate
             .map(record => ({
                 action: record.status === 'checked out' ? 'Checkout' : 'Return',
                 details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy && record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book (Deleted)'}`,
@@ -78,6 +101,7 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
         res.status(500).json({ message: error.message });
     }
 });
+
 
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {

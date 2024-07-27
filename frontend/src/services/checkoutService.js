@@ -1,5 +1,7 @@
+//frontend/src/services/checkoutService.js
 import axios from 'axios';
 import apiUrl from '../config';
+import apiClient from './apiClient';
 
 
 const axiosInstance = axios.create({
@@ -24,7 +26,7 @@ export const getCurrentCheckouts = async (studentId) => {
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.error('Error fetching current checkouts:', error.response ? error.response.data : error.message);
-        return [];
+        throw error;
     }
 };
 
@@ -53,9 +55,9 @@ export const checkBookStatus = async (isbn, studentId) => {
     }
 };
 
-export const returnBook = async (checkoutRecordId) => {
+export const returnBook = async (checkoutId) => {
     try {
-        const response = await axiosInstance.put(`/checkouts/${checkoutRecordId}/return`, {
+        const response = await axiosInstance.put(`/checkouts/${checkoutId}/return`, {
             returnedOn: new Date().toISOString()
         });
         return response.data;
@@ -111,9 +113,26 @@ export const searchBooks = async (query) => {
     }
 };
 
+export const getCurrentCheckoutsForBook = async (bookId) => {
+    try {
+        const response = await apiClient.get(`${apiUrl}/checkouts/book/${bookId}/all`);
+        const allCheckouts = response.data;
+
+        // Filter for only 'checked out' status
+        const currentCheckouts = allCheckouts.filter(checkout => checkout.status === 'checked out');
+        console.log(`Current checkouts for book ID ${bookId}:`, currentCheckouts);
+
+        return { currentCheckouts, allCheckouts };
+    } catch (error) {
+        console.error(`Error fetching checkouts for book ${bookId}:`, error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
 export const checkoutBook = async (bookId, studentId) => {
     try {
-        const response = await axiosInstance.post('/checkouts', { bookId, studentId });
+        const response = await apiClient.post(`${apiUrl}/checkouts`, { bookId, studentId });
+        console.log('Checkout response:', JSON.stringify(response.data, null, 2));
         return response.data;
     } catch (error) {
         console.error('Error checking out book:', error.response ? error.response.data : error.message);
@@ -127,6 +146,16 @@ export const getBookCopyCheckouts = async (bookCopyId) => {
         return response.data;
     } catch (error) {
         console.error('Error fetching checkout history for book copy:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const getDetailedReadingHistory = async (studentId) => {
+    try {
+        const response = await axiosInstance.get(`/checkouts/student/${studentId}/detailed-history`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching detailed reading history:', error.response ? error.response.data : error.message);
         throw error;
     }
 };

@@ -4,6 +4,7 @@ const router = express.Router();
 const CheckoutRecord = require('../models/CheckoutRecord');
 const BookCopy = require('../models/BookCopy');
 const Student = require('../models/Student');
+const LibrarySettings = require('../models/LibrarySettings');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Book = require('../models/Book');
@@ -27,20 +28,17 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
 router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
     try {
         const { bookId, studentId } = req.body;
-        console.log(`Checkout request received for book: ${bookId}, student: ${studentId}`);
 
-        // Find the book and reconcile copies
-        const book = await Book.findById(bookId);
-        if (!book) {
-            console.log(`Book not found: ${bookId}`);
-            return res.status(404).json({ message: 'Book not found' });
-        }
-        const { availableCopies } = await book.reconcileCopies();
-        console.log(`Book found and reconciled:`, book);
+        // Check if the student has reached the maximum number of checkouts
+        const studentCheckouts = await CheckoutRecord.countDocuments({ student: studentId, status: 'checked out' });
+        const settings = await LibrarySettings.findOne().exec();
 
-        if (availableCopies <= 0) {
-            console.log(`No available copies for book: ${bookId}`);
-            return res.status(400).json({ message: 'No available copies of this book' });
+        // If no settings found, use default values
+        const maxCheckoutBooks = settings ? settings.maxCheckoutBooks : 5;
+        const defaultDueDays = settings ? settings.defaultDueDays : 14;
+
+        if (studentCheckouts >= maxCheckoutBooks) {
+            return res.status(400).json({ message: 'Maximum number of checkouts reached for this student' });
         }
 
         // Find an available book copy
@@ -51,29 +49,21 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
         );
 
         if (!bookCopy) {
-            console.log(`No available book copy found for book: ${bookId}`);
             return res.status(400).json({ message: 'No available copies of this book' });
         }
-        console.log(`Book copy found and updated:`, bookCopy);
-
-        // Check if the student exists
-        const student = await Student.findById(studentId);
-        if (!student) {
-            console.log(`Student not found: ${studentId}`);
-            return res.status(400).json({ message: 'Student not found' });
-        }
-        console.log(`Student found:`, student);
 
         // Create checkout record
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + defaultDueDays);
+
         const checkoutRecord = new CheckoutRecord({
             bookCopy: bookCopy._id,
             student: studentId,
             checkoutDate: new Date(),
-            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
+            dueDate: dueDate
         });
 
         await checkoutRecord.save();
-        console.log(`Checkout record created:`, checkoutRecord);
 
         res.status(201).json(checkoutRecord);
     } catch (error) {
@@ -268,21 +258,71 @@ router.put('/return-by-isbn', authenticateToken, roleAuth(['teacher', 'student']
     }
 });
 
-router.get('/current/:bookId', authenticateToken, roleAuth('teacher'), async (req, res) => {
+router.get('/book/:bookId', async (req, res) => {
     try {
-        const bookId = req.params.bookId;
+        const bookCopies = await BookCopy.find({ book: req.params.bookId });
         const checkouts = await CheckoutRecord.find({
-            'bookCopy.book': bookId,
+            bookCopy: { $in: bookCopies.map(copy => copy._id) },
             status: 'checked out'
-        }).populate('student').populate({
-            path: 'bookCopy',
-            populate: { path: 'book' }
-        });
-        console.log(`Checkouts found for book ${bookId}:`, checkouts);
+        }).populate('student').populate('bookCopy');
         res.json(checkouts);
     } catch (error) {
-        console.error('Error fetching current checkouts:', error);
-        res.status(500).json({ message: 'Error fetching current checkouts', error: error.message });
+        console.error('Error fetching checkouts for book:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/book/:bookId/all', async (req, res) => {
+    try {
+        const bookCopies = await BookCopy.find({ book: req.params.bookId });
+        const checkouts = await CheckoutRecord.find({
+            bookCopy: { $in: bookCopies.map(copy => copy._id) }
+        }).populate('student').populate('bookCopy');
+        console.log(`All checkouts for book ${req.params.bookId}:`, checkouts);
+        res.json(checkouts);
+    } catch (error) {
+        console.error('Error fetching all checkouts for book:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/current', async (req, res) => {
+    try {
+        const checkouts = await CheckoutRecord.find({
+            bookCopy: req.query.bookCopyId,
+            status: 'checked out'
+        }).populate('student');
+        res.json(checkouts);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get detailed reading history for a student
+router.get('/student/:studentId/detailed-history', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
+    try {
+        const studentId = req.params.studentId;
+        const checkouts = await CheckoutRecord.find({
+            student: studentId,
+            status: 'returned'  // Only include returned books
+        })
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title' }
+            })
+            .sort({ returnDate: -1 });  // Sort by return date, most recent first
+
+        const detailedHistory = checkouts.map(checkout => ({
+            bookTitle: checkout.bookCopy.book.title,
+            checkoutDate: checkout.checkoutDate,
+            returnDate: checkout.returnDate,
+            daysKept: Math.ceil((checkout.returnDate - checkout.checkoutDate) / (1000 * 60 * 60 * 24))
+        }));
+
+        res.status(200).json(detailedHistory);
+    } catch (error) {
+        console.error('Error in /student/:studentId/detailed-history route:', error);
+        res.status(500).json({ message: 'Error fetching detailed reading history', error: error.message });
     }
 });
 

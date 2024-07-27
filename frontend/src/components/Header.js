@@ -43,7 +43,7 @@ const Header = () => {
                                 <Link to="/library/my-library" className="text-teal-800 hover:underline">
                                     My Library
                                 </Link>
-                                <Link to="/manage" className="text-teal-800 hover:underline">
+                                <Link to="/manage/students" className="text-teal-800 hover:underline">
                                     Manage
                                 </Link>
                                 <Link to="/checkout/teacher" className="text-teal-800 hover:underline">
@@ -98,7 +98,7 @@ const Header = () => {
                                 My Library
                             </Link>
                             <Link
-                                to="/manage"
+                                to="/manage/students"
                                 className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
                                 onClick={() => setMobileMenuOpen(false)}
                             >

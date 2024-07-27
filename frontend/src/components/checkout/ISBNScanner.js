@@ -3,6 +3,9 @@ import Quagga from 'quagga';
 
 const ISBNScanner = ({ onScan }) => {
     useEffect(() => {
+        let lastCode = '';
+        let lastScanTime = 0;
+
         Quagga.init(
             {
                 inputStream: {
@@ -33,9 +36,13 @@ const ISBNScanner = ({ onScan }) => {
         );
 
         Quagga.onDetected((result) => {
-            if (result && result.codeResult && result.codeResult.code) {
-                onScan(result.codeResult.code);
-                Quagga.stop();
+            const code = result.codeResult.code;
+            const now = Date.now();
+
+            if (code !== lastCode || now - lastScanTime > 1000) {
+                lastCode = code;
+                lastScanTime = now;
+                onScan(code);
             }
         });
 
