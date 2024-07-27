@@ -71,7 +71,7 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
                 path: 'bookCopy',
                 populate: {
                     path: 'book',
-                    select: 'title'
+                    select: 'title _id'
                 }
             });
 
@@ -83,16 +83,22 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
                 path: 'bookCopy',
                 populate: {
                     path: 'book',
-                    select: 'title'
+                    select: 'title _id'
                 }
             });
 
         const activity = [...recentCheckouts, ...recentReturns]
-            .sort((a, b) => b.checkoutDate - a.checkoutDate) // Sort by checkoutDate or returnDate
+            .sort((a, b) => {
+                const dateA = a.status === 'checked out' ? a.checkoutDate : a.returnDate;
+                const dateB = b.status === 'checked out' ? b.checkoutDate : b.returnDate;
+                return dateB - dateA;
+            })
             .map(record => ({
                 action: record.status === 'checked out' ? 'Checkout' : 'Return',
                 details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy && record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book (Deleted)'}`,
-                time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A')
+                time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A'),
+                checkoutId: record._id,
+                bookId: record.bookCopy && record.bookCopy.book ? record.bookCopy.book._id : null
             }));
 
         res.json(activity);
@@ -101,7 +107,6 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
         res.status(500).json({ message: error.message });
     }
 });
-
 
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -135,13 +140,18 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
             .sort('dueDate')
             .limit(10)
             .populate('student', 'firstName lastName')
-            .populate('bookCopy', 'book')
-            .populate('bookCopy.book', 'title');
+            .populate({
+                path: 'bookCopy',
+                populate: {
+                    path: 'book',
+                    select: 'title'
+                }
+            });
 
         const formattedDueDates = upcomingDueDates.map(record => ({
-            book: record.bookCopy.book.title,
-            date: record.dueDate.toLocaleDateString(),
-            student: `${record.student.firstName} ${record.student.lastName}`
+            book: record.bookCopy?.book?.title || 'Unknown Title',
+            date: record.dueDate ? record.dueDate.toLocaleDateString() : 'Unknown Date',
+            student: record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student'
         }));
 
         res.json(formattedDueDates);
@@ -149,5 +159,6 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;

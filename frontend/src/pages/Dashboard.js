@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import Swal from 'sweetalert2';
 import {
     getOverviewStats,
     getRecentActivity,
@@ -22,7 +23,6 @@ import OverdueBooks from '../components/dashboard/OverdueBooks';
 import QuickActions from '../components/dashboard/QuickActions';
 import LibrarySettings from '../components/dashboard/LibrarySettings';
 import ISBNScanner from '../components/checkout/ISBNScanner';
-import Swal from 'sweetalert2';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({});
@@ -36,10 +36,7 @@ const Dashboard = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [checkouts, setCheckouts] = useState([]);
     const [currentCheckouts, setCurrentCheckouts] = useState({});
-    const [allCheckouts, setAllCheckouts] = useState({});
-    const [isProcessing, setIsProcessing] = useState(false);
     const navigate = useNavigate();
     const scannerModalRef = useRef(null);
     const manualReturnModalRef = useRef(null);
@@ -71,30 +68,27 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const [overviewStats, activity, trends, dueDates] = await Promise.all([
+            const [overviewStats, activity, trends, dueDates, overdue] = await Promise.all([
                 getOverviewStats(),
                 getRecentActivity(),
                 getReadingTrends(),
-                getUpcomingDueDates()
+                getUpcomingDueDates(),
+                getOverdueBooks()
             ]);
 
             setStats(overviewStats);
             setRecentActivity(activity);
             setReadingTrends(trends);
-            setUpcomingDueDates(dueDates);
+            setUpcomingDueDates(dueDates || []);
+            setOverdueBooks(overdue || []);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
             Swal.fire('Error', 'Failed to fetch dashboard data. Please try again.', 'error');
         }
     };
 
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
     const handleScanReturn = async (isbn) => {
         try {
-            console.log(`Scanned ISBN: ${isbn}`);
             const result = await returnBookByISBN(isbn);
             if (result.message && result.message.includes('reconciled')) {
                 Swal.fire('Info', result.message, 'info');
@@ -102,6 +96,8 @@ const Dashboard = () => {
                 Swal.fire('Success', 'Book returned successfully', 'success');
             }
             fetchDashboardData(); // Refresh dashboard data
+            setIsScanning(false); // Stop scanning after successful return
+            setShowScannerModal(false); // Close the modal after successful return
         } catch (error) {
             console.error('Error returning book by ISBN:', error);
             let errorMessage = 'Failed to return book. Please try again.';
@@ -109,9 +105,8 @@ const Dashboard = () => {
                 errorMessage = error.response.data.message;
             }
             Swal.fire('Error', errorMessage, 'error');
+            // Don't stop scanning or close the modal on error, allow the user to try again
         }
-        setIsScanning(false);
-        setShowScannerModal(false);
     };
 
     const handleSettings = () => {
@@ -122,14 +117,12 @@ const Dashboard = () => {
         setIsManualReturnOpen(true);
         setSearchQuery('');
         setSearchResults([]);
-        setCheckouts([]);
+        setCurrentCheckouts({});
     };
 
     const handleSearchDashboard = async () => {
-        console.log("Searching for:", searchQuery);
         try {
             const books = await searchBooks(searchQuery);
-            console.log("Search results:", books);
             setSearchResults(books);
 
             if (books.length === 0) {
@@ -138,15 +131,13 @@ const Dashboard = () => {
                 const checkoutsData = {};
                 for (const book of books) {
                     try {
-                        console.log(`Fetching checkouts for book: ${book.title} (ID: ${book._id})`);
-                        const bookCheckouts = await getCurrentCheckoutsForBook(book._id);
-                        checkoutsData[book._id] = bookCheckouts;
+                        const { currentCheckouts } = await getCurrentCheckoutsForBook(book._id);
+                        checkoutsData[book._id] = currentCheckouts;
                     } catch (error) {
                         console.error(`Error fetching checkouts for book ${book._id}:`, error);
                         checkoutsData[book._id] = [];
                     }
                 }
-                console.log("Current checkouts data:", checkoutsData);
                 setCurrentCheckouts(checkoutsData);
             }
         } catch (error) {
@@ -170,7 +161,7 @@ const Dashboard = () => {
             const updatedCheckouts = await getCurrentCheckoutsForBook(bookId);
             setCurrentCheckouts(prev => ({
                 ...prev,
-                [bookId]: updatedCheckouts
+                [bookId]: updatedCheckouts.current
             }));
 
             // Refresh dashboard data
@@ -195,6 +186,16 @@ const Dashboard = () => {
         navigate('/teacher-checkout');
     };
 
+    const refreshRecentActivity = async () => {
+        try {
+            const activity = await getRecentActivity();
+            setRecentActivity(activity);
+        } catch (error) {
+            console.error('Error refreshing recent activity:', error);
+            Swal.fire('Error', 'Failed to refresh recent activity. Please try again.', 'error');
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold leading-tight text-teal-700 my-8">Dashboard</h1>
@@ -204,21 +205,22 @@ const Dashboard = () => {
             <QuickActions
                 onScanReturn={() => setShowScannerModal(true)}
                 onManualReturn={handleManualReturn}
-                onSettings={handleSettings} // Use the new handler
+                onSettings={handleSettings}
                 onCheckout={handleCheckout}
             />
 
             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-                <RecentActivity activities={recentActivity} />
+                <RecentActivity
+                    activities={recentActivity}
+                    onBookReturn={refreshRecentActivity}
+                    handleReturnBook={handleReturnBook}
+                />
                 <OverdueBooks overdueBooks={overdueBooks} />
                 {/* <ReadingTrends data={readingTrends} /> */}
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
                 <UpcomingDueDates dueDates={upcomingDueDates} />
-            </div>
-
-            <div className="mt-8">
             </div>
 
             {/* ISBN Scanner Modal */}
@@ -247,9 +249,22 @@ const Dashboard = () => {
                                 </div>
                                 <div className="mt-2">
                                     {isScanning ? (
-                                        <ISBNScanner onScan={handleScanReturn} />
+                                        <>
+                                            <ISBNScanner onScan={handleScanReturn} />
+                                            <button
+                                                onClick={() => setIsScanning(false)}
+                                                className="mt-4 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+                                            >
+                                                Stop Scanning
+                                            </button>
+                                        </>
                                     ) : (
-                                        <p>Click 'Start Scanning' to begin</p>
+                                        <button
+                                            onClick={() => setIsScanning(true)}
+                                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm"
+                                        >
+                                            Start Scanning
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -302,7 +317,8 @@ const Dashboard = () => {
                                                 <p className="text-sm text-gray-500">{book.author}</p>
 
                                                 {/* Current Checkouts for this book */}
-                                                {currentCheckouts[book._id] && currentCheckouts[book._id].length > 0 ? (
+                                                {currentCheckouts[book._id] &&
+                                                    currentCheckouts[book._id].length > 0 ? (
                                                     <div className="mt-2">
                                                         <h5 className="text-sm font-medium text-gray-700">Currently Checked Out:</h5>
                                                         <ul className="divide-y divide-gray-200">
@@ -310,11 +326,11 @@ const Dashboard = () => {
                                                                 <li key={checkout._id} className="py-2 flex justify-between items-center">
                                                                     <div>
                                                                         <p className="text-sm text-gray-500">
-                                                                            {checkout.student.firstName} {checkout.student.lastName}
-                                                                            {checkout.bookCopy && ` (Copy #${checkout.bookCopy.copyNumber})`}
+                                                                            {checkout.student && `${checkout.student.firstName} ${checkout.student.lastName}`}
+                                                                            {checkout.bookCopy && checkout.bookCopy.copyNumber && ` (Copy #${checkout.bookCopy.copyNumber})`}
                                                                         </p>
                                                                         <p className="text-xs text-gray-400">
-                                                                            Due: {new Date(checkout.dueDate).toLocaleDateString()}
+                                                                            Due: {checkout.dueDate ? new Date(checkout.dueDate).toLocaleDateString() : 'N/A'}
                                                                         </p>
                                                                     </div>
                                                                     <button
@@ -348,7 +364,6 @@ const Dashboard = () => {
                     </div>
                 </div>
             )}
-
 
             {/* Library Settings Modal */}
             {isSettingsOpen && (

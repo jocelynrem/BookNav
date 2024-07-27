@@ -209,18 +209,14 @@ router.get('/bookcopy/:bookCopyId', authenticateToken, roleAuth('teacher'), asyn
 router.put('/return-by-isbn', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
     try {
         const { isbn } = req.body;
-        console.log(`Attempting to return book with ISBN: ${isbn}`);
 
         const book = await Book.findOne({ isbn });
         if (!book) {
-            console.log(`Book not found for ISBN: ${isbn}`);
             return res.status(404).json({ message: 'Book not found' });
         }
-        console.log(`Found book:`, book);
 
         const bookCopy = await BookCopy.findOne({ book: book._id, status: 'checked out' });
         if (!bookCopy) {
-            console.log(`No checked out copy found for book: ${book.title} (ISBN: ${isbn})`);
             return res.status(400).json({ message: 'No active checkout found for this book' });
         }
 
@@ -230,26 +226,21 @@ router.put('/return-by-isbn', authenticateToken, roleAuth(['teacher', 'student']
         });
 
         if (!checkoutRecord) {
-            console.log(`No active checkout record found for book copy: ${bookCopy._id}`);
             return res.status(400).json({ message: 'No active checkout found for this book' });
         }
-        console.log(`Found checkout record:`, checkoutRecord);
 
         // Update the checkout record
         checkoutRecord.returnDate = new Date();
         checkoutRecord.status = 'returned';
         await checkoutRecord.save();
-        console.log(`Updated checkout record:`, checkoutRecord);
 
         // Update the book copy status
         bookCopy.status = 'available';
         await bookCopy.save();
-        console.log(`Updated book copy:`, bookCopy);
 
         // Update the book's available copies count
         book.availableCopies = await BookCopy.countDocuments({ book: book._id, status: 'available' });
         await book.save();
-        console.log(`Updated book available copies:`, book.availableCopies);
 
         res.json({ message: 'Book returned successfully', checkoutRecord });
     } catch (error) {
@@ -274,11 +265,17 @@ router.get('/book/:bookId', async (req, res) => {
 
 router.get('/book/:bookId/all', async (req, res) => {
     try {
-        const bookCopies = await BookCopy.find({ book: req.params.bookId });
+        const bookId = req.params.bookId;
+
+        const bookCopies = await BookCopy.find({ book: bookId });
+
         const checkouts = await CheckoutRecord.find({
             bookCopy: { $in: bookCopies.map(copy => copy._id) }
-        }).populate('student').populate('bookCopy');
-        console.log(`All checkouts for book ${req.params.bookId}:`, checkouts);
+        }).populate('student').populate({
+            path: 'bookCopy',
+            populate: { path: 'book' }
+        });
+
         res.json(checkouts);
     } catch (error) {
         console.error('Error fetching all checkouts for book:', error);
@@ -323,6 +320,23 @@ router.get('/student/:studentId/detailed-history', authenticateToken, roleAuth([
     } catch (error) {
         console.error('Error in /student/:studentId/detailed-history route:', error);
         res.status(500).json({ message: 'Error fetching detailed reading history', error: error.message });
+    }
+});
+
+router.get('/current/:bookId', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const bookId = req.params.bookId;
+        const checkouts = await CheckoutRecord.find({
+            'bookCopy.book': bookId,
+            status: 'checked out'
+        }).populate('student').populate({
+            path: 'bookCopy',
+            populate: { path: 'book' }
+        });
+        res.json(checkouts);
+    } catch (error) {
+        console.error('Error fetching current checkouts:', error);
+        res.status(500).json({ message: 'Error fetching current checkouts', error: error.message });
     }
 });
 
