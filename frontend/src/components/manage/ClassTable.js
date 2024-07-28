@@ -43,7 +43,6 @@ const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass })
         }
     };
 
-
     const handleEditClick = (classItem) => {
         setSelectedClass(classItem);
         setIsSlideoutOpen(true);
