@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ClassEdit from '../slideout/ClassEdit';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import { getStudents } from '../../services/studentService';
 
 const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass }) => {
     const [selectedClass, setSelectedClass] = useState(null);
@@ -9,6 +10,39 @@ const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass })
     const [sortOrder, setSortOrder] = useState('asc');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [studentCounts, setStudentCounts] = useState({});
+
+    useEffect(() => {
+        const fetchStudentCounts = async () => {
+            try {
+                const counts = await countStudentsPerClass();
+                setStudentCounts(counts);
+            } catch (error) {
+                console.error('Failed to fetch student counts:', error);
+            }
+        };
+
+        fetchStudentCounts();
+    }, [classes]);
+
+    const countStudentsPerClass = async () => {
+        try {
+            const students = await getStudents();
+            const studentCounts = students.reduce((acc, student) => {
+                const classId = student.class ? student.class._id : undefined;
+                if (!acc[classId]) {
+                    acc[classId] = 0;
+                }
+                acc[classId]++;
+                return acc;
+            }, {});
+            return studentCounts;
+        } catch (error) {
+            console.error('Failed to count students per class:', error);
+            throw error;
+        }
+    };
+
 
     const handleEditClick = (classItem) => {
         setSelectedClass(classItem);
@@ -104,7 +138,7 @@ const ClassTable = ({ classes, setClasses, handleEditClass, handleDeleteClass })
                                             {gradeName(classItem.grade)}
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                                            {classItem.studentCount || 0}
+                                            {studentCounts[classItem._id] || 0}
                                         </td>
                                         <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                             <button
