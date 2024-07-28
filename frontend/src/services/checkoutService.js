@@ -155,3 +155,23 @@ export const getDetailedReadingHistory = async (studentId) => {
         throw error;
     }
 };
+
+export const getOverdueBooks = async () => {
+    try {
+        const response = await axiosInstance.get('/checkouts/overdue');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching overdue books:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+export const getCheckedOutBooks = async () => {
+    try {
+        const response = await axiosInstance.get('/checkouts/checked-out');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching checked out books:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+};

@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { getOverdueBooks } from '../../services/dashboardService';
+import { getCheckedOutBooks } from '../../services/dashboardService';
 import { returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 
-const OverdueBooks = () => {
-    const [overdueBooks, setOverdueBooks] = useState([]);
+const CheckedOutBooks = () => {
+    const [checkedOutBooks, setCheckedOutBooks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
     useEffect(() => {
-        fetchOverdueBooks();
+        fetchCheckedOutBooks();
     }, []);
 
-    const fetchOverdueBooks = async () => {
+    const fetchCheckedOutBooks = async () => {
         setIsLoading(true);
         try {
-            const books = await getOverdueBooks();
-            setOverdueBooks(books);
+            const books = await getCheckedOutBooks();
+            setCheckedOutBooks(books);
         } catch (error) {
-            console.error('Error fetching overdue books:', error);
-            Swal.fire('Error', 'Failed to fetch overdue books', 'error');
+            console.error('Error fetching checked out books:', error);
+            Swal.fire('Error', 'Failed to fetch checked out books', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -31,7 +31,7 @@ const OverdueBooks = () => {
         try {
             await returnBook(checkoutId);
             Swal.fire('Success', 'Book returned successfully', 'success');
-            fetchOverdueBooks(); // Refresh the list
+            fetchCheckedOutBooks(); // Refresh the list
         } catch (error) {
             console.error('Error returning book:', error);
             Swal.fire('Error', 'Failed to return book', 'error');
@@ -40,7 +40,7 @@ const OverdueBooks = () => {
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = overdueBooks.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = checkedOutBooks.slice(indexOfFirstItem, indexOfLastItem);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -50,9 +50,9 @@ const OverdueBooks = () => {
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Overdue Books</h1>
-            {overdueBooks.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No overdue books at the moment.</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Checked Out Books</h1>
+            {checkedOutBooks.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No books are currently checked out.</p>
             ) : (
                 <>
                     <div className="mt-8 flow-root">
@@ -63,7 +63,7 @@ const OverdueBooks = () => {
                                         <tr>
                                             <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Title</th>
                                             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Student</th>
-                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Days Overdue</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Due Date</th>
                                             <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                                 <span className="sr-only">Actions</span>
                                             </th>
@@ -72,15 +72,19 @@ const OverdueBooks = () => {
                                     <tbody className="divide-y divide-gray-200">
                                         {currentItems.map((book) => (
                                             <tr key={book._id}>
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{book.bookCopy.book.title}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{`${book.student.firstName} ${book.student.lastName}`}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{book.daysOverdue}</td>
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{book.title}</td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {book.student || 'Unknown Student'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {book.dueDate ? new Date(book.dueDate).toLocaleDateString() : 'Unknown'}
+                                                </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                     <button
                                                         onClick={() => handleReturnBook(book._id)}
                                                         className="text-teal-600 hover:text-teal-900"
                                                     >
-                                                        Return<span className="sr-only">, {book.bookCopy.book.title}</span>
+                                                        Return<span className="sr-only">, {book.title}</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -90,10 +94,10 @@ const OverdueBooks = () => {
                             </div>
                         </div>
                     </div>
-                    {Math.ceil(overdueBooks.length / itemsPerPage) > 1 && (
+                    {Math.ceil(checkedOutBooks.length / itemsPerPage) > 1 && (
                         <Pagination
                             itemsPerPage={itemsPerPage}
-                            totalItems={overdueBooks.length}
+                            totalItems={checkedOutBooks.length}
                             paginate={paginate}
                             currentPage={currentPage}
                         />
@@ -173,4 +177,4 @@ const Pagination = ({ itemsPerPage, totalItems, paginate, currentPage }) => {
     );
 };
 
-export default OverdueBooks;
+export default CheckedOutBooks;

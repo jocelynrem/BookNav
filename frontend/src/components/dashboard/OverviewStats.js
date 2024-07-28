@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpenIcon, ArrowPathIcon, ExclamationCircleIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon, ArrowPathIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 const StatCard = ({ title, value, icon, onClick }) => (
     <div
@@ -28,6 +28,14 @@ const OverviewStats = ({ stats }) => {
         navigate('/library/my-library');
     };
 
+    const handleCheckedOutClick = () => {
+        navigate('/checked-out-books');
+    };
+
+    const handleOverdueClick = () => {
+        navigate('/overdue-books');
+    };
+
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <StatCard
@@ -40,13 +48,14 @@ const OverviewStats = ({ stats }) => {
                 title="Checked Out"
                 value={stats.checkedOutBooks}
                 icon={<ArrowPathIcon className="h-6 w-6 text-teal-700" />}
+                onClick={handleCheckedOutClick}
             />
             <StatCard
                 title="Overdue"
                 value={stats.overdueBooks}
                 icon={<ExclamationCircleIcon className="h-6 w-6 text-teal-700" />}
+                onClick={handleOverdueClick}
             />
-            {/* <StatCard title="Due Today" value={stats.dueTodayBooks} icon={<CalendarIcon className="h-6 w-6 text-teal-700" />} /> */}
         </div>
     );
 };

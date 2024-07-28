@@ -25,7 +25,7 @@ const AddBookManual = () => {
         const { name, value } = e.target;
         setBook(prevBook => ({
             ...prevBook,
-            [name]: value
+            [name]: name === 'copies' ? parseInt(value, 10) : value
         }));
         if (fieldErrors[name]) {
             setFieldErrors(prev => ({ ...prev, [name]: '' }));
@@ -46,6 +46,7 @@ const AddBookManual = () => {
             setError('Please fill in all required fields.');
             return;
         }
+        console.log('Submitting book:', book);
         try {
             const createdBook = await createBook(book);
             setSuccess('Book added successfully!');

@@ -94,7 +94,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         setIsSearching(true);
         try {
             const results = await searchBooks(searchQuery);
-            console.log('Search results:', results);  // Debugging log
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);

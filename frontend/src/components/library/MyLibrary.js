@@ -120,7 +120,7 @@ const MyLibrary = () => {
             ) : books.length === 0 ? (
                 <div className="mt-4 text-center">
                     <p className="text-gray-500">Your library is empty. Start adding books to your collection!</p>
-                    <Link to="/add-search" className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    <Link to="library//add-book/search" className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
                         Add Books
                     </Link>
                 </div>
