@@ -111,12 +111,11 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const [popularBooks, averageCheckoutDuration, topStudents, longestDurationBooks, shortestDurationBooks] = await Promise.all([
+        const [popularBooks, averageCheckoutDuration, longestDurationBooks, shortestDurationBooks] = await Promise.all([
             CheckoutRecord.aggregate([
-                { $match: { status: 'checked out' } },
                 { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
                 { $sort: { count: -1 } },
-                { $limit: 5 },
+                { $limit: 3 },
                 { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
                 { $unwind: '$bookDetails' },
                 { $project: { name: '$bookDetails.title', checkouts: '$count' } }
@@ -135,14 +134,6 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
                         avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] }
                     }
                 }
-            ]),
-            CheckoutRecord.aggregate([
-                { $group: { _id: '$student', count: { $sum: 1 }, avgDuration: { $avg: { $subtract: ['$returnDate', '$checkoutDate'] } } } },
-                { $sort: { count: -1 } },
-                { $limit: 3 },
-                { $lookup: { from: 'students', localField: '_id', foreignField: '_id', as: 'studentDetails' } },
-                { $unwind: '$studentDetails' },
-                { $project: { studentName: { $concat: ['$studentDetails.firstName', ' ', '$studentDetails.lastName'] }, checkouts: '$count', avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] } } }
             ]),
             CheckoutRecord.aggregate([
                 { $match: { status: 'returned' } },
@@ -164,25 +155,13 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
             ])
         ]);
 
-        // Log the retrieved data for debugging purposes
-        console.log('Reading Trends Data:', {
-            popularBooks,
-            averageCheckoutDuration,
-            topStudents,
-            longestDurationBooks,
-            shortestDurationBooks
-        });
-
-        // Return the aggregated data in a consistent JSON format
         res.status(200).json({
             popularBooks,
-            averageCheckoutDuration,
-            topStudents,
+            averageCheckoutDuration: averageCheckoutDuration[0]?.avgDurationInDays || 0,
             longestDurationBooks,
             shortestDurationBooks
         });
     } catch (error) {
-        // Log the error and send a 500 response with the error message in JSON format
         console.error('Error retrieving reading trends:', error);
         res.status(500).json({ message: 'Failed to fetch reading trends', error: error.message });
     }
@@ -221,5 +200,30 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
     }
 });
 
+// Get checked out books
+router.get('/checked-out-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const checkedOutBooks = await CheckoutRecord.find({ status: 'checked out' })
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title' }
+            })
+            .lean();
 
+        const formattedCheckedOutBooks = checkedOutBooks.map(record => ({
+            _id: record._id,
+            title: record.bookCopy?.book?.title || 'Unknown Title',
+            student: record.student
+                ? `${record.student.firstName} ${record.student.lastName}`
+                : 'Unknown Student',
+            dueDate: record.dueDate
+        }));
+
+        res.json(formattedCheckedOutBooks);
+    } catch (error) {
+        console.error('Error fetching checked out books:', error);
+        res.status(500).json({ message: 'Error fetching checked out books', error: error.message });
+    }
+});
 module.exports = router;

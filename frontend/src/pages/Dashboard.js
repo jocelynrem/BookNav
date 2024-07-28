@@ -27,7 +27,6 @@ import ISBNScanner from '../components/checkout/ISBNScanner';
 const Dashboard = () => {
     const [stats, setStats] = useState({});
     const [recentActivity, setRecentActivity] = useState([]);
-    const [readingTrends, setReadingTrends] = useState([]);
     const [upcomingDueDates, setUpcomingDueDates] = useState([]);
     const [overdueBooks, setOverdueBooks] = useState([]);
     const [isScanning, setIsScanning] = useState(false);
@@ -42,9 +41,43 @@ const Dashboard = () => {
     const manualReturnModalRef = useRef(null);
     const settingsModalRef = useRef(null);
 
+
+    const [readingTrends, setReadingTrends] = useState({
+        popularBooks: [],
+        averageCheckoutDuration: 0,
+        longestDurationBooks: [],
+        shortestDurationBooks: []
+    });
+
     useEffect(() => {
         fetchDashboardData();
     }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            const [overviewStats, activity, trends, dueDates, overdue] = await Promise.all([
+                getOverviewStats(),
+                getRecentActivity(),
+                getReadingTrends(),
+                getUpcomingDueDates(),
+                getOverdueBooks()
+            ]);
+
+            setStats(overviewStats);
+            setRecentActivity(activity);
+            setReadingTrends(trends || {
+                popularBooks: [],
+                averageCheckoutDuration: 0,
+                longestDurationBooks: [],
+                shortestDurationBooks: []
+            });
+            setUpcomingDueDates(dueDates || []);
+            setOverdueBooks(overdue || []);
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+            Swal.fire('Error', 'Failed to fetch dashboard data. Please try again.', 'error');
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -65,27 +98,6 @@ const Dashboard = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-    const fetchDashboardData = async () => {
-        try {
-            const [overviewStats, activity, trends, dueDates, overdue] = await Promise.all([
-                getOverviewStats(),
-                getRecentActivity(),
-                getReadingTrends(),
-                getUpcomingDueDates(),
-                getOverdueBooks()
-            ]);
-
-            setStats(overviewStats);
-            setRecentActivity(activity);
-            setReadingTrends(trends);
-            setUpcomingDueDates(dueDates || []);
-            setOverdueBooks(overdue || []);
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            Swal.fire('Error', 'Failed to fetch dashboard data. Please try again.', 'error');
-        }
-    };
 
     const handleScanReturn = async (isbn) => {
         try {
@@ -214,14 +226,6 @@ const Dashboard = () => {
                     onBookReturn={refreshRecentActivity}
                     handleReturnBook={handleReturnBook}
                 />
-                <div className="flex flex-col gap-2 h-full">
-                    <div className="flex-1 overflow-auto p-2">
-                        <OverdueBooks overdueBooks={overdueBooks} />
-                    </div>
-                    <div className="flex-1 overflow-auto p-2">
-                        <UpcomingDueDates dueDates={upcomingDueDates} />
-                    </div>
-                </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-1">

@@ -148,24 +148,27 @@ const addBookCopies = async (bookId, numberOfCopies) => {
 // Create a new book
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const { title, authors, publishedDate, pageCount, categories, thumbnail, description, isbn, copies } = req.body;
+        console.log('Received book data:', req.body);
+        const { title, author, publishedDate, pages, genre, coverImage, isbn, copies, readingLevel, lexileScore, arPoints } = req.body;
 
-        if (!title || !authors) {
-            return res.status(400).send('Title and Authors are required');
+        if (!title || !author || author.length === 0) {
+            return res.status(400).json({ message: 'Title and Authors are required' });
         }
 
         const book = new Book({
             title,
-            authors,
+            author,
             publishedDate,
-            pageCount,
-            categories,
-            thumbnail,
-            description,
+            pages: parseInt(pages, 10) || 0,
+            genre,
+            coverImage,
             isbn,
-            copies: copies || 1,
-            availableCopies: copies || 1,
-            checkedOutCopies: 0
+            copies: parseInt(copies, 10) || 1,
+            availableCopies: parseInt(copies, 10) || 1,
+            checkedOutCopies: 0,
+            readingLevel,
+            lexileScore: lexileScore ? parseInt(lexileScore, 10) : undefined,
+            arPoints: arPoints ? parseFloat(arPoints) : undefined
         });
 
         await book.save();
@@ -185,10 +188,10 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         user.books.push(book._id);
         await user.save();
 
-        res.status(201).send(book);
+        res.status(201).json(book);
     } catch (error) {
         console.error('Error creating book:', error);
-        res.status(400).send(error.message);
+        res.status(400).json({ message: error.message });
     }
 });
 

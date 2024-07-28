@@ -36,7 +36,17 @@ export const getRecentActivity = async () => {
 
 export const getReadingTrends = async () => {
     try {
-        const response = await apiClient.get('/dashboard/reading-trends');
+        const response = await apiClient.get(`${apiUrl}/dashboard/reading-trends`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching reading trends:', error);
+        throw error;
+    }
+};
+
+export const getUpcomingDueDates = async () => {
+    try {
+        const response = await apiClient.get('/dashboard/upcoming-due-dates');
         return response.data;
     } catch (error) {
         console.error('Error details:', error.response ? error.response.data : 'No response data');
@@ -45,12 +55,12 @@ export const getReadingTrends = async () => {
     }
 };
 
-export const getUpcomingDueDates = async () => {
+export const getCheckedOutBooks = async () => {
     try {
-        const response = await apiClient.get(`${apiUrl}/dashboard/upcoming-due-dates`);
+        const response = await apiClient.get(`${apiUrl}/dashboard/checked-out-books`);
         return response.data;
     } catch (error) {
-        console.error('Error fetching upcoming due dates:', error);
+        console.error('Error fetching checked out books:', error);
         throw error;
     }
 };

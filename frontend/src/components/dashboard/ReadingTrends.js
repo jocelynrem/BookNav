@@ -1,26 +1,48 @@
-import React, { useEffect } from 'react';
-import { ClockIcon, UserIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
+import React from 'react';
+import { ClockIcon, BookOpenIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
 
-const ReadingTrends = ({
-    popularBooks = [],
-    averageCheckoutDuration = 0,
-    topStudents = [],
-    longestDurationBooks = [],
-    shortestDurationBooks = []
-}) => {
-    useEffect(() => {
-        console.log('Popular Books:', popularBooks);
-        console.log('Average Checkout Duration:', averageCheckoutDuration);
-        console.log('Top Students:', topStudents);
-        console.log('Longest Duration Books:', longestDurationBooks);
-        console.log('Shortest Duration Books:', shortestDurationBooks);
-    }, [popularBooks, averageCheckoutDuration, topStudents, longestDurationBooks, shortestDurationBooks]);
+const ReadingTrends = ({ data }) => {
+    const {
+        popularBooks = [],
+        averageCheckoutDuration = 0,
+        longestDurationBooks = [],
+        shortestDurationBooks = []
+    } = data;
+
+    const formatDuration = (days) => {
+        if (typeof days === 'number' && !isNaN(days)) {
+            return `${days.toFixed(1)} days`;
+        }
+        return 'N/A';
+    };
 
     const trends = [
-        { name: 'Avg. Checkout Duration', description: `${averageCheckoutDuration ? averageCheckoutDuration.toFixed(2) : 'N/A'} days`, icon: ClockIcon },
-        { name: 'Top Students', description: topStudents.length > 0 ? `${topStudents[0].studentName} (${topStudents[0].checkouts} checkouts)` : 'No data available', icon: UserIcon },
-        { name: 'Longest Duration Book', description: longestDurationBooks.length > 0 ? `${longestDurationBooks[0].name}: ${longestDurationBooks[0].durationInDays.toFixed(2)} days` : 'No data available', icon: StarIcon },
-        { name: 'Shortest Duration Book', description: shortestDurationBooks.length > 0 ? `${shortestDurationBooks[0].name}: ${shortestDurationBooks[0].durationInDays.toFixed(2)} days` : 'No data available', icon: FireIcon },
+        {
+            name: 'Avg. Checkout Duration',
+            description: formatDuration(averageCheckoutDuration),
+            icon: ClockIcon
+        },
+        {
+            name: 'Top 3 Checked Out Books',
+            description: popularBooks.length > 0
+                ? popularBooks.map(book => `${book.name} (${book.checkouts})`).join(', ')
+                : 'No data available',
+            icon: BookOpenIcon
+        },
+        {
+            name: 'Longest Duration Book',
+            description: longestDurationBooks.length > 0
+                ? `${longestDurationBooks[0].name}: ${formatDuration(longestDurationBooks[0].durationInDays)}`
+                : 'No data available',
+            icon: StarIcon
+        },
+        {
+            name: 'Shortest Duration Book',
+            description: shortestDurationBooks.length > 0
+                ? `${shortestDurationBooks[0].name}: ${formatDuration(shortestDurationBooks[0].durationInDays)}`
+                : 'No data available',
+            icon: FireIcon
+        },
     ];
 
     return (
