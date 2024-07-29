@@ -3,6 +3,7 @@ import { getOverdueBooks } from '../../services/dashboardService';
 import { returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import Breadcrumbs from './Breadcrumbs';
 
 const OverdueBooks = () => {
     const [overdueBooks, setOverdueBooks] = useState([]);
@@ -42,6 +43,7 @@ const OverdueBooks = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = overdueBooks.slice(indexOfFirstItem, indexOfLastItem);
 
+
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     if (isLoading) {
@@ -50,6 +52,11 @@ const OverdueBooks = () => {
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Breadcrumbs
+                items={[
+                    { name: 'Overdue Books', href: '/overdue-books' }
+                ]}
+            />
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Overdue Books</h1>
             {overdueBooks.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No overdue books at the moment.</p>
@@ -78,7 +85,7 @@ const OverdueBooks = () => {
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                     <button
                                                         onClick={() => handleReturnBook(book._id)}
-                                                        className="text-teal-600 hover:text-teal-900"
+                                                        className="text-pink-600 hover:text-pink-900"
                                                     >
                                                         Return<span className="sr-only">, {book.bookCopy.book.title}</span>
                                                     </button>

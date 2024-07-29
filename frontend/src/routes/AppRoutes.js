@@ -13,6 +13,8 @@ import Dashboard from '../pages/Dashboard';
 import LibraryPage from '../pages/LibraryPage';
 import Manage from '../pages/Manage';
 import Checkout from '../pages/Checkout';
+import CheckedOutBooks from '../components/dashboard/CheckedOutBooks';
+import OverdueBooks from '../components/dashboard/OverdueBooks';
 
 const AppRoutes = () => {
     return (
@@ -29,6 +31,8 @@ const AppRoutes = () => {
             <Route path="/library/*" element={<LibraryPage />} />
             <Route path="/manage/*" element={<Manage />} />
             <Route path="/checkout/*" element={<Checkout />} />
+            <Route path="/checked-out-books" element={<PrivateRoute><CheckedOutBooks /></PrivateRoute>} />
+            <Route path="/overdue-books" element={<PrivateRoute><OverdueBooks /></PrivateRoute>} />
         </Routes>
     );
 };
