@@ -3,10 +3,12 @@ import { getCheckedOutBooks } from '../../services/dashboardService';
 import { returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import Breadcrumbs from './Breadcrumbs';
 
 const CheckedOutBooks = () => {
     const [checkedOutBooks, setCheckedOutBooks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
 
@@ -21,7 +23,7 @@ const CheckedOutBooks = () => {
             setCheckedOutBooks(books);
         } catch (error) {
             console.error('Error fetching checked out books:', error);
-            Swal.fire('Error', 'Failed to fetch checked out books', 'error');
+            setError('Failed to fetch checked out books');
         } finally {
             setIsLoading(false);
         }
@@ -38,6 +40,18 @@ const CheckedOutBooks = () => {
         }
     };
 
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-64">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="text-red-500 text-center">{error}</div>;
+    }
+
+    if (checkedOutBooks.length === 0) {
+        return <div className="text-center py-4">No books are currently checked out.</div>;
+    }
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = checkedOutBooks.slice(indexOfFirstItem, indexOfLastItem);
@@ -50,6 +64,11 @@ const CheckedOutBooks = () => {
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Breadcrumbs
+                items={[
+                    { name: 'Checked Out Books', href: '/checked-out-books' }
+                ]}
+            />
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Checked Out Books</h1>
             {checkedOutBooks.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No books are currently checked out.</p>
@@ -82,7 +101,7 @@ const CheckedOutBooks = () => {
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                     <button
                                                         onClick={() => handleReturnBook(book._id)}
-                                                        className="text-teal-600 hover:text-teal-900"
+                                                        className="text-pink-600 hover:text-pink-900"
                                                     >
                                                         Return<span className="sr-only">, {book.title}</span>
                                                     </button>
