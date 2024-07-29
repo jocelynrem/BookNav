@@ -1,38 +1,54 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../services/authService';
 
 const ExitStudentCheckout = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleExitClick = () => {
+        setShowPasswordPrompt(true);
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Here you would typically verify the password with the backend
-        // For demonstration, we'll use a hardcoded password
-        if (password === 'password') {
-            navigate('/');
-        } else {
+        try {
+            // Assuming you have a way to get the current teacher's username
+            const teacherUsername = localStorage.getItem('teacherUsername');
+            await loginUser({ usernameOrEmail: teacherUsername, password });
+            navigate('/dashboard');
+        } catch (error) {
             setError('Incorrect password');
         }
     };
 
     return (
-        <div className="fixed bottom-4 right-4">
-            <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-md">
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter teacher password"
-                    className="w-full p-2 border rounded mb-2"
-                    required
-                />
-                <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
+        <div>
+            {showPasswordPrompt ? (
+                <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow-md">
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter teacher password"
+                        className="w-full p-2 border rounded"
+                        required
+                    />
+                    <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
+                        Confirm Exit
+                    </button>
+                    {error && <p className="text-red-500 mt-2">{error}</p>}
+                </form>
+            ) : (
+                <button
+                    onClick={handleExitClick}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >
                     Exit Student Mode
                 </button>
-                {error && <p className="text-red-500 mt-2">{error}</p>}
-            </form>
+            )}
         </div>
     );
 };

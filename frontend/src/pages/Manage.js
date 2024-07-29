@@ -50,7 +50,7 @@ const Manage = () => {
     return (
         <div>
             <Tabs />
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Routes>
                     <Route path="classes" element={<ClassManagement classes={classes} setClasses={setClasses} />} />
                     <Route path="students" element={<StudentManagement

@@ -22,6 +22,7 @@ export const loginUser = async (credentials) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
         localStorage.setItem('userRole', data.role);
+        localStorage.setItem('teacherUsername', credentials.usernameOrEmail);
         return data;
     } catch (error) {
         console.error('Error logging in:', error);
@@ -33,6 +34,7 @@ export const logoutUser = () => {
     localStorage.removeItem('token'); // Remove token from local storage
     localStorage.removeItem('currentRoute'); // Clear the saved route
     localStorage.removeItem('userBooks'); // Clear user-specific books data
+    localStorage.removeItem('teacherUsername'); // Clear user-specific username data
 };
 
 export const sendPasswordResetEmail = async (email) => {

@@ -39,7 +39,7 @@ const ActivityItem = ({ activity, onBookReturn, handleReturnBook }) => {
     };
 
     return (
-        <li className="py-4">
+        <li className="py-3">
             <div className="flex justify-between items-center">
                 <div className="flex flex-col space-y-1">
                     <div className="flex items-center space-x-3">
@@ -117,15 +117,15 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
     const showPagination = totalPages > 1;
 
     return (
-        <div className="flex flex-col bg-gray-50 rounded-lg shadow min-h-[520px]">
-            <div className="px-4 py-5 sm:px-6 flex-none">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">This Week's Activity</h2>
+        <div className="flex flex-col bg-gray-50 rounded-lg border-2 border-teal-800 shadow min-h-[520px] overflow-hidden">
+            <div className="px-4 py-5 sm:px-6 bg-teal-800">
+                <h2 className="text-lg font-medium text-gray-200">This Week's Activity</h2>
             </div>
             <div className="flex-grow overflow-y-auto px-4 sm:px-6">
                 <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
             </div>
             {showPagination && (
-                <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">
+                <nav className="flex items-center border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">
                     <div className="-mt-px flex w-0 flex-1">
                         <button
                             onClick={handlePrevious}
