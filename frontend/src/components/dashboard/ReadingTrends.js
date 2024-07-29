@@ -1,13 +1,8 @@
 import React from 'react';
-import { ClockIcon, BookOpenIcon, StarIcon, FireIcon } from '@heroicons/react/24/solid';
+import { BookOpenIcon, ClockIcon } from '@heroicons/react/24/solid';
 
 const ReadingTrends = ({ data }) => {
-    const {
-        popularBooks = [],
-        averageCheckoutDuration = 0,
-        longestDurationBooks = [],
-        shortestDurationBooks = []
-    } = data;
+    const { popularBooks = [], averageCheckoutDuration = 0 } = data;
 
     const formatDuration = (days) => {
         if (typeof days === 'number' && !isNaN(days)) {
@@ -16,50 +11,39 @@ const ReadingTrends = ({ data }) => {
         return 'N/A';
     };
 
-    const trends = [
-        {
-            name: 'Avg. Checkout Duration',
-            description: formatDuration(averageCheckoutDuration),
-            icon: ClockIcon
-        },
-        {
-            name: 'Top 3 Checked Out Books',
-            description: popularBooks.length > 0
-                ? popularBooks.map(book => `${book.name} (${book.checkouts})`).join(', ')
-                : 'No data available',
-            icon: BookOpenIcon
-        },
-        {
-            name: 'Longest Duration Book',
-            description: longestDurationBooks.length > 0
-                ? `${longestDurationBooks[0].name}: ${formatDuration(longestDurationBooks[0].durationInDays)}`
-                : 'No data available',
-            icon: StarIcon
-        },
-        {
-            name: 'Shortest Duration Book',
-            description: shortestDurationBooks.length > 0
-                ? `${shortestDurationBooks[0].name}: ${formatDuration(shortestDurationBooks[0].durationInDays)}`
-                : 'No data available',
-            icon: FireIcon
-        },
-    ];
-
     return (
-        <div className="bg-white shadow border- py-4 rounded-lg lg:py-8 w-full">
-            <h2 className="sr-only">Reading Trends</h2>
-            <div className="mx-auto max-w-full lg:max-w-7xl divide-y divide-gray-200 lg:flex lg:justify-center lg:divide-x lg:divide-y-0 lg:py-8">
-                {trends.map((trend, trendIdx) => (
-                    <div key={trendIdx} className="py-8 lg:w-1/4 lg:flex-none lg:py-0">
-                        <div className="mx-auto flex max-w-xs items-center px-4 lg:max-w-none lg:px-8">
-                            <trend.icon aria-hidden="true" className="h-8 w-8 flex-shrink-0 text-teal-600" />
-                            <div className="ml-4 flex flex-auto flex-col-reverse">
-                                <h3 className="font-medium text-gray-900">{trend.name}</h3>
-                                <p className="text-sm text-gray-500">{trend.description}</p>
-                            </div>
-                        </div>
+        <div className="flex flex-col bg-gray-50 rounded-lg border-2 border-teal-800 shadow min-h-[520px] overflow-hidden">
+            <div className="px-4 py-5 sm:px-6 bg-teal-800">
+                <h2 className="text-lg font-medium text-gray-200">Reading Trends</h2>
+            </div>
+            <div className="flex-grow overflow-y-auto">
+                <div className="px-4 py-5 sm:p-6 space-y-6">
+                    <div className="bg-white p-4 rounded-lg shadow-sm ">
+                        <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                            <ClockIcon className="h-5 w-5 mr-2 text-teal-800" />
+                            Average Checkout Duration
+                        </h3>
+                        <p className="text-xl font-bold text-gray-700">{formatDuration(averageCheckoutDuration)}</p>
                     </div>
-                ))}
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 className="text-sm font-medium text-gray-500 mb-2 flex items-center">
+                            <BookOpenIcon className="h-5 w-5 mr-2 text-teal-800" />
+                            Top 5 Most Checked Out Books
+                        </h3>
+                        {popularBooks.length > 0 ? (
+                            <ul className="space-y-2">
+                                {popularBooks.map((book, index) => (
+                                    <li key={book._id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                                        <span className="text-sm font-semibold text-teal-800">{book.name}</span>
+                                        <span className="text-sm text-gray-700 ">{book.checkouts} checkouts</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-gray-500">Loading checkout data...</p>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

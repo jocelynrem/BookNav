@@ -2,7 +2,7 @@ import React from 'react';
 import { QrCodeIcon, BookOpenIcon, CogIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 const ActionCard = ({ title, description, icon, onClick }) => (
-    <div className="bg-white overflow-hidden shadow-lg rounded-lg border-l-4 border-pink-600 hover:shadow-2xl transition-shadow duration-300 cursor-pointer" onClick={onClick}>
+    <div className="bg-white overflow-hidden border-l-4 border-pink-600 shadow-lg rounded-lg hover:shadow-2xl transition-shadow duration-300 cursor-pointer" onClick={onClick}>
         <div className="p-5">
             <div className="flex items-center">
                 <div className="flex-shrink-0">{icon}</div>
@@ -15,11 +15,10 @@ const ActionCard = ({ title, description, icon, onClick }) => (
     </div>
 );
 
-const QuickActions = ({ onScanReturn, onManualReturn, onSettings, onCheckout }) => {
+const QuickActions = ({ onScanReturn, onManualReturn, onSettings, addBook }) => {
     return (
         <div className="mt-8">
-            {/* <h2 className="text-lg font-medium text-teal-800">Quick Actions</h2> */}
-            <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <ActionCard
                     title="Scan Return"
                     description="Return a book by scanning its ISBN"
@@ -38,15 +37,16 @@ const QuickActions = ({ onScanReturn, onManualReturn, onSettings, onCheckout }) 
                     icon={<CogIcon className="h-8 w-8 text-pink-600" />}
                     onClick={onSettings}
                 />
-                {/* <ActionCard
-                    title="Checkout Book"
-                    description="Checkout a book to a student"
+                <ActionCard
+                    title="Add Books"
+                    description="Add a book to your library"
                     icon={<ArrowPathIcon className="h-8 w-8 text-pink-600" />}
-                    onClick={onCheckout}
-                /> */}
+                    onClick={addBook} // Change from AddBook to addBook
+                />
             </div>
         </div>
     );
 };
+
 
 export default QuickActions;

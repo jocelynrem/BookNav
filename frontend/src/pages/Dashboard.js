@@ -44,9 +44,7 @@ const Dashboard = () => {
 
     const [readingTrends, setReadingTrends] = useState({
         popularBooks: [],
-        averageCheckoutDuration: 0,
-        longestDurationBooks: [],
-        shortestDurationBooks: []
+        averageCheckoutDuration: 0
     });
 
     useEffect(() => {
@@ -65,12 +63,7 @@ const Dashboard = () => {
 
             setStats(overviewStats);
             setRecentActivity(activity);
-            setReadingTrends(trends || {
-                popularBooks: [],
-                averageCheckoutDuration: 0,
-                longestDurationBooks: [],
-                shortestDurationBooks: []
-            });
+            setReadingTrends(trends);
             setUpcomingDueDates(dueDates || []);
             setOverdueBooks(overdue || []);
         } catch (error) {
@@ -194,10 +187,6 @@ const Dashboard = () => {
         navigate('/library/add-book/search');
     };
 
-    const handleCheckout = () => {
-        navigate('/teacher-checkout');
-    };
-
     const refreshRecentActivity = async () => {
         try {
             const activity = await getRecentActivity();
@@ -208,28 +197,30 @@ const Dashboard = () => {
         }
     };
 
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold leading-tight text-teal-700 my-8">Dashboard</h1>
-            <OverviewStats stats={stats} />
 
             <QuickActions
                 onScanReturn={() => setShowScannerModal(true)}
                 onManualReturn={handleManualReturn}
                 onSettings={handleSettings}
-                onCheckout={handleCheckout}
+                addBook={handleAddBook}
             />
+            <OverviewStats stats={stats} />
 
-            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <RecentActivity
-                    activities={recentActivity}
-                    onBookReturn={refreshRecentActivity}
-                    handleReturnBook={handleReturnBook}
-                />
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-1">
-                <ReadingTrends data={readingTrends} />
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <div className="col-span-1">
+                    <RecentActivity
+                        activities={recentActivity}
+                        onBookReturn={refreshRecentActivity}
+                        handleReturnBook={handleReturnBook}
+                    />
+                </div>
+                <div className="col-span-1">
+                    <ReadingTrends data={readingTrends} />
+                </div>
             </div>
 
             {/* ISBN Scanner Modal */}

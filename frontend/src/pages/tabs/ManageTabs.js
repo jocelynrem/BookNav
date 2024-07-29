@@ -15,8 +15,8 @@ const ManageTabs = () => {
     const location = useLocation();
 
     return (
-        <div className="border-b border-gray-200 bg-white">
-            <nav className="flex space-x-4 px-4 sm:px-6 lg:px-8" aria-label="Tabs">
+        <div className="border-b border-gray-200 bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+            <nav className="flex space-x-7 px-4 sm:px-6 lg:px-8" aria-label="Tabs">
                 {tabs.map((tab) => (
                     <Link
                         key={tab.name}

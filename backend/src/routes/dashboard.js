@@ -111,14 +111,21 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const [popularBooks, averageCheckoutDuration, longestDurationBooks, shortestDurationBooks] = await Promise.all([
+        const [popularBooks, averageCheckoutDuration] = await Promise.all([
             CheckoutRecord.aggregate([
-                { $group: { _id: '$bookCopy.book', count: { $sum: 1 } } },
-                { $sort: { count: -1 } },
-                { $limit: 3 },
-                { $lookup: { from: 'books', localField: '_id', foreignField: '_id', as: 'bookDetails' } },
+                { $lookup: { from: 'bookcopies', localField: 'bookCopy', foreignField: '_id', as: 'bookCopyDetails' } },
+                { $unwind: '$bookCopyDetails' },
+                { $lookup: { from: 'books', localField: 'bookCopyDetails.book', foreignField: '_id', as: 'bookDetails' } },
                 { $unwind: '$bookDetails' },
-                { $project: { name: '$bookDetails.title', checkouts: '$count' } }
+                {
+                    $group: {
+                        _id: '$bookDetails._id',
+                        name: { $first: '$bookDetails.title' },
+                        checkouts: { $sum: 1 }
+                    }
+                },
+                { $sort: { checkouts: -1 } },
+                { $limit: 5 }
             ]),
             CheckoutRecord.aggregate([
                 { $match: { status: 'returned' } },
@@ -134,32 +141,12 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
                         avgDurationInDays: { $divide: ['$avgDuration', 1000 * 60 * 60 * 24] }
                     }
                 }
-            ]),
-            CheckoutRecord.aggregate([
-                { $match: { status: 'returned' } },
-                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
-                { $sort: { duration: -1 } },
-                { $limit: 1 },
-                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
-                { $unwind: '$bookDetails' },
-                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
-            ]),
-            CheckoutRecord.aggregate([
-                { $match: { status: 'returned' } },
-                { $project: { book: '$bookCopy.book', duration: { $subtract: ['$returnDate', '$checkoutDate'] } } },
-                { $sort: { duration: 1 } },
-                { $limit: 1 },
-                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
-                { $unwind: '$bookDetails' },
-                { $project: { name: '$bookDetails.title', durationInDays: { $divide: ['$duration', 1000 * 60 * 60 * 24] } } }
             ])
         ]);
 
         res.status(200).json({
             popularBooks,
-            averageCheckoutDuration: averageCheckoutDuration[0]?.avgDurationInDays || 0,
-            longestDurationBooks,
-            shortestDurationBooks
+            averageCheckoutDuration: averageCheckoutDuration[0]?.avgDurationInDays || 0
         });
     } catch (error) {
         console.error('Error retrieving reading trends:', error);
