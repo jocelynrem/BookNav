@@ -14,10 +14,11 @@ export default function Register() {
         e.preventDefault();
         try {
             await registerUser({ username, email, password });
-            navigate('/login');
+            // Navigate to login with state indicating registration success
+            navigate('/login', { state: { message: 'Account created successfully. Please log in.' } });
         } catch (error) {
             console.error('Registration failed', error);
-            setError(error.message || 'Registration failed');
+            setError(error.response?.data?.message || 'Registration failed. Please try again.');
         }
     };
 
