@@ -2,6 +2,7 @@ import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import TeacherCheckout from '../components/checkout/TeacherCheckout';
 import StudentCheckout from '../components/checkout/StudentCheckout';
+import Breadcrumbs from '../components/dashboard/Breadcrumbs';
 
 const Checkout = () => {
     const [searchParams] = useSearchParams();
@@ -16,24 +17,25 @@ const Checkout = () => {
         navigate('/checkout');
     };
 
+    const getBreadcrumbItems = () => {
+        const items = [{ name: 'Checkout', href: '/checkout' }];
+        if (isStudentMode) {
+            items.push({ name: 'Student Mode', href: '/checkout?mode=student' });
+        } else {
+            items.push({ name: 'Teacher Mode', href: '/checkout' });
+        }
+        return items;
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+            <div className="mb-4">
+                <Breadcrumbs items={getBreadcrumbItems()} />
+            </div>
             {isStudentMode ? (
                 <StudentCheckout onExit={exitStudentMode} />
             ) : (
-                <div>
-                    <div className="flex justify-end mb-3 sm:mb-4">
-                        <button
-                            onClick={startStudentMode}
-                            className="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded"
-                        >
-                            Start Student Mode
-                        </button>
-                    </div>
-                    <div className="mt-4 sm:mt-6">
-                        <TeacherCheckout />
-                    </div>
-                </div>
+                <TeacherCheckout onStartStudentMode={startStudentMode} />
             )}
         </div>
     );
