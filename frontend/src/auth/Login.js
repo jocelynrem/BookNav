@@ -14,14 +14,12 @@ export default function LoginPage() {
     const location = useLocation();
 
     useEffect(() => {
-        // Check for the registration success status
-        const params = new URLSearchParams(location.search);
-        const status = params.get('status');
-
-        if (status === 'registered') {
-            setSuccessMessage('Account created successfully. Please log in.');
+        // Check for the registration success message
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
         }
 
+        const params = new URLSearchParams(location.search);
         const token = params.get('token');
         if (token) {
             localStorage.setItem('token', token);
@@ -150,7 +148,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative hidden lg:block lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center"> {/* Set height for larger screens */}
+                    <div className="relative hidden lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center">
                         <img
                             className="absolute inset-0 object-cover w-full h-full"
                             src={LibraryImage}

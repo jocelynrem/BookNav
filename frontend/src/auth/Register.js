@@ -109,7 +109,7 @@ export default function Register() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative hidden lg:block lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center">
+                    <div className="relative hidden lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center">
                         <img
                             className="absolute inset-0 object-cover w-full h-full"
                             src={LibraryImage}
