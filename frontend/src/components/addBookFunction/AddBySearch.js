@@ -30,6 +30,7 @@ const AddBySearch = () => {
     const [itemsPerPage] = useState(10);
 
     useEffect(() => {
+        // Fetch user books on component mount
         const fetchUserBooks = async () => {
             try {
                 const data = await getUserBooks();
@@ -45,6 +46,7 @@ const AddBySearch = () => {
 
     useEffect(() => {
         if (scanning) {
+            // Initialize barcode scanner
             Quagga.init({
                 inputStream: {
                     name: "Live",
@@ -93,15 +95,16 @@ const AddBySearch = () => {
     const handleSearchScan = (result) => {
         if (result && result.codeResult && result.codeResult.code) {
             const scannedCode = result.codeResult.code;
-
-            // Normalize the scanned code
             const isbn = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
 
             setQuery(isbn);
+            setBooks([]); // Clear previous results
+            setHasSearched(false); // Reset search status
             setScanning(false);
-            handleSearchByISBN(isbn); // Assuming this function handles the search and adding the book to the system
+            handleSearchByISBN(isbn);
         } else {
-            // Handle the case where scanning failed or did not return a valid code
+            setBooks([]); // Clear previous results even if scan fails
+            setHasSearched(false); // Reset search status
             console.error('Failed to scan ISBN.');
         }
     };
@@ -113,10 +116,13 @@ const AddBySearch = () => {
 
     const handleSearchTypeChange = (e) => {
         setSearchType(e.target.value);
-        setQuery(''); // Clear the search input when the search type is changed
+        setQuery(''); // Clear the search input
+        setBooks([]); // Clear previous results
+        setHasSearched(false); // Reset search status
     };
 
     const handleSearch = async () => {
+        setBooks([]); // Clear previous results
         setLoading(true);
         setHasSearched(true);
         try {
@@ -139,10 +145,14 @@ const AddBySearch = () => {
     };
 
     const handleScanToggle = () => {
+        setBooks([]); // Clear previous results
+        setHasSearched(false); // Reset search status
         setScanning(!scanning);
     };
 
+
     const handleSearchByISBN = async (isbn) => {
+        setBooks([]); // Clear previous results
         setLoading(true);
         try {
             const data = await fetchBookByISBN(isbn);
@@ -235,9 +245,9 @@ const AddBySearch = () => {
                         <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
                     </div>
                 )}
-                {!loading && !hasSearched && (
+                {/* {!loading && !hasSearched && (
                     <p className="mt-4 text-center text-gray-500">Enter a search query to find books.</p>
-                )}
+                )} */}
                 {!loading && hasSearched && books.length === 0 && (
                     <p className="mt-4 text-center text-gray-500">No books found. Try a different search.</p>
                 )}
@@ -248,7 +258,6 @@ const AddBySearch = () => {
                             userBooks={userBooks}
                             onAddBook={handleSaveBook}
                             onTitleClick={handleTitleClick}
-                            setDialog={setDialog}
                             setUserBooks={setUserBooks}
                         />
                         {books.length > itemsPerPage && (
