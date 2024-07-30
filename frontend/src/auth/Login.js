@@ -8,12 +8,20 @@ export default function LoginPage() {
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
+        // Check for the registration success status
         const params = new URLSearchParams(location.search);
+        const status = params.get('status');
+
+        if (status === 'registered') {
+            setSuccessMessage('Account created successfully. Please log in.');
+        }
+
         const token = params.get('token');
         if (token) {
             localStorage.setItem('token', token);
@@ -32,8 +40,6 @@ export default function LoginPage() {
             navigate('/dashboard');
         } catch (error) {
             if (error.response) {
-                // The request was made, and the server responded with a status code
-                // that falls out of the range of 2xx
                 switch (error.response.status) {
                     case 401:
                         setError('Invalid username or password. Please try again.');
@@ -46,10 +52,8 @@ export default function LoginPage() {
                         break;
                 }
             } else if (error.request) {
-                // The request was made, but no response was received
                 setError('A network error occurred. Please check your connection and try again.');
             } else {
-                // Something happened in setting up the request that triggered an Error
                 setError('An unexpected error occurred. Please try again.');
             }
             console.error('Login failed:', error);
@@ -75,6 +79,7 @@ export default function LoginPage() {
                             </div>
 
                             <div className="mt-10">
+                                {successMessage && <div className="text-green-500 mb-4">{successMessage}</div>}
                                 {error && <div className="text-red-500 mb-4">{error}</div>}
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
