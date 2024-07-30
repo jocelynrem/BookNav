@@ -78,7 +78,6 @@ const ActivityList = ({ activities, onBookReturn, handleReturnBook }) => (
         ))}
     </ul>
 );
-
 const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [thisWeekActivities, setThisWeekActivities] = useState([]);
@@ -183,7 +182,13 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
                 <h2 className="text-lg font-medium text-gray-200">This Week's Activity</h2>
             </div>
             <div className="flex-grow overflow-y-auto px-4 sm:px-6">
-                <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
+                {thisWeekActivities.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500">
+                        No activity yet. It's a great week for reading!
+                    </div>
+                ) : (
+                    <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
+                )}
             </div>
             {showPagination && (
                 <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">

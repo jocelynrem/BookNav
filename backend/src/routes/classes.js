@@ -4,12 +4,11 @@ const { body, validationResult } = require('express-validator');
 const router = express.Router();
 const { authenticateToken, teacherOnly } = require('../middleware/auth');
 const Class = require('../models/Class');
-const Student = require('../models/Student');
 
-// Get all classes
+// Get all classes for the authenticated teacher
 router.get('/', authenticateToken, teacherOnly, async (req, res) => {
     try {
-        const classes = await Class.find().populate('teacher', 'username');
+        const classes = await Class.find({ teacher: req.user.id }).populate('teacher', 'username');
         res.json(classes);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -65,7 +64,11 @@ router.put(
         }
 
         try {
-            const updatedClass = await Class.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            const updatedClass = await Class.findOneAndUpdate(
+                { _id: req.params.id, teacher: req.user.id }, // Ensure only the teacher can update their classes
+                req.body,
+                { new: true }
+            );
             if (!updatedClass) {
                 return res.status(404).json({ message: 'Class not found' });
             }
@@ -79,7 +82,7 @@ router.put(
 // Delete a class
 router.delete('/:id', authenticateToken, teacherOnly, async (req, res) => {
     try {
-        const deletedClass = await Class.findByIdAndDelete(req.params.id);
+        const deletedClass = await Class.findOneAndDelete({ _id: req.params.id, teacher: req.user.id }); // Ensure only the teacher can delete their classes
         if (!deletedClass) {
             return res.status(404).json({ message: 'Class not found' });
         }

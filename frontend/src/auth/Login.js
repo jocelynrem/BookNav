@@ -17,20 +17,42 @@ export default function LoginPage() {
         const token = params.get('token');
         if (token) {
             localStorage.setItem('token', token);
-            login(token, 'user'); // Assuming 'user' as a default role
+            login(token, 'user');
             navigate('/dashboard');
         }
     }, [location, login, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(''); // Clear previous errors
+
         try {
             const { token, role } = await loginUser({ usernameOrEmail, password });
             login(token, role);
             navigate('/dashboard');
         } catch (error) {
-            console.error('Login failed', error);
-            setError(error.message || 'Login failed');
+            if (error.response) {
+                // The request was made, and the server responded with a status code
+                // that falls out of the range of 2xx
+                switch (error.response.status) {
+                    case 401:
+                        setError('Invalid username or password. Please try again.');
+                        break;
+                    case 429:
+                        setError('Too many login attempts. Please wait 15 minutes before trying again.');
+                        break;
+                    default:
+                        setError('An error occurred. Please try again later.');
+                        break;
+                }
+            } else if (error.request) {
+                // The request was made, but no response was received
+                setError('A network error occurred. Please check your connection and try again.');
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                setError('An unexpected error occurred. Please try again.');
+            }
+            console.error('Login failed:', error);
         }
     };
 
@@ -123,7 +145,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative w-full lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center"> {/* Set height for larger screens */}
+                    <div className="relative hidden lg:block lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center"> {/* Set height for larger screens */}
                         <img
                             className="absolute inset-0 object-cover w-full h-full"
                             src={LibraryImage}
@@ -134,5 +156,4 @@ export default function LoginPage() {
             </div>
         </>
     );
-
 }

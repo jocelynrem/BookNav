@@ -1,6 +1,5 @@
 // backend/src/routes/books.js
 const express = require('express');
-const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
@@ -99,16 +98,22 @@ router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) =
 
         res.status(201).json(book);
     } catch (err) {
+        console.error('Error adding book:', err);
         res.status(400).json({ error: err.message });
     }
 });
 
+// Add more copies of a book owned by the user
 router.post('/add-copies', authenticateToken, roleAuth('teacher'), async (req, res) => {
     const { bookId, numberOfCopies } = req.body;
     try {
-        if (!bookId || !numberOfCopies || numberOfCopies <= 0) {
-            return res.status(400).json({ message: 'Invalid bookId or numberOfCopies' });
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user.books.includes(bookId)) {
+            return res.status(403).json({ message: 'You can only add copies to books in your library' });
         }
+
         const result = await addBookCopies(bookId, numberOfCopies);
         res.status(200).json(result.book);
     } catch (error) {
@@ -207,13 +212,15 @@ router.get('/user-books', authenticateToken, roleAuth('teacher'), async (req, re
     }
 });
 
-// Get all books
+// Get all books for the authenticated user
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const books = await Book.find();
-        res.status(200).send(books);
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('books');
+        res.status(200).json(user.books);
     } catch (error) {
-        res.status(500).send(error);
+        console.error('Error fetching all books:', error);
+        res.status(500).json({ message: error.message });
     }
 });
 

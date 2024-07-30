@@ -57,9 +57,12 @@ export const checkBookStatus = async (isbn, studentId) => {
 
 export const returnBook = async (checkoutId) => {
     try {
+        if (!checkoutId) throw new Error("Checkout ID is required");
+
         const response = await axiosInstance.put(`/checkouts/${checkoutId}/return`, {
             returnedOn: new Date().toISOString()
         });
+
         return response.data;
     } catch (error) {
         console.error('Error returning book:', error.response ? error.response.data : error.message);
