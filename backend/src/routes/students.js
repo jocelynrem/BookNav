@@ -5,7 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
-const ReadingHistory = require('../models/ReadingHistory');
+const CheckoutRecord = require('../models/CheckoutRecord');
 
 // Get all students
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -154,8 +154,27 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
 router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentId = req.params.id;
-        const readingHistory = await ReadingHistory.find({ student: studentId }).sort({ date: -1 });
-        res.json(readingHistory);
+        const readingHistory = await CheckoutRecord.find({
+            student: studentId,
+            status: 'returned'
+        })
+            .sort({ returnDate: -1 })
+            .populate({
+                path: 'bookCopy',
+                populate: {
+                    path: 'book',
+                    select: 'title'
+                }
+            });
+
+        const formattedHistory = readingHistory.map(record => ({
+            bookTitle: record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book',
+            checkoutDate: record.checkoutDate,
+            returnDate: record.returnDate,
+            durationMinutes: Math.round((record.returnDate - record.checkoutDate) / (1000 * 60))
+        }));
+
+        res.json(formattedHistory);
     } catch (error) {
         console.error('Error fetching reading history:', error);
         res.status(500).json({ message: 'Error fetching reading history', error: error.message });

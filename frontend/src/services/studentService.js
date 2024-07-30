@@ -101,13 +101,10 @@ export const getStudentReadingHistory = async (studentId) => {
     try {
         const response = await axiosInstance.get(`/students/${studentId}/reading-history`);
         return response.data.map(record => ({
-            ...record,
-            book: {
-                title: record.book ? record.book.title : 'Unknown Book',
-                _id: record.book ? record.book._id : null
-            },
-            checkoutDate: record.checkoutDate,
-            returnDate: record.returnDate
+            bookTitle: record.bookTitle,
+            checkoutDate: new Date(record.checkoutDate),
+            returnDate: new Date(record.returnDate),
+            durationMinutes: record.durationMinutes
         }));
     } catch (error) {
         console.error('Failed to fetch student reading history:', error.response ? error.response.data : error.message);
