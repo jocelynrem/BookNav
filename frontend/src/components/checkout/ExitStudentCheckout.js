@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../../services/authService';
 
@@ -6,7 +6,14 @@ const ExitStudentCheckout = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+    const passwordInputRef = useRef(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (showPasswordPrompt && passwordInputRef.current) {
+            passwordInputRef.current.focus();
+        }
+    }, [showPasswordPrompt]);
 
     const handleExitClick = () => {
         setShowPasswordPrompt(true);
@@ -15,7 +22,6 @@ const ExitStudentCheckout = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Assuming you have a way to get the current teacher's username
             const teacherUsername = localStorage.getItem('teacherUsername');
             await loginUser({ usernameOrEmail: teacherUsername, password });
             navigate('/dashboard');
@@ -35,6 +41,7 @@ const ExitStudentCheckout = () => {
                         placeholder="Enter teacher password"
                         className="w-full p-2 border rounded focus:ring-2 mb-2 focus:ring-teal-600"
                         required
+                        ref={passwordInputRef}
                     />
                     <button type="submit" className="w-full bg-red-700 text-white p-2 rounded">
                         Confirm Exit

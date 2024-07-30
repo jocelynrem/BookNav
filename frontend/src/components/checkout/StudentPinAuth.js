@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const StudentPinAuth = ({ student, onSuccess }) => {
     const [pin, setPin] = useState('');
     const [error, setError] = useState('');
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -30,7 +37,7 @@ const StudentPinAuth = ({ student, onSuccess }) => {
                             <input
                                 id="pin"
                                 name="pin"
-                                type="password"
+                                type="tel"
                                 autoComplete="current-password"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:z-10 sm:text-sm"
@@ -38,6 +45,8 @@ const StudentPinAuth = ({ student, onSuccess }) => {
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value)}
                                 maxLength="4"
+                                inputMode="numeric"
+                                ref={inputRef}
                             />
                         </div>
                     </div>

@@ -215,153 +215,152 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-                </div>
+        <div className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4 sm:p-0">
+            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
 
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div
-                    ref={modalRef}
-                    className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                >
-                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
-                        <button
-                            type="button"
-                            className="absolute top-0 right-0 mt-3 mr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
-                            onClick={() => {
-                                stopScanning();
-                                onClose();
-                            }}
-                        >
-                            <XMarkIcon className="h-6 w-6" />
-                        </button>
-                        <div className="sm:flex sm:items-start">
-                            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                    {student.firstName} {student.lastName}
-                                </h3>
+            <div
+                ref={modalRef}
+                className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+            >
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                    <button
+                        type="button"
+                        className="absolute top-0 right-0 mt-3 mr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        onClick={() => {
+                            stopScanning();
+                            onClose();
+                        }}
+                    >
+                        <XMarkIcon className="h-6 w-6" />
+                    </button>
+                    <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                {student.firstName} {student.lastName}
+                            </h3>
 
-                                {/* Checked Out Books Section */}
-                                <div className="mt-4">
-                                    <h4 className="text-md font-medium text-gray-700">Checked Out Books</h4>
-                                    {checkedOutBooks.length === 0 ? (
-                                        <p className="text-sm text-gray-500">No books currently checked out.</p>
-                                    ) : (
-                                        <ul className="mt-2 divide-y divide-gray-200">
-                                            {checkedOutBooks.map((bookCopy) => (
-                                                <li key={bookCopy._id} className="py-2 flex justify-between items-center">
-                                                    <span className="text-sm text-gray-900">
-                                                        {bookCopy.bookCopy?.book?.title || 'Unknown Title'}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleReturn(bookCopy._id)}
-                                                        className="text-sm text-pink-600 hover:text-pink-900"
-                                                    >
-                                                        Return
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-
-                                {/* Book Search Section */}
-                                <div className="mt-6">
-                                    <h4 className="text-md font-medium text-gray-700">Check Out a Book</h4>
-                                    <div className="mt-2 flex">
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            placeholder="Search by title or author"
-                                            className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
-                                            onKeyDown={handleKeyDown}
-                                        />
-                                        <button
-                                            onClick={handleSearchActionPanel}
-                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                        >
-                                            Search
-                                        </button>
-                                    </div>
-                                    {isSearching ? (
-                                        <p className="mt-2 text-sm text-gray-500">Searching...</p>
-                                    ) : searchResults.length > 0 ? (
-                                        <ul className="mt-2 divide-y divide-gray-200">
-                                            {searchResults.map((book) => (
-                                                <li key={book._id} className="py-2 flex justify-between items-center">
-                                                    <div>
-                                                        <span className="text-sm font-medium text-gray-900">{book.title}</span>
-                                                        <p className="text-xs text-gray-500">by {book.author}</p>
-                                                    </div>
-                                                    {book.availableCopies > 0 ? (
-                                                        <button
-                                                            onClick={() => handleCheckout(book._id)}
-                                                            className="text-sm text-pink-600 hover:text-pink-900"
-                                                            disabled={isProcessing}
-                                                        >
-                                                            Check Out ({book.availableCopies} available)
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-sm text-gray-400">No copies available</span>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : searchQuery && !isSearching ? (
-                                        <p className="mt-2 text-sm text-gray-500">No books found matching your search.</p>
-                                    ) : null}
-                                </div>
-
-                                <div className="mt-6">
-                                    <h4 className="text-md font-medium text-gray-700">Scan ISBN to Check Out</h4>
-                                    <div className="mt-2">
-                                        {isScanning ? (
-                                            <>
-                                                <ISBNScanner onScan={handleCheckoutScan} />
+                            {/* Checked Out Books Section */}
+                            <div className="mt-4">
+                                <h4 className="text-md font-medium text-gray-700">Checked Out Books</h4>
+                                {checkedOutBooks.length === 0 ? (
+                                    <p className="text-sm text-gray-500">No books currently checked out.</p>
+                                ) : (
+                                    <ul className="mt-2 divide-y divide-gray-200">
+                                        {checkedOutBooks.map((bookCopy) => (
+                                            <li key={bookCopy._id} className="py-2 flex justify-between items-center">
+                                                <span className="text-sm text-gray-900">
+                                                    {bookCopy.bookCopy?.book?.title || 'Unknown Title'}
+                                                </span>
                                                 <button
-                                                    onClick={stopScanning}
-                                                    className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
+                                                    onClick={() => handleReturn(bookCopy._id)}
+                                                    className="text-sm text-pink-600 hover:text-pink-900"
                                                 >
-                                                    Stop Scanning
+                                                    Return
                                                 </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                onClick={startScanning}
-                                                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
-                                            >
-                                                <QrCodeIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                                                Start Scanning
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {bookStatus && (
-                                    <div className="mt-4">
-                                        <p className="text-sm text-gray-500">
-                                            {bookStatus.action === 'checkout' ? 'Ready to check out:' : 'Ready to return:'}
-                                        </p>
-                                        <p className="mt-1 text-lg font-medium text-gray-900">{bookStatus.title}</p>
-                                        <button
-                                            onClick={onConfirmAction}
-                                            className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
-                                        >
-                                            {bookStatus.action === 'checkout' ? 'Confirm Checkout' : 'Confirm Return'}
-                                        </button>
-                                    </div>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 )}
                             </div>
+
+                            {/* Book Search Section */}
+                            <div className="mt-6">
+                                <h4 className="text-md font-medium text-gray-700">Check Out a Book</h4>
+                                <div className="mt-2 flex">
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search by title or author"
+                                        className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                    <button
+                                        onClick={handleSearchActionPanel}
+                                        className="px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                                    >
+                                        Search
+                                    </button>
+                                </div>
+                                {isSearching ? (
+                                    <p className="mt-2 text-sm text-gray-500">Searching...</p>
+                                ) : searchResults.length > 0 ? (
+                                    <ul className="mt-2 divide-y divide-gray-200">
+                                        {searchResults.map((book) => (
+                                            <li key={book._id} className="py-2 flex justify-between items-center">
+                                                <div>
+                                                    <span className="text-sm font-medium text-gray-900">{book.title}</span>
+                                                    <p className="text-xs text-gray-500">by {book.author}</p>
+                                                </div>
+                                                {book.availableCopies > 0 ? (
+                                                    <button
+                                                        onClick={() => handleCheckout(book._id)}
+                                                        className="text-sm text-pink-600 hover:text-pink-900"
+                                                        disabled={isProcessing}
+                                                    >
+                                                        Check Out ({book.availableCopies} available)
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400">No copies available</span>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : searchQuery && !isSearching ? (
+                                    <p className="mt-2 text-sm text-gray-500">No books found matching your search.</p>
+                                ) : null}
+                            </div>
+
+                            <div className="mt-6">
+                                <h4 className="text-md font-medium text-gray-700">Scan ISBN to Check Out</h4>
+                                <div className="mt-2">
+                                    {isScanning ? (
+                                        <>
+                                            <ISBNScanner onScan={handleCheckoutScan} />
+                                            <button
+                                                onClick={stopScanning}
+                                                className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
+                                            >
+                                                Stop Scanning
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            onClick={startScanning}
+                                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
+                                        >
+                                            <QrCodeIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                                            Start Scanning
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {bookStatus && (
+                                <div className="mt-4">
+                                    <p className="text-sm text-gray-500">
+                                        {bookStatus.action === 'checkout' ? 'Ready to check out:' : 'Ready to return:'}
+                                    </p>
+                                    <p className="mt-1 text-lg font-medium text-gray-900">{bookStatus.title}</p>
+                                    <button
+                                        onClick={onConfirmAction}
+                                        className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
+                                    >
+                                        {bookStatus.action === 'checkout' ? 'Confirm Checkout' : 'Confirm Return'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
+
 };
 
 export default ActionPanelModal;

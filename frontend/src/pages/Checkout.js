@@ -28,10 +28,12 @@ const Checkout = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
-            <div className="mb-4">
-                <Breadcrumbs items={getBreadcrumbItems()} />
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+            {!isStudentMode && (
+                <div className="mb-4">
+                    <Breadcrumbs items={getBreadcrumbItems()} />
+                </div>
+            )}
             {isStudentMode ? (
                 <StudentCheckout onExit={exitStudentMode} />
             ) : (
