@@ -153,49 +153,91 @@ const addBookCopies = async (bookId, numberOfCopies) => {
 // Create a new book
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        console.log('Received book data:', req.body);
         const { title, author, publishedDate, pages, genre, coverImage, isbn, copies, readingLevel, lexileScore, arPoints } = req.body;
+        const userId = req.user.id;
 
         if (!title || !author || author.length === 0) {
             return res.status(400).json({ message: 'Title and Authors are required' });
         }
 
-        const book = new Book({
-            title,
-            author,
-            publishedDate,
-            pages: parseInt(pages, 10) || 0,
-            genre,
-            coverImage,
-            isbn,
-            copies: parseInt(copies, 10) || 1,
-            availableCopies: parseInt(copies, 10) || 1,
-            checkedOutCopies: 0,
-            readingLevel,
-            lexileScore: lexileScore ? parseInt(lexileScore, 10) : undefined,
-            arPoints: arPoints ? parseFloat(arPoints) : undefined
-        });
+        let book = await Book.findOne({ isbn });
+        let newCopiesCreated = 0;
 
-        await book.save();
+        if (book) {
+            // Book already exists, update it and add new copies
+            book.title = title;
+            book.author = author;
+            book.publishedDate = publishedDate;
+            book.pages = parseInt(pages, 10) || book.pages;
+            book.genre = genre;
+            book.coverImage = coverImage;
+            book.readingLevel = readingLevel;
+            book.lexileScore = lexileScore ? parseInt(lexileScore, 10) : book.lexileScore;
+            book.arPoints = arPoints ? parseFloat(arPoints) : book.arPoints;
 
-        // Create BookCopy instances
-        for (let i = 0; i < book.copies; i++) {
-            const bookCopy = new BookCopy({
-                book: book._id,
-                status: 'available',
-                copyNumber: i + 1
+            const newCopiesCount = parseInt(copies, 10) || 1;
+            newCopiesCreated = newCopiesCount;
+            book.copies += newCopiesCount;
+            book.availableCopies += newCopiesCount;
+
+            await book.save();
+
+            // Create new BookCopy instances
+            for (let i = 0; i < newCopiesCount; i++) {
+                const bookCopy = new BookCopy({
+                    book: book._id,
+                    status: 'available',
+                    copyNumber: book.copies - newCopiesCount + i + 1
+                });
+                await bookCopy.save();
+            }
+        } else {
+            // Create a new book
+            book = new Book({
+                title,
+                author,
+                publishedDate,
+                pages: parseInt(pages, 10) || 0,
+                genre,
+                coverImage,
+                isbn,
+                copies: parseInt(copies, 10) || 1,
+                availableCopies: parseInt(copies, 10) || 1,
+                checkedOutCopies: 0,
+                readingLevel,
+                lexileScore: lexileScore ? parseInt(lexileScore, 10) : undefined,
+                arPoints: arPoints ? parseFloat(arPoints) : undefined
             });
-            await bookCopy.save();
+
+            await book.save();
+
+            // Create BookCopy instances
+            for (let i = 0; i < book.copies; i++) {
+                const bookCopy = new BookCopy({
+                    book: book._id,
+                    status: 'available',
+                    copyNumber: i + 1
+                });
+                await bookCopy.save();
+            }
+
+            newCopiesCreated = book.copies;
         }
 
-        // Add the book to the user's library
-        const user = await User.findById(req.user.id);
-        user.books.push(book._id);
-        await user.save();
+        // Add the book to the user's library if it's not already there
+        const user = await User.findById(userId);
+        if (!user.books.includes(book._id)) {
+            user.books.push(book._id);
+            await user.save();
+        }
 
-        res.status(201).json(book);
+        res.status(201).json({
+            book,
+            message: book.copies === newCopiesCreated ? 'New book created' : 'Book updated and new copies added',
+            newCopiesCreated
+        });
     } catch (error) {
-        console.error('Error creating book:', error);
+        console.error('Error creating/updating book:', error);
         res.status(400).json({ message: error.message });
     }
 });
