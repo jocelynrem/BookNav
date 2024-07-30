@@ -200,7 +200,7 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
                         </div>
                         <form onSubmit={handleCreateStudent} className="space-y-4">
                             <label className="block">
-                                First Name
+                                First Name <span className="text-red-500">*</span>
                                 <input
                                     type="text"
                                     name="studentFirstName"
@@ -212,7 +212,7 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
                                 />
                             </label>
                             <label className="block">
-                                Last Name
+                                Last Name <span className="text-red-500">*</span>
                                 <input
                                     type="text"
                                     name="studentLastName"
@@ -225,7 +225,7 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
                             </label>
                             <div className="flex space-x-4">
                                 <label className="block w-1/2">
-                                    PIN
+                                    PIN <span className="text-red-500">*</span>
                                     <input
                                         type="text"
                                         name="studentPin"
@@ -239,12 +239,12 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
                                     />
                                 </label>
                                 <label className="block w-1/2">
-                                    Reading Level (optional)
+                                    Reading Level
                                     <input
                                         type="text"
                                         name="studentReadingLevel"
                                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-700 focus:ring-teal-700 sm:text-sm"
-                                        placeholder="Reading Level (optional)"
+                                        placeholder="Reading Level"
                                         value={newStudentReadingLevel}
                                         onChange={(e) => setNewStudentReadingLevel(e.target.value)}
                                     />
@@ -253,7 +253,7 @@ const StudentAdd = ({ onImportComplete, selectedClass, classes, students, setStu
                             <div className='flex justify-end'>
                                 <button
                                     type="submit"
-                                    className="inline-flex items-center justify-center rounded-md bg-pink-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-700 focus:ring-offset-2"
+                                    className="inline-flex items-center justify-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-700 focus:ring-offset-2"
                                 >
                                     Add
                                 </button>

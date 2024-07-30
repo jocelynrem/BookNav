@@ -37,7 +37,7 @@ const ConfirmationDialog = ({ dialog = {}, setDialog }) => {
                                 <p className="text-sm text-gray-500">{dialog.content}</p>
                                 <input
                                     type="number"
-                                    className="mt-2 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-2 block w-20 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     min="1"
@@ -58,7 +58,7 @@ const ConfirmationDialog = ({ dialog = {}, setDialog }) => {
                         </button>
                         <button
                             type="button"
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:w-auto sm:text-sm"
                             onClick={() => setDialog({ ...dialog, open: false })}
                         >
                             Cancel

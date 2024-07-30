@@ -17,20 +17,20 @@ const Checkout = () => {
     };
 
     return (
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
             {isStudentMode ? (
                 <StudentCheckout onExit={exitStudentMode} />
             ) : (
                 <div>
-                    <div className="flex space-x-4 justify-end">
+                    <div className="flex justify-end mb-3 sm:mb-4">
                         <button
                             onClick={startStudentMode}
-                            className="bg-pink-600 hover:bg-pink-700 text-white font-md py-2 px-4 rounded"
+                            className="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded"
                         >
                             Start Student Mode
                         </button>
                     </div>
-                    <div className="mt-8">
+                    <div className="mt-4 sm:mt-6">
                         <TeacherCheckout />
                     </div>
                 </div>

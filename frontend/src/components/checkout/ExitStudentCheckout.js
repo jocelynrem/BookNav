@@ -33,10 +33,10 @@ const ExitStudentCheckout = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter teacher password"
-                        className="w-full p-2 border rounded"
+                        className="w-full p-2 border rounded focus:ring-2 mb-2 focus:ring-teal-600"
                         required
                     />
-                    <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
+                    <button type="submit" className="w-full bg-red-700 text-white p-2 rounded">
                         Confirm Exit
                     </button>
                     {error && <p className="text-red-500 mt-2">{error}</p>}
@@ -44,7 +44,7 @@ const ExitStudentCheckout = () => {
             ) : (
                 <button
                     onClick={handleExitClick}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    className="text-pink-600 hover:text-pink-800 font-bold py-2 px-4 rounded"
                 >
                     Exit Student Mode
                 </button>

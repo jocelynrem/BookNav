@@ -77,6 +77,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             const updatedCheckout = await returnBook(checkoutRecordId);
             Swal.fire('Success', 'Book returned successfully', 'success');
             await fetchCheckedOutBooks();
+            onConfirmAction();  // Ensure parent component is updated
         } catch (error) {
             console.error('Failed to return book:', error);
             let errorMessage = 'Failed to return book. Please try again.';
@@ -119,6 +120,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
             if (isAlreadyCheckedOut) {
                 Swal.fire('Error', 'This book is already checked out.', 'error');
+                setIsProcessing(false);
                 return;
             }
 
@@ -149,6 +151,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                         : book
                 )
             );
+            onConfirmAction();  // Ensure parent component is updated
         } catch (error) {
             console.error('Failed to check out book:', error);
             let errorMessage = 'Failed to check out book. Please try again.';

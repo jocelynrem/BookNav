@@ -72,7 +72,7 @@ const StudentEdit = ({ student, onSave, onClose, onView, onDelete, classes }) =>
             <div className="flex justify-between items-center pb-2">
                 <button
                     type="button"
-                    className="flex items-center text-teal-700 hover:text-teal-900"
+                    className="flex items-center text-teal-800 hover:text-teal-900"
                     onClick={onView}
                 >
                     View student details

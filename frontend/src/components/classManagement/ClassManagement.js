@@ -73,7 +73,7 @@ const ClassManagement = () => {
                     className="mr-2 p-2 border rounded"
                     required
                 />
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded">Create Class</button>
+                <button type="submit" className="bg-teal-700 text-white p-2 rounded">Create Class</button>
             </form>
 
             {/* Class List */}

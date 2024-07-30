@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { getClasses } from '../../services/classService';
 import { getStudentsByClass } from '../../services/studentService';
-import { checkBookStatus, checkoutBook, returnBook } from '../../services/checkoutService';
+import { checkBookStatus, checkoutBook, returnBook, getCurrentCheckouts } from '../../services/checkoutService';
 import SlideoutParent from '../slideout/SlideoutParent';
 import StudentDetails from '../slideout/StudentDetails';
 import ActionPanelModal from './ActionPanelModal';
@@ -15,7 +15,7 @@ function classNames(...classes) {
 const getColorForClass = (className) => {
     const colors = [
         'bg-pink-600', 'bg-purple-600', 'bg-yellow-500', 'bg-green-500',
-        'bg-blue-500', 'bg-indigo-500', 'bg-red-500', 'bg-orange-500'
+        'bg-blue-500', 'bg-teal-500', 'bg-red-500', 'bg-orange-500'
     ];
     const hash = className.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
     return colors[hash % colors.length];
@@ -28,6 +28,7 @@ const TeacherCheckout = () => {
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isActionPanelOpen, setIsActionPanelOpen] = useState(false);
+    const [currentCheckouts, setCurrentCheckouts] = useState([]);
     const [bookStatus, setBookStatus] = useState(null);
 
     useEffect(() => {
@@ -39,7 +40,6 @@ const TeacherCheckout = () => {
                     setSelectedClass(fetchedClasses[0]._id);
                 }
             } catch (error) {
-                console.error('Error fetching classes:', error);
                 Swal.fire('Error', 'Failed to fetch classes. Please try again.', 'error');
             }
         };
@@ -53,13 +53,28 @@ const TeacherCheckout = () => {
                     const fetchedStudents = await getStudentsByClass(selectedClass);
                     setStudents(fetchedStudents);
                 } catch (error) {
-                    console.error('Error fetching students:', error);
                     Swal.fire('Error', 'Failed to fetch students. Please try again.', 'error');
                 }
             };
             fetchStudents();
         }
     }, [selectedClass]);
+
+    useEffect(() => {
+        if (selectedStudent) {
+            fetchCurrentCheckoutsForStudent();
+        }
+    }, [selectedStudent]);
+
+    const fetchCurrentCheckoutsForStudent = async () => {
+        try {
+            const checkouts = await getCurrentCheckouts(selectedStudent._id);
+            setCurrentCheckouts(checkouts);
+        } catch (error) {
+            console.error('Error fetching current checkouts:', error);
+            setCurrentCheckouts([]);
+        }
+    };
 
     const handleClassSelect = (e) => {
         setSelectedClass(e.target.value);
@@ -72,40 +87,9 @@ const TeacherCheckout = () => {
         setIsActionPanelOpen(true);
     };
 
-    const handleScanTeacherCheckout = async (scannedISBN) => {
-        try {
-            const status = await checkBookStatus(scannedISBN, selectedStudent._id);
-            setBookStatus(status);
-        } catch (error) {
-            console.error('Error checking book status:', error);
-            if (error.message === 'Book not found') {
-                Swal.fire('Error', 'The scanned book was not found in the library. Please add it first.', 'error');
-            } else {
-                Swal.fire('Error', 'Failed to check book status. Please try again.', 'error');
-            }
-        }
-    };
-
-    const handleStopScanning = () => {
-        setIsActionPanelOpen(false); // Close the modal
-        setBookStatus(null); // Reset the book status
-    };
-
-    const handleConfirmAction = async () => {
-        try {
-            if (bookStatus.action === 'checkout') {
-                await checkoutBook(bookStatus.isbn, selectedStudent._id);
-                Swal.fire('Success', `${bookStatus.title} has been checked out to ${selectedStudent.firstName} ${selectedStudent.lastName}.`, 'success');
-            } else {
-                await returnBook(bookStatus.isbn);
-                Swal.fire('Success', `${bookStatus.title} has been returned.`, 'success');
-            }
-            setIsActionPanelOpen(false);
-            setBookStatus(null);
-        } catch (error) {
-            console.error('Error performing action:', error);
-            Swal.fire('Error', 'Failed to perform action. Please try again.', 'error');
-        }
+    const handleBookAction = async () => {
+        await fetchCurrentCheckoutsForStudent();
+        setIsActionPanelOpen(false);
     };
 
     const getInitials = (firstName, lastName) => `${firstName[0]}${lastName[0]}`.toUpperCase();
@@ -114,7 +98,6 @@ const TeacherCheckout = () => {
         <div className="py-8">
             <h2 className="text-2xl font-bold mb-6">Select a student to checkout books.</h2>
 
-            {/* Class selection or single class name */}
             <div className="mb-8">
                 {classes.length === 1 ? (
                     <div className="text-lg font-medium text-gray-700">
@@ -142,7 +125,6 @@ const TeacherCheckout = () => {
                 )}
             </div>
 
-            {/* Student selection grid */}
             {selectedClass && (
                 <div className="mb-8">
                     <h3 className="text-lg font-medium mb-4">Select a Student</h3>
@@ -192,17 +174,13 @@ const TeacherCheckout = () => {
                 </div>
             )}
 
-            {/* Action Panel Modal */}
             <ActionPanelModal
                 isOpen={isActionPanelOpen}
-                onClose={handleStopScanning}
+                onClose={() => setIsActionPanelOpen(false)}
                 student={selectedStudent}
-                onScan={handleScanTeacherCheckout}
-                bookStatus={bookStatus}
-                onConfirmAction={handleConfirmAction}
+                onConfirmAction={handleBookAction}
             />
 
-            {/* Student Details Slideout */}
             <SlideoutParent
                 isOpen={isSlideoutOpen}
                 onClose={() => setIsSlideoutOpen(false)}
