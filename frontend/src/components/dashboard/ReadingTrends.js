@@ -9,8 +9,10 @@ const ReadingTrends = ({ data }) => {
             if (days < 1) {
                 const hours = Math.round(days * 24);
                 return `${hours} hours`;
+            } else if (days >= 1) {
+                const roundedDays = Math.floor(days);
+                return `${roundedDays} ${roundedDays === 1 ? 'day' : 'days'}`;
             }
-            return `${Math.round(days)} days`;
         }
         return 'N/A';
     };
