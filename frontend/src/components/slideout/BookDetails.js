@@ -40,6 +40,8 @@ const BookDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDi
                 <h2 className="text-base font-semibold leading-6 text-gray-900">
                     {book.title}
                 </h2>
+            </div>
+            <div className="flex justify-between items-center">
                 <button
                     type="button"
                     className="flex items-center text-teal-700 hover:text-teal-900"
