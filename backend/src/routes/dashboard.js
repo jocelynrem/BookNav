@@ -1,47 +1,96 @@
-// backend/src/routes/dashboard.js
+// In your dashboard.js route file
+
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const CheckoutRecord = require('../models/CheckoutRecord');
 const User = require('../models/User');
+const Book = require('../models/Book');
+const BookCopy = require('../models/BookCopy');
+const Class = require('../models/Class');
+const Student = require('../models/Student');
 const moment = require('moment');
-const BookCopy = require('../models/BookCopy')
+
+// Helper function to get teacher's students
+async function getTeacherStudents(userId) {
+    const teacherClasses = await Class.find({ teacher: userId });
+    const classIds = teacherClasses.map(c => c._id);
+    return await Student.find({ class: { $in: classIds } });
+}
+
+// Get recent activity
+router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const students = await getTeacherStudents(userId);
+        const studentIds = students.map(s => s._id);
+
+        const recentActivity = await CheckoutRecord.find({
+            student: { $in: studentIds }
+        })
+            .sort('-checkoutDate')
+            .limit(50)
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title _id' }
+            });
+
+        const activity = recentActivity.map(record => {
+            if (!record.bookCopy || !record.bookCopy.book) {
+                return null;
+            }
+            return {
+                action: record.status === 'checked out' ? 'Checkout' : 'Return',
+                details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy.book.title}`,
+                time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A'),
+                checkoutId: record._id,
+                bookId: record.bookCopy.book._id
+            };
+        }).filter(Boolean);  // Remove any null entries
+
+        res.json(activity);
+    } catch (error) {
+        console.error('Error in recent-activity route:', error);
+        res.status(500).json({ message: error.message, stack: error.stack });
+    }
+});
 
 // Get overview statistics
 router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const user = await User.findById(userId).populate('books');
-        if (!user) {
-            console.error(`User not found for ID: ${userId}`);
-            return res.status(404).json({ error: 'User not found' });
-        }
+        // Get teacher's classes
+        const teacherClasses = await Class.find({ teacher: userId });
+        const classIds = teacherClasses.map(c => c._id);
 
-        if (!user.books || user.books.length === 0) {
-            return res.json({
-                totalBooks: 0,
-                checkedOutBooks: 0,
-                overdueBooks: 0
-            });
-        }
+        // Get students in these classes
+        const students = await Student.find({ class: { $in: classIds } });
+        const studentIds = students.map(s => s._id);
 
-        const bookIds = user.books.map(book => book._id);
+        // Get all book copies associated with the teacher's students
+        const bookCopyIds = await CheckoutRecord.distinct('bookCopy', {
+            student: { $in: studentIds }
+        });
 
-        // First, let's check all BookCopy documents for these books
-        const bookCopies = await BookCopy.find({ book: { $in: bookIds } });
+        // Filter out any null or invalid bookCopy entries
+        const validBookCopyIds = bookCopyIds.filter(id => id != null);
 
-        const bookCopyIds = bookCopies.map(copy => copy._id);
+        // Get unique books from these valid book copies
+        const books = await BookCopy.distinct('book', {
+            _id: { $in: validBookCopyIds }
+        });
+        const totalBooks = books.length;
 
-        const [totalBooks, checkedOutBooks, overdueBooks] = await Promise.all([
-            user.books.length,
+        const [checkedOutBooks, overdueBooks] = await Promise.all([
             CheckoutRecord.countDocuments({
-                bookCopy: { $in: bookCopyIds },
+                student: { $in: studentIds },
                 status: 'checked out'
             }),
             CheckoutRecord.countDocuments({
-                bookCopy: { $in: bookCopyIds },
+                student: { $in: studentIds },
                 status: 'checked out',
                 dueDate: { $lt: new Date() }
             })
@@ -58,94 +107,17 @@ router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) =>
     }
 });
 
-// Get recent activity
-router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        const user = await User.findById(userId).populate('books');
-        if (!user) {
-            console.error(`User not found for ID: ${userId}`);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (!user.books || user.books.length === 0) {
-            return res.json([]);
-        }
-
-        const bookIds = user.books.map(book => book._id);
-        const bookCopies = await BookCopy.find({ book: { $in: bookIds } });
-        const bookCopyIds = bookCopies.map(copy => copy._id);
-
-        const limit = 50;
-
-        const recentCheckouts = await CheckoutRecord.find({
-            bookCopy: { $in: bookCopyIds }
-        })
-            .sort('-checkoutDate')
-            .limit(limit)
-            .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title _id' }
-            });
-
-        const recentReturns = await CheckoutRecord.find({
-            bookCopy: { $in: bookCopyIds },
-            returnDate: { $ne: null }
-        })
-            .sort('-returnDate')
-            .limit(limit)
-            .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title _id' }
-            });
-
-        const activity = [...recentCheckouts, ...recentReturns]
-            .sort((a, b) => {
-                const dateA = a.returnDate || a.checkoutDate;
-                const dateB = b.returnDate || b.checkoutDate;
-                return dateB - dateA;
-            })
-            .slice(0, limit)
-            .map(record => ({
-                action: record.returnDate ? 'Return' : 'Checkout',
-                details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book'}`,
-                time: moment(record.returnDate || record.checkoutDate).format('MMMM D, YYYY, h:mm A'),
-                checkoutId: record._id,
-                bookId: record.bookCopy.book ? record.bookCopy.book._id : null
-            }));
-
-        res.json(activity);
-    } catch (error) {
-        console.error('Error in recent-activity route:', error);
-        res.status(500).json({ message: error.message });
-    }
-});
-
-
 // Get reading trends
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
 
-        const user = await User.findById(userId).populate('books');
-        if (!user) {
-            console.error(`User not found for ID: ${userId}`);
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const students = await getTeacherStudents(userId);
+        const studentIds = students.map(s => s._id);
 
-        if (!user.books || user.books.length === 0) {
-            return res.json({ popularBooks: [], averageCheckoutDuration: 0 });
-        }
-
-        const bookIds = user.books.map(book => book._id);
-        const bookCopies = await BookCopy.find({ book: { $in: bookIds } });
-        const bookCopyIds = bookCopies.map(copy => copy._id);
         const [popularBooks, averageCheckoutDuration] = await Promise.all([
             CheckoutRecord.aggregate([
-                { $match: { bookCopy: { $in: bookCopyIds } } },
+                { $match: { student: { $in: studentIds } } },
                 { $lookup: { from: 'bookcopies', localField: 'bookCopy', foreignField: '_id', as: 'bookCopyDetails' } },
                 { $unwind: '$bookCopyDetails' },
                 { $lookup: { from: 'books', localField: 'bookCopyDetails.book', foreignField: '_id', as: 'bookDetails' } },
@@ -161,7 +133,7 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
                 { $limit: 5 }
             ]),
             CheckoutRecord.aggregate([
-                { $match: { status: 'returned', bookCopy: { $in: bookCopyIds } } },
+                { $match: { status: 'returned', student: { $in: studentIds } } },
                 {
                     $group: {
                         _id: null,
@@ -191,23 +163,11 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
 router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
+        const students = await getTeacherStudents(userId);
+        const studentIds = students.map(s => s._id);
 
-        const user = await User.findById(userId).populate('books');
-        if (!user) {
-            console.error(`User not found for ID: ${userId}`);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-
-        if (!user.books || user.books.length === 0) {
-            return res.json([]);
-        }
-
-        const bookIds = user.books.map(book => book._id);
-        const bookCopies = await BookCopy.find({ book: { $in: bookIds } });
-        const bookCopyIds = bookCopies.map(copy => copy._id);
         const upcomingDueDates = await CheckoutRecord.find({
-            bookCopy: { $in: bookCopyIds },
+            student: { $in: studentIds },
             status: 'checked out',
             dueDate: {
                 $gte: new Date(),
@@ -239,22 +199,11 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
 router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
+        const students = await getTeacherStudents(userId);
+        const studentIds = students.map(s => s._id);
 
-        const user = await User.findById(userId).populate('books');
-        if (!user) {
-            console.error(`User not found for ID: ${userId}`);
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (!user.books || user.books.length === 0) {
-            return res.json([]);
-        }
-
-        const bookIds = user.books.map(book => book._id);
-        const bookCopies = await BookCopy.find({ book: { $in: bookIds } });
-        const bookCopyIds = bookCopies.map(copy => copy._id);
         const overdueBooks = await CheckoutRecord.find({
-            bookCopy: { $in: bookCopyIds },
+            student: { $in: studentIds },
             status: 'checked out',
             dueDate: { $lt: new Date() }
         })
@@ -276,6 +225,40 @@ router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req,
     } catch (error) {
         console.error('Error fetching overdue books:', error);
         res.status(500).json({ message: 'Error fetching overdue books', error: error.message });
+    }
+});
+
+// Get checked out books
+router.get('/checked-out-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const students = await getTeacherStudents(userId);
+        const studentIds = students.map(s => s._id);
+
+        const checkedOutBooks = await CheckoutRecord.find({
+            student: { $in: studentIds },
+            status: 'checked out'
+        })
+            .populate('student', 'firstName lastName')
+            .populate({
+                path: 'bookCopy',
+                populate: { path: 'book', select: 'title' }
+            })
+            .lean();
+
+        const formattedCheckedOutBooks = checkedOutBooks.map(record => ({
+            _id: record._id,
+            title: record.bookCopy?.book?.title || 'Unknown Title',
+            student: record.student
+                ? `${record.student.firstName} ${record.student.lastName}`
+                : 'Unknown Student',
+            dueDate: record.dueDate
+        }));
+
+        res.json(formattedCheckedOutBooks);
+    } catch (error) {
+        console.error('Error fetching checked out books:', error);
+        res.status(500).json({ message: 'Error fetching checked out books', error: error.message });
     }
 });
 

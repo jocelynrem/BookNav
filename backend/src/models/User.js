@@ -67,6 +67,14 @@ userSchema.methods.generateJWT = function () {
     );
 };
 
+// Method to associate a book with a user
+userSchema.methods.addBook = async function (bookId) {
+    if (!this.books.includes(bookId)) {
+        this.books.push(bookId);
+        await this.save();
+    }
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
