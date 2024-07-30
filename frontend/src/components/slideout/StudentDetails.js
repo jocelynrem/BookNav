@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRightIcon, BookOpenIcon } from '@heroicons/react/24/outline';
-import { getDetailedReadingHistory } from '../../services/checkoutService';
+import { getStudentReadingHistory } from '../../services/studentService';
 import { getCurrentCheckouts, returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 
@@ -21,7 +21,7 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
         setIsLoading(true);
         setError(null);
         try {
-            const history = await getDetailedReadingHistory(student._id);
+            const history = await getStudentReadingHistory(student._id);
             setReadingHistory(history);
         } catch (error) {
             console.error('Error fetching reading history:', error);
@@ -63,9 +63,21 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
         return classData.name || `Class ID: ${classData._id}`;
     };
 
-    const formatDate = (dateString) => {
+    const formatDateOnly = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    const formatDuration = (minutes) => {
+        if (minutes < 60) {
+            return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        } else if (minutes < 1440) { // Less than a day
+            const hours = Math.floor(minutes / 60);
+            return `${hours} hour${hours !== 1 ? 's' : ''}`;
+        } else {
+            const days = Math.floor(minutes / 1440);
+            return `${days} day${days !== 1 ? 's' : ''}`;
+        }
     };
 
     return (
@@ -128,6 +140,29 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                 )}
             </div>
             <div>
+                <h3 className="text-lg font-medium text-gray-900">Current Checkouts</h3>
+                {currentCheckouts.length > 0 ? (
+                    <ul className="mt-2 divide-y divide-gray-200 border-b border-t border-gray-200">
+                        {currentCheckouts.map((checkout) => (
+                            <li key={checkout._id} className="py-3 flex justify-between items-center">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
+                                    <p className="text-sm text-gray-500">Checked out on: {formatDateOnly(checkout.checkoutDate)}</p>
+                                </div>
+                                <button
+                                    onClick={() => handleReturn(checkout._id)}
+                                    className="ml-4 px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                                >
+                                    Return
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-gray-500 mt-2">No books currently checked out.</p>
+                )}
+            </div>
+            <div>
                 <h3 className="text-lg font-medium text-gray-900">Reading History</h3>
                 {isLoading ? (
                     <p className="text-gray-500 mt-2">Loading reading history...</p>
@@ -142,12 +177,12 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                                         <BookOpenIcon className="h-5 w-5 text-gray-400 mr-2" />
                                         <div>
                                             <p className="text-sm font-medium text-gray-900">{record.bookTitle}</p>
-                                            <p className="text-sm text-gray-500">Returned on: {formatDate(record.returnDate)}</p>
+                                            <p className="text-xs text-gray-500">Returned: {formatDateOnly(record.returnDate)}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm text-gray-500">
-                                            Kept for {record.daysKept} days
+                                            {formatDuration(record.durationMinutes)}
                                         </p>
                                     </div>
                                 </div>
