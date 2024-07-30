@@ -6,7 +6,11 @@ const ReadingTrends = ({ data }) => {
 
     const formatDuration = (days) => {
         if (typeof days === 'number' && !isNaN(days)) {
-            return `${days.toFixed(1)} days`;
+            if (days < 1) {
+                const hours = Math.round(days * 24);
+                return `${hours} hours`;
+            }
+            return `${Math.round(days)} days`;
         }
         return 'N/A';
     };
