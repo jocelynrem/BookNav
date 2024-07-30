@@ -35,7 +35,7 @@ const Notification = ({
                                     {notification.undo && (
                                         <button
                                             type="button"
-                                            className="ml-3 flex-shrink-0 rounded-md bg-white text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 pointer-events-auto"
+                                            className="ml-3 flex-shrink-0 rounded-md bg-white text-sm font-medium text-teal-600 hover:text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 pointer-events-auto"
                                             onClick={onUndo}
                                         >
                                             Undo
@@ -45,7 +45,7 @@ const Notification = ({
                                 <div className="ml-4 flex flex-shrink-0">
                                     <button
                                         type="button"
-                                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 pointer-events-auto"
+                                        className="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 pointer-events-auto"
                                         onClick={() => setNotification({ ...notification, show: false })}
                                     >
                                         <span className="sr-only">Close</span>

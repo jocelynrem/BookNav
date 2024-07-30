@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import ActionPanelModal from '../components/checkout/ActionPanelModal';
 import CurrentCheckouts from '../components/checkout/CurrentCheckouts';
 import ReadingHistory from '../components/checkout/ReadingHistory';
@@ -21,9 +20,12 @@ const StudentDashboard = ({ student, onLogout }) => {
     const fetchCurrentCheckouts = async () => {
         try {
             const checkouts = await getCurrentCheckouts(student._id);
+            if (!checkouts || checkouts.length === 0) {
+            }
             setCurrentCheckouts(checkouts);
         } catch (error) {
             console.error('Error fetching current checkouts:', error);
+            setCurrentCheckouts([]);
         }
     };
 
@@ -37,25 +39,34 @@ const StudentDashboard = ({ student, onLogout }) => {
     };
 
     const handleBookAction = async () => {
-        await fetchData();
+        await fetchCurrentCheckouts();
+        setIsActionPanelOpen(false);
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white shadow rounded-lg p-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome, {student.firstName}!</h1>
-                    <button
-                        onClick={() => setIsActionPanelOpen(true)}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                        Checkout a Book
-                    </button>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mb-6">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6">
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Welcome, {student.firstName}!</h1>
+                    <div className="flex flex-col space-y-2">
+                        <button
+                            onClick={() => setIsActionPanelOpen(true)}
+                            className="mb-8 bg-teal-600 text-white w-full px-3 py-5 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                        >
+                            Checkout a Book
+                        </button>
+                        <button
+                            onClick={onLogout}
+                            className="text-red-700 font-semibold w-full px-3 py-2 rounded-md hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                            Logout
+                        </button>
+                    </div>
                 </div>
                 <CurrentCheckouts checkouts={currentCheckouts} onReturn={handleBookAction} />
             </div>
 
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow rounded-lg p-4 sm:p-6">
                 <ReadingHistory history={readingHistory} />
             </div>
 

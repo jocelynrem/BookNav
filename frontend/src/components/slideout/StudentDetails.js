@@ -72,9 +72,11 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">{currentStudent.firstName} {currentStudent.lastName}</h2>
+            </div>
+            <div className="flex justify-between items-center">
                 <button
                     type="button"
-                    className="flex items-center text-teal-700 hover:text-teal-900"
+                    className="flex items-center text-teal-800 hover:text-teal-900"
                     onClick={onEdit}
                 >
                     Edit student

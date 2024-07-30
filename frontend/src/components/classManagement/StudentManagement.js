@@ -75,7 +75,7 @@ const StudentManagement = () => {
             <h2 className="text-2xl font-bold mb-4">Student Management</h2>
             <button
                 onClick={() => setShowCSVImport(!showCSVImport)}
-                className="bg-blue-500 text-white p-2 rounded mb-4"
+                className="bg-teal-700 text-white p-2 rounded mb-4"
             >
                 {showCSVImport ? 'Hide CSV Import' : 'Show CSV Import'}
             </button>
@@ -137,7 +137,7 @@ const StudentManagement = () => {
                     className="mr-2 p-2 border rounded"
                     required
                 />
-                <button type="submit" className="bg-blue-500 text-white p-2 rounded">Create Student</button>
+                <button type="submit" className="bg-teal-700 text-white p-2 rounded">Create Student</button>
             </form>
 
             {/* Student List */}

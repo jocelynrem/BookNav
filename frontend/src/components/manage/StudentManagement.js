@@ -108,12 +108,9 @@ const StudentManagement = ({ students, setStudents, classes, selectedClass, setS
                     <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex items-center justify-between px-4">
-                    <span className={`bg-white pr-3 text-base leading-6 ${!selectedClass ? 'text-gray-500' : 'text-gray-900 font-semibold'}`}>
-                        {!selectedClass ? "Select a class before adding students" : "Manage Students"}
-                    </span>
                     <button
                         type="button"
-                        className={`inline-flex items-center gap-x-1.5 rounded-full px-4 py-2 text-base font-semibold shadow-sm ring-1 ring-inset ${!selectedClass ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'}`}
+                        className="inline-flex items-center justify-center rounded-md bg-pink-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-700 focus:ring-offset-2"
                         onClick={() => openSlideout(true)}
                         disabled={!selectedClass}
                     >

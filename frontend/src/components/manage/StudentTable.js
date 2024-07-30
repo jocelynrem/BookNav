@@ -1,4 +1,3 @@
-//frontend/src/components/manage/StudentTable.js
 import React, { useState, useEffect } from 'react';
 import { getStudentsByClass, updateStudent, deleteStudent } from '../../services/studentService';
 import Swal from 'sweetalert2';
@@ -209,7 +208,7 @@ const StudentTable = ({ students, setStudents, classes }) => {
                 <div className="mt-8 flow-root">
                     <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                         <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <div className="flex justify-end mb-4">
+                            <div className="flex justify-between mb-4 sm:justify-end px-5 lg:px-8">
                                 <button
                                     onClick={handleDeleteSelectedStudents}
                                     disabled={selectedStudents.length === 0}
