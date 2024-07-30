@@ -166,14 +166,14 @@ const Dashboard = () => {
             const updatedCheckouts = await getCurrentCheckoutsForBook(bookId);
             setCurrentCheckouts(prev => ({
                 ...prev,
-                [bookId]: updatedCheckouts.current
+                [bookId]: updatedCheckouts.current || []
             }));
 
             // Refresh dashboard data
             await fetchDashboardData();
 
             // Close the Manual Return modal if all books are returned
-            const allBooksReturned = Object.values(currentCheckouts).every(checkouts => checkouts.length === 0);
+            const allBooksReturned = Object.values(updatedCheckouts).every(checkouts => checkouts.length === 0);
             if (allBooksReturned) {
                 setIsManualReturnOpen(false);
             }
@@ -182,6 +182,7 @@ const Dashboard = () => {
             Swal.fire('Error', 'Failed to return book. Please try again.', 'error');
         }
     };
+
 
     const handleAddBook = () => {
         navigate('/library/add-book/search');
