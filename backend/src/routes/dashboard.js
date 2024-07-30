@@ -23,8 +23,6 @@ async function getTeacherStudents(userId) {
 router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching recent activity for user ID: ${userId}`);
-
         const students = await getTeacherStudents(userId);
         const studentIds = students.map(s => s._id);
 
@@ -39,11 +37,8 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
                 populate: { path: 'book', select: 'title _id' }
             });
 
-        console.log(`Found ${recentActivity.length} recent activities`);
-
         const activity = recentActivity.map(record => {
             if (!record.bookCopy || !record.bookCopy.book) {
-                console.log(`Warning: Invalid record found: ${JSON.stringify(record)}`);
                 return null;
             }
             return {
@@ -66,7 +61,6 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
 router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching stats for user ID: ${userId}`);
 
         // Get teacher's classes
         const teacherClasses = await Class.find({ teacher: userId });
@@ -114,7 +108,6 @@ router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) =>
 router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching reading trends for user ID: ${userId}`);
 
         const students = await getTeacherStudents(userId);
         const studentIds = students.map(s => s._id);
@@ -167,8 +160,6 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
 router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching upcoming due dates for user ID: ${userId}`);
-
         const students = await getTeacherStudents(userId);
         const studentIds = students.map(s => s._id);
 
@@ -205,8 +196,6 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
 router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching overdue books for user ID: ${userId}`);
-
         const students = await getTeacherStudents(userId);
         const studentIds = students.map(s => s._id);
 
@@ -240,8 +229,6 @@ router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req,
 router.get('/checked-out-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const userId = req.user.id;
-        console.log(`Fetching checked out books for user ID: ${userId}`);
-
         const students = await getTeacherStudents(userId);
         const studentIds = students.map(s => s._id);
 
