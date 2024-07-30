@@ -116,6 +116,67 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
 
     const showPagination = totalPages > 1;
 
+    const renderPageNumbers = () => {
+        const pageNumbers = [];
+        const maxVisiblePages = 3;
+        let startPage, endPage;
+
+        if (totalPages <= maxVisiblePages) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= Math.ceil(maxVisiblePages / 2)) {
+                startPage = 1;
+                endPage = maxVisiblePages;
+            } else if (currentPage + Math.floor(maxVisiblePages / 2) >= totalPages) {
+                startPage = totalPages - maxVisiblePages + 1;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - Math.floor(maxVisiblePages / 2);
+                endPage = currentPage + Math.floor(maxVisiblePages / 2);
+            }
+        }
+
+        if (startPage > 1) {
+            pageNumbers.push(
+                <button key={1} onClick={() => setCurrentPage(1)} className="inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                    1
+                </button>
+            );
+            if (startPage > 2) {
+                pageNumbers.push(<span key="startEllipsis" className="px-2 pt-4">...</span>);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pageNumbers.push(
+                <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${currentPage === i
+                        ? 'border-pink-500 text-pink-600'
+                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        }`}
+                >
+                    {i}
+                </button>
+            );
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pageNumbers.push(<span key="endEllipsis" className="px-2 pt-4">...</span>);
+            }
+            pageNumbers.push(
+                <button key={totalPages} onClick={() => setCurrentPage(totalPages)} className="inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                    {totalPages}
+                </button>
+            );
+        }
+
+        return pageNumbers;
+    };
+
     return (
         <div className="flex flex-col bg-gray-50 rounded-lg border-2 border-teal-800 shadow min-h-[520px] overflow-hidden">
             <div className="px-4 py-5 sm:px-6 bg-teal-800">
@@ -125,7 +186,7 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
                 <ActivityList activities={currentActivities} onBookReturn={onBookReturn} handleReturnBook={handleReturnBook} />
             </div>
             {showPagination && (
-                <nav className="flex items-center border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">
+                <nav className="flex items-center justify-between border-t border-gray-200 px-4 py-4 sm:px-6 flex-none">
                     <div className="-mt-px flex w-0 flex-1">
                         <button
                             onClick={handlePrevious}
@@ -137,18 +198,7 @@ const RecentActivity = ({ activities = [], onBookReturn, handleReturnBook }) => 
                         </button>
                     </div>
                     <div className="hidden md:-mt-px md:flex">
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${currentPage === i + 1
-                                    ? 'border-pink-500 text-pink-600'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
+                        {renderPageNumbers()}
                     </div>
                     <div className="-mt-px flex w-0 flex-1 justify-end">
                         <button

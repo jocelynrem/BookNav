@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EllipsisVerticalIcon } from '@heroicons/react/24/outline';
 import { getClasses } from '../../services/classService';
 import { getStudentsByClass } from '../../services/studentService';
-import { checkBookStatus, checkoutBook, returnBook, getCurrentCheckouts } from '../../services/checkoutService';
+import { getCurrentCheckouts } from '../../services/checkoutService';
 import SlideoutParent from '../slideout/SlideoutParent';
 import StudentDetails from '../slideout/StudentDetails';
 import ActionPanelModal from './ActionPanelModal';
@@ -21,7 +21,7 @@ const getColorForClass = (className) => {
     return colors[hash % colors.length];
 };
 
-const TeacherCheckout = () => {
+const TeacherCheckout = ({ onStartStudentMode }) => {
     const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState('');
     const [students, setStudents] = useState([]);
@@ -29,7 +29,6 @@ const TeacherCheckout = () => {
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isActionPanelOpen, setIsActionPanelOpen] = useState(false);
     const [currentCheckouts, setCurrentCheckouts] = useState([]);
-    const [bookStatus, setBookStatus] = useState(null);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -96,33 +95,39 @@ const TeacherCheckout = () => {
 
     return (
         <div className="py-8">
-            <h2 className="text-2xl font-bold mb-6">Select a student to checkout books.</h2>
-
-            <div className="mb-8">
-                {classes.length === 1 ? (
-                    <div className="text-lg font-medium text-gray-700">
-                        {classes[0].name}
-                    </div>
-                ) : (
-                    <>
-                        <label htmlFor="class-select" className="block text-sm font-medium text-gray-700">
-                            Select a Class
-                        </label>
-                        <select
-                            id="class-select"
-                            value={selectedClass}
-                            onChange={handleClassSelect}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md"
-                        >
-                            <option value="">Select a class</option>
-                            {classes.map((classItem) => (
-                                <option key={classItem._id} value={classItem._id}>
-                                    {classItem.name}
-                                </option>
-                            ))}
-                        </select>
-                    </>
-                )}
+            <div className="mb-8 flex items-center justify-between">
+                <div className="flex-grow mr-4">
+                    {classes.length === 1 ? (
+                        <div className="text-lg font-medium text-gray-700">
+                            {classes[0].name}
+                        </div>
+                    ) : (
+                        <>
+                            <label htmlFor="class-select" className="block text-sm font-medium text-gray-700">
+                                Select a Class
+                            </label>
+                            <select
+                                id="class-select"
+                                value={selectedClass}
+                                onChange={handleClassSelect}
+                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm rounded-md"
+                            >
+                                <option value="">Select a class</option>
+                                {classes.map((classItem) => (
+                                    <option key={classItem._id} value={classItem._id}>
+                                        {classItem.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </>
+                    )}
+                </div>
+                <button
+                    onClick={onStartStudentMode}
+                    className="bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded"
+                >
+                    Start Student Mode
+                </button>
             </div>
 
             {selectedClass && (

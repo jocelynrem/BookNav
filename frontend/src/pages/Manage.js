@@ -5,6 +5,7 @@ import StudentManagement from '../components/manage/StudentManagement';
 import { getClasses } from '../services/classService';
 import { getStudents, getStudentsByClass } from '../services/studentService';
 import Tabs from './tabs/ManageTabs';
+import Breadcrumbs from '../components/dashboard/Breadcrumbs';
 
 const Manage = () => {
     const [classes, setClasses] = useState([]);
@@ -47,8 +48,24 @@ const Manage = () => {
         }
     };
 
+    const getBreadcrumbItems = () => {
+        const path = location.pathname;
+        const items = [{ name: 'Manage', href: '/manage/classes' }];
+
+        if (path.includes('classes')) {
+            items.push({ name: 'Classes', href: '/manage/classes' });
+        } else if (path.includes('students')) {
+            items.push({ name: 'Students', href: '/manage/students' });
+        }
+
+        return items;
+    };
+
     return (
         <div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+                <Breadcrumbs items={getBreadcrumbItems()} />
+            </div>
             <Tabs />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Routes>
