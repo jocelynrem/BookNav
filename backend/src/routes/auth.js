@@ -64,14 +64,14 @@ router.post('/login', loginLimiter, async (req, res) => {
         });
 
         if (!user || !(await user.comparePassword(password))) {
-            return res.status(401).json({ error: 'Invalid credentials' });
+            return res.status(401).json({ error: 'Invalid username or password. Please try again.' });
         }
 
         const token = user.generateJWT();
         res.json({ token, role: user.role });
     } catch (err) {
         console.error('Error during login:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'An error occurred while trying to log in. Please try again later.' });
     }
 });
 
