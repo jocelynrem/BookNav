@@ -75,9 +75,12 @@ router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) =>
             student: { $in: studentIds }
         });
 
-        // Get unique books from these book copies
+        // Filter out any null or invalid bookCopy entries
+        const validBookCopyIds = bookCopyIds.filter(id => id != null);
+
+        // Get unique books from these valid book copies
         const books = await BookCopy.distinct('book', {
-            _id: { $in: bookCopyIds }
+            _id: { $in: validBookCopyIds }
         });
         const totalBooks = books.length;
 
