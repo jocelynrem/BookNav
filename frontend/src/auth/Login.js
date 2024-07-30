@@ -17,7 +17,7 @@ export default function LoginPage() {
         const token = params.get('token');
         if (token) {
             localStorage.setItem('token', token);
-            login(token, 'user'); // Assuming 'user' as a default role
+            login(token, 'user');
             navigate('/dashboard');
         }
     }, [location, login, navigate]);
@@ -123,7 +123,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative w-full lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center"> {/* Set height for larger screens */}
+                    <div className="relative hidden lg:block lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center"> {/* Set height for larger screens */}
                         <img
                             className="absolute inset-0 object-cover w-full h-full"
                             src={LibraryImage}
@@ -134,5 +134,4 @@ export default function LoginPage() {
             </div>
         </>
     );
-
 }

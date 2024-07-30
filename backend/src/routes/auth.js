@@ -12,7 +12,13 @@ const sgMail = require('@sendgrid/mail');
 // Set SendGrid API Key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Public Routes
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login requests per windowMs
+    message: 'Too many login attempts from this IP, please try again after 15 minutes.'
+});
 
 // Register a new user
 router.post('/register', async (req, res) => {
@@ -25,7 +31,21 @@ router.post('/register', async (req, res) => {
             role: 'teacher'  // Always set role to 'teacher'
         });
         await user.save();
-        res.status(201).json({ message: 'Teacher account created successfully' });
+
+        // Generate a JWT token for the new user
+        const token = user.generateJWT();
+
+        // Return only necessary user information
+        res.status(201).json({
+            message: 'Teacher account created successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role
+            },
+            token
+        });
     } catch (err) {
         console.error('Error registering teacher:', err);
         if (err.code === 11000) {
@@ -36,7 +56,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
     try {
         const { usernameOrEmail, password } = req.body;
         const user = await User.findOne({
@@ -62,15 +82,20 @@ router.post('/reset-password', async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
+            // Response should not reveal whether the email exists in the system
             return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
         }
 
+        // Generate and hash the reset token
         const resetToken = crypto.randomBytes(20).toString('hex');
-        user.resetPasswordToken = resetToken;
+        const hashedToken = await bcrypt.hash(resetToken, 10);
+
+        user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
         await user.save();
 
+        // Construct the reset URL with the plain token
         const resetUrl = `${process.env.FRONTEND_URL}/reset/${resetToken}`;
 
         const msg = {
@@ -91,6 +116,7 @@ router.post('/reset-password', async (req, res) => {
         res.status(500).json({ error: 'An error occurred while processing your request.' });
     }
 });
+
 
 // Reset password with token
 router.post('/reset/:token', async (req, res) => {

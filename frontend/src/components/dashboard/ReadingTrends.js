@@ -46,7 +46,7 @@ const ReadingTrends = ({ data }) => {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-sm text-gray-500">Loading checkout data...</p>
+                            <p className="text-sm text-gray-500">No checkout data</p>
                         )}
                     </div>
                 </div>

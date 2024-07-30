@@ -124,29 +124,6 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                             <li key={checkout._id} className="py-3 flex justify-between items-center">
                                 <div>
                                     <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
-                                    <p className="text-sm text-gray-500">Checked out on: {formatDate(checkout.checkoutDate)}</p>
-                                </div>
-                                <button
-                                    onClick={() => handleReturn(checkout._id)}
-                                    className="ml-4 px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-                                >
-                                    Return
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-sm text-gray-500 mt-2">No books currently checked out.</p>
-                )}
-            </div>
-            <div>
-                <h3 className="text-lg font-medium text-gray-900">Current Checkouts</h3>
-                {currentCheckouts.length > 0 ? (
-                    <ul className="mt-2 divide-y divide-gray-200 border-b border-t border-gray-200">
-                        {currentCheckouts.map((checkout) => (
-                            <li key={checkout._id} className="py-3 flex justify-between items-center">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
                                     <p className="text-sm text-gray-500">Checked out on: {formatDateOnly(checkout.checkoutDate)}</p>
                                 </div>
                                 <button

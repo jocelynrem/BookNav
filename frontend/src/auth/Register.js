@@ -25,7 +25,7 @@ export default function Register() {
         <>
             <div className="container mx-auto max-w-7xl flex justify-center px-4 sm:px-6 lg:px-8">
                 <div className="flex w-full flex-col lg:flex-row justify-between px-4 py-12 sm:px-6 lg:px-20 xl:px-24">
-                    <div className="w-full lg:w-1/2 xl:w-2/5 lg:pr-16"> {/* Match spacing with Login component */}
+                    <div className="w-full lg:w-1/2 xl:w-2/5 lg:pr-16">
                         <div className="mx-auto max-w-md">
                             <div>
                                 <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight text-gray-900">
@@ -108,7 +108,7 @@ export default function Register() {
                             </div>
                         </div>
                     </div>
-                    <div className="relative w-full lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center">
+                    <div className="relative hidden lg:block lg:w-1/2 xl:w-3/5 h-80 lg:h-auto lg:flex lg:items-center">
                         <img
                             className="absolute inset-0 object-cover w-full h-full"
                             src={LibraryImage}

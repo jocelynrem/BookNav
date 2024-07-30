@@ -8,11 +8,16 @@ const LibrarySettings = require('../models/LibrarySettings');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Book = require('../models/Book');
+const User = require('../models/User');
 
 // Get all checkouts (teachers only)
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const checkouts = await CheckoutRecord.find()
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('books');
+        const bookIds = user.books.map(book => book._id);
+
+        const checkouts = await CheckoutRecord.find({ bookCopy: { $in: bookIds } })
             .populate('student', 'firstName lastName')
             .populate({
                 path: 'bookCopy',
@@ -20,6 +25,7 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
             });
         res.json(checkouts);
     } catch (error) {
+        console.error('Error fetching checkouts:', error);
         res.status(500).json({ message: error.message });
     }
 });
@@ -29,11 +35,17 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
     try {
         const { bookId, studentId } = req.body;
 
+        // Validate that the book belongs to the authenticated teacher's library
+        const userId = req.user.id;
+        const user = await User.findById(userId).populate('books');
+        if (!user.books.some(book => book._id.toString() === bookId)) {
+            return res.status(403).json({ message: 'You can only checkout books from your own library' });
+        }
+
         // Check if the student has reached the maximum number of checkouts
         const studentCheckouts = await CheckoutRecord.countDocuments({ student: studentId, status: 'checked out' });
         const settings = await LibrarySettings.findOne().exec();
 
-        // If no settings found, use default values
         const maxCheckoutBooks = settings ? settings.maxCheckoutBooks : 5;
         const defaultDueDays = settings ? settings.defaultDueDays : 14;
 
@@ -80,27 +92,29 @@ router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), a
             return res.status(404).json({ message: 'Checkout record not found' });
         }
 
-        if (req.user.role === 'student' && req.user.id !== checkoutRecord.student.toString()) {
-            return res.status(403).json({ message: 'Students can only return their own books' });
+        // Ensure return date is provided
+        const returnedOn = req.body.returnedOn;
+        if (!returnedOn) {
+            return res.status(400).json({ message: 'Return date is required' });
         }
 
-        checkoutRecord.returnDate = new Date(req.body.returnedOn);
+        // Validate bookCopy existence
+        const bookCopy = await BookCopy.findById(checkoutRecord.bookCopy);
+        if (!bookCopy) {
+            return res.status(404).json({ message: 'Book copy not found' });
+        }
+
+        checkoutRecord.returnDate = new Date(returnedOn);
         checkoutRecord.status = 'returned';
         await checkoutRecord.save();
 
-        const bookCopy = await BookCopy.findById(checkoutRecord.bookCopy);
         bookCopy.status = 'available';
         await bookCopy.save();
 
-        const book = await Book.findById(bookCopy.book);
-        book.availableCopies += 1;
-        book.checkedOutCopies -= 1;
-        await book.save();
-
-        res.json({ message: 'Book returned successfully', checkoutRecord, bookCopy, book });
+        res.json({ message: 'Book returned successfully', checkoutRecord, bookCopy });
     } catch (error) {
         console.error('Error in return route:', error);
-        res.status(400).json({ message: error.message });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -136,6 +150,19 @@ router.get('/status', async (req, res) => {
 router.get('/student/:studentId/history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentId = req.params.studentId;
+        const teacherId = req.user.id;
+
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        // Ensure the student belongs to the teacher's class
+        const studentClass = await Class.findOne({ _id: student.class, teacher: teacherId });
+        if (!studentClass) {
+            return res.status(403).json({ message: 'You can only view the history of your own students' });
+        }
+
         const checkouts = await CheckoutRecord.find({ student: studentId })
             .populate('bookCopy')
             .populate({

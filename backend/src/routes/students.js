@@ -7,26 +7,37 @@ const Student = require('../models/Student');
 const Class = require('../models/Class');
 const CheckoutRecord = require('../models/CheckoutRecord');
 
-// Get all students
+// Get all students for the authenticated teacher
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const students = await Student.find().populate('class', 'name');
+        const classes = await Class.find({ teacher: req.user.id }).select('_id');
+        const classIds = classes.map(cls => cls._id);
+
+        const students = await Student.find({ class: { $in: classIds } }).populate('class', 'name');
         res.json(students);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// Get students by class
+// Get students by class for the authenticated teacher
 router.get('/class/:classId', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { classId } = req.params;
         let students;
+
         if (classId === 'all') {
-            students = await Student.find().populate('class', 'name');
+            const classes = await Class.find({ teacher: req.user.id }).select('_id');
+            const classIds = classes.map(cls => cls._id);
+            students = await Student.find({ class: { $in: classIds } }).populate('class', 'name');
         } else {
+            const classData = await Class.findOne({ _id: classId, teacher: req.user.id });
+            if (!classData) {
+                return res.status(404).json({ message: 'Class not found or not authorized' });
+            }
             students = await Student.find({ class: classId }).populate('class', 'name');
         }
+
         res.json(students);
     } catch (error) {
         console.error('Failed to fetch students by class:', error);
@@ -37,12 +48,11 @@ router.get('/class/:classId', authenticateToken, roleAuth('teacher'), async (req
 // Create a new student
 router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const studentClass = await Class.findById(req.body.classId);
-        if (!studentClass) {
-            return res.status(400).json({ message: 'Class not found' });
+        const classData = await Class.findOne({ _id: req.body.classId, teacher: req.user.id });
+        if (!classData) {
+            return res.status(400).json({ message: 'Class not found or not authorized' });
         }
 
-        // Check if a student with the same name already exists in the class
         const existingStudent = await Student.findOne({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
@@ -56,7 +66,7 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
         const newStudent = new Student({
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            grade: studentClass.grade,
+            grade: classData.grade,
             class: req.body.classId,
             pin: req.body.pin
         });
@@ -77,7 +87,7 @@ router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, 
             return res.status(400).json({ message: 'Invalid input. Expected an array of student objects.' });
         }
 
-        const createdStudents = await bulkCreateStudents(studentsData);
+        const createdStudents = await bulkCreateStudents(studentsData, req.user.id);
 
         res.status(201).json({
             message: `Successfully created ${createdStudents.length} students`,
@@ -89,16 +99,15 @@ router.post('/bulk-create', authenticateToken, roleAuth('teacher'), async (req, 
     }
 });
 
-async function bulkCreateStudents(studentsData) {
+async function bulkCreateStudents(studentsData, teacherId) {
     const createdStudents = [];
     for (const data of studentsData) {
         try {
-            const studentClass = await Class.findById(data.classId);
-            if (!studentClass) {
+            const classData = await Class.findOne({ _id: data.classId, teacher: teacherId });
+            if (!classData) {
                 throw new Error(`Class not found for student: ${data.firstName} ${data.lastName}`);
             }
 
-            // Check for existing student with the same name in the same class
             const existingStudent = await Student.findOne({
                 firstName: data.firstName,
                 lastName: data.lastName,
@@ -112,7 +121,7 @@ async function bulkCreateStudents(studentsData) {
             const newStudent = new Student({
                 firstName: data.firstName,
                 lastName: data.lastName,
-                grade: studentClass.grade,
+                grade: classData.grade,
                 class: data.classId,
                 pin: data.pin
             });
@@ -121,7 +130,6 @@ async function bulkCreateStudents(studentsData) {
             createdStudents.push(savedStudent);
         } catch (error) {
             console.error(`Error creating student: ${data.firstName} ${data.lastName}`, error);
-            // Continue with the next student
         }
     }
     return createdStudents;
@@ -130,10 +138,17 @@ async function bulkCreateStudents(studentsData) {
 // Update a student
 router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedStudent) {
+        const student = await Student.findById(req.params.id);
+        if (!student) {
             return res.status(404).json({ message: 'Student not found' });
         }
+
+        const classData = await Class.findOne({ _id: student.class, teacher: req.user.id });
+        if (!classData) {
+            return res.status(403).json({ message: 'Not authorized to update student' });
+        }
+
+        const updatedStudent = await Student.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedStudent);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -143,7 +158,17 @@ router.put('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
 // Delete a student
 router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        await Student.findByIdAndDelete(req.params.id);
+        const student = await Student.findById(req.params.id);
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        const classData = await Class.findOne({ _id: student.class, teacher: req.user.id });
+        if (!classData) {
+            return res.status(403).json({ message: 'Not authorized to delete student' });
+        }
+
+        await student.remove();
         res.json({ message: 'Student deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -154,6 +179,16 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
 router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const studentId = req.params.id;
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        const classData = await Class.findOne({ _id: student.class, teacher: req.user.id });
+        if (!classData) {
+            return res.status(403).json({ message: 'Not authorized to view reading history for this student' });
+        }
+
         const readingHistory = await CheckoutRecord.find({
             student: studentId,
             status: 'returned'
