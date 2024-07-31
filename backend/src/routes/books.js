@@ -13,11 +13,8 @@ router.get('/search', authenticateToken, async (req, res) => {
         const userId = req.user.id;
 
         if (!q) {
-            console.log(`Search request with empty query from user ${userId}`);
             return res.status(400).json({ message: 'Search query is required' });
         }
-
-        console.log(`Search request received from user ${userId} with query: ${q}`);
 
         const books = await Book.find({
             user: userId,
@@ -29,8 +26,6 @@ router.get('/search', authenticateToken, async (req, res) => {
         })
             .select('title author isbn copiesAvailable') // Select necessary fields
             .limit(20);
-
-        console.log(`Found ${books.length} books matching the query "${q}" for user ${userId}`);
 
         res.json(books);
     } catch (error) {
@@ -44,8 +39,6 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { title, author, isbn, copies = 1, ...otherFields } = req.body;
         const userId = req.user.id;
-
-        console.log(`Received request to add book with copies: ${copies}`);
 
         if (copies < 1) {
             return res.status(400).json({ message: 'Copies must be at least 1.' });
@@ -63,11 +56,9 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
                 ...otherFields
             });
             await book.save();
-            console.log(`New book created with ID: ${book._id} and copies: ${book.copies}`);
 
             // Associate the new book with the user
             await User.findByIdAndUpdate(userId, { $push: { books: book._id } });
-            console.log(`Book with ID ${book._id} added to user ${userId}'s library`);
         }
 
         res.status(201).json(book);

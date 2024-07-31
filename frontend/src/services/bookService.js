@@ -162,12 +162,10 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                     onConfirm: async (numberOfCopies) => {
                         if (numberOfCopies && numberOfCopies > 0) {
                             try {
-                                console.log('Sending request to add copies:', { bookId: existingBook._id, numberOfCopies });
                                 const response = await apiClient.post(`${apiUrl}/books/add-copies`, {
                                     bookId: existingBook._id,
                                     numberOfCopies: parseInt(numberOfCopies, 10)
                                 });
-                                console.log('Response from add-copies:', response.data);
                                 const updatedBook = response.data;
                                 setNotification({ show: true, message: `${numberOfCopies} copies of ${book.title} added to your library!` });
                                 resolve(updatedBook);
@@ -184,7 +182,6 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
             });
         } else {
             // If the book is new, add it to the user's library
-            console.log('Sending request to add book with copies:', copies);
             const response = await apiClient.post(`${apiUrl}/books`, { ...book, copies });
             const newBook = response.data;
             setUndoBook(newBook);

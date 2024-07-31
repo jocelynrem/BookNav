@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { addUserBook } from '../../services/bookService';
-import { useNavigate } from 'react-router-dom';
+import { addUserBook, deleteBook } from '../../services/bookService';
+import Notification from '../addBookFunction/Notification';
+import ConfirmationDialog from '../addBookFunction/ConfirmationDialog';
 
 const AddBookManual = () => {
     const [book, setBook] = useState({
@@ -19,7 +20,9 @@ const AddBookManual = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const navigate = useNavigate();
+    const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
+    const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
+    const [undoBook, setUndoBook] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,17 +49,43 @@ const AddBookManual = () => {
             setError('Please fill in all required fields.');
             return;
         }
-        console.log('Submitting book:', book);
         try {
-            const createdBook = await addUserBook(book, book.copies);
-            setSuccess('Book added successfully!');
-            setError('');
-
-            setTimeout(() => navigate('/'), 2000);
+            const createdBook = await addUserBook(book, book.copies, setNotification, setDialog, setUndoBook);
+            if (createdBook) {
+                setSuccess('Book added successfully!');
+                setError('');
+                // Reset the form
+                setBook({
+                    title: '',
+                    author: '',
+                    isbn: '',
+                    publishedDate: '',
+                    genre: '',
+                    coverImage: '',
+                    pages: '',
+                    copies: 1,
+                    readingLevel: '',
+                    lexileScore: '',
+                    arPoints: ''
+                });
+            }
         } catch (err) {
             console.error('Error adding book:', err);
             setError('Failed to add book. ' + (err.message || 'Unknown error'));
             setSuccess('');
+        }
+    };
+
+    const handleUndo = async () => {
+        if (undoBook) {
+            try {
+                await deleteBook(undoBook._id);
+                setNotification({ show: false, message: '' });
+                setUndoBook(null);
+            } catch (error) {
+                console.error('Failed to undo book addition:', error);
+                setNotification({ show: true, message: 'Failed to undo. The book remains in your library.', error: true });
+            }
         }
     };
 
@@ -209,6 +238,15 @@ const AddBookManual = () => {
                     </button>
                 </div>
             </form>
+            <Notification
+                notification={notification}
+                setNotification={setNotification}
+                onUndo={handleUndo}
+            />
+            <ConfirmationDialog
+                dialog={dialog}
+                setDialog={setDialog}
+            />
         </div>
     );
 };
