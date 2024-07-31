@@ -70,19 +70,9 @@ router.get('/stats', authenticateToken, roleAuth('teacher'), async (req, res) =>
         const students = await Student.find({ class: { $in: classIds } });
         const studentIds = students.map(s => s._id);
 
-        // Get all book copies associated with the teacher's students
-        const bookCopyIds = await CheckoutRecord.distinct('bookCopy', {
-            student: { $in: studentIds }
-        });
-
-        // Filter out any null or invalid bookCopy entries
-        const validBookCopyIds = bookCopyIds.filter(id => id != null);
-
-        // Get unique books from these valid book copies
-        const books = await BookCopy.distinct('book', {
-            _id: { $in: validBookCopyIds }
-        });
-        const totalBooks = books.length;
+        // Get total books associated with the teacher
+        const teacher = await User.findById(userId).populate('books');
+        const totalBooks = teacher.books.length;
 
         const [checkedOutBooks, overdueBooks] = await Promise.all([
             CheckoutRecord.countDocuments({
