@@ -183,27 +183,37 @@ const AddBySearch = () => {
         setSelectedBook(null);
     };
 
-    const handleSaveBook = async (updatedBook) => {
+    const handleSaveBook = async (book, copies, isExisting) => {
         try {
-            const addedBook = await addUserBook(updatedBook, updatedBook.copies, setNotification, setDialog, setUndoBook);
-            if (addedBook) {
+            let addedOrUpdatedBook;
+            if (isExisting) {
+                // Adding copies to an existing book
+                addedOrUpdatedBook = await addBookCopies(book._id, copies);
+                setNotification({ show: true, message: `Added ${copies} copies to "${book.title}".`, error: false });
+            } else {
+                // Adding a new book
+                addedOrUpdatedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
+                setNotification({ show: true, message: `Added "${book.title}" to your library.`, error: false });
+            }
+
+            if (addedOrUpdatedBook) {
                 setUserBooks(prevBooks => {
-                    const existingBookIndex = prevBooks.findIndex(b => b._id === addedBook._id);
+                    const existingBookIndex = prevBooks.findIndex(b => b._id === addedOrUpdatedBook._id);
                     if (existingBookIndex !== -1) {
                         // Update existing book
-                        return prevBooks.map((book, index) =>
-                            index === existingBookIndex ? addedBook : book
+                        return prevBooks.map((b, index) =>
+                            index === existingBookIndex ? addedOrUpdatedBook : b
                         );
                     } else {
                         // Add new book
-                        return [...prevBooks, addedBook];
+                        return [...prevBooks, addedOrUpdatedBook];
                     }
                 });
             }
             setIsSlideoutOpen(false);
         } catch (error) {
-            console.error('Failed to add book:', error);
-            setNotification({ show: true, message: 'Failed to add book.', error: true });
+            console.error('Failed to add book or copies:', error);
+            setNotification({ show: true, message: 'Failed to update library.', error: true });
         }
     };
 
@@ -290,11 +300,13 @@ const AddBySearch = () => {
                         ) : (
                             <SearchDetails
                                 book={selectedBook}
+                                userBooks={userBooks}
                                 onEdit={() => setIsEditing(true)}
                                 onClose={handleSlideoutClose}
                                 setNotification={setNotification}
                                 setDialog={setDialog}
                                 setUserBooks={setUserBooks}
+                                onAddBook={handleSaveBook}
                             />
                         )
                     )}

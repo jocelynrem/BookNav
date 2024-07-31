@@ -1,8 +1,9 @@
-//frontend/src/components/slideout/SearchDetails.js
-import React from 'react';
+import React, { useState } from 'react';
 import { PlusCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const SearchDetails = ({ book, bookExists, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks }) => {
+const SearchDetails = ({ book, userBooks, onEdit, onClose, setNotification, setDialog, setUndoBook, setUserBooks, onAddBook }) => {
+    const [copiesToAdd, setCopiesToAdd] = useState(1);
+
     const getAuthorName = (book) => {
         if (book.author) return book.author;
         return `${book.authorFirstName || ''} ${book.authorLastName || ''}`.trim();
@@ -34,12 +35,54 @@ const SearchDetails = ({ book, bookExists, onEdit, onClose, setNotification, set
         </div>
     );
 
+    const isBookInLibrary = userBooks.some(userBook =>
+        userBook.isbn === book.isbn ||
+        (userBook.title.toLowerCase() === book.title.toLowerCase() &&
+            getAuthorName(userBook).toLowerCase() === getAuthorName(book).toLowerCase())
+    );
+
+    const handleAddBook = () => {
+        onAddBook(book, copiesToAdd, isBookInLibrary);
+        onClose();
+    };
+
     return (
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
                 <h2 className="text-base font-semibold leading-6 text-gray-900">
                     {book.title}
                 </h2>
+            </div>
+            <div className="space-y-4">
+                {isBookInLibrary && (
+                    <p className="text-sm text-teal-600 font-medium">
+                        This book is already in your library.
+                    </p>
+                )}
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="copies" className="text-sm text-gray-700">Copies:</label>
+                    <input
+                        id="copies"
+                        type="number"
+                        min="1"
+                        value={copiesToAdd}
+                        onChange={(e) => setCopiesToAdd(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-20 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                    />
+                    <button
+                        onClick={handleAddBook}
+                        className="flex-grow inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                    >
+                        <PlusCircleIcon className="h-5 w-5 mr-2" />
+                        {isBookInLibrary ? 'Add Copies' : 'Add to Library'}
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                    {isBookInLibrary
+                        ? `Adding ${copiesToAdd} ${copiesToAdd === 1 ? 'copy' : 'copies'} to your existing collection.`
+                        : `Adding ${copiesToAdd} ${copiesToAdd === 1 ? 'copy' : 'copies'} to your library.`
+                    }
+                </p>
             </div>
             {book.coverImage && (
                 <div className="aspect-h-3 aspect-w-3 block w-full max-w-xs mx-auto overflow-hidden rounded-lg">
@@ -59,11 +102,7 @@ const SearchDetails = ({ book, bookExists, onEdit, onClose, setNotification, set
                     {renderField("Published Date", formatDate(book.publishedDate), "publishedDate")}
                     {renderField("Pages", book.pages, "pages")}
                     {renderField("Total Copies", book.copies, "copies")}
-                    {/* {renderField("Available Copies", book.availableCopies, "availableCopies")} */}
                     {renderField("ISBN", book.isbn, "isbn")}
-                    {/* {renderField("Reading Level", book.readingLevel, "readingLevel")}
-                    {renderField("Lexile Score", book.lexileScore, "lexileScore")}
-                    {renderField("AR Points", book.arPoints, "arPoints")} */}
                 </dl>
             </div>
         </div>
