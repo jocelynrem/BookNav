@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const LibrarySettings = require('../models/LibrarySettings');  // You'll need to create this model
+const LibrarySettings = require('../models/LibrarySettings');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 
 router.get('/settings', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        let settings = await LibrarySettings.findOne();
+        let settings = await LibrarySettings.findOne({ user: req.user.id });
         if (!settings) {
             settings = new LibrarySettings({
+                user: req.user.id,
                 defaultDueDays: 14,
                 maxCheckoutBooks: 5
             });
@@ -24,9 +25,9 @@ router.get('/settings', authenticateToken, roleAuth('teacher'), async (req, res)
 router.put('/settings', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { defaultDueDays, maxCheckoutBooks } = req.body;
-        let settings = await LibrarySettings.findOne();
+        let settings = await LibrarySettings.findOne({ user: req.user.id });
         if (!settings) {
-            settings = new LibrarySettings();
+            settings = new LibrarySettings({ user: req.user.id });
         }
         settings.defaultDueDays = defaultDueDays;
         settings.maxCheckoutBooks = maxCheckoutBooks;

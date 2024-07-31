@@ -123,8 +123,10 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
                         {currentCheckouts.map((checkout) => (
                             <li key={checkout._id} className="py-3 flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
-                                    <p className="text-sm text-gray-500">Checked out on: {formatDateOnly(checkout.checkoutDate)}</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {checkout.book ? checkout.book.title : 'Unknown Title'}
+                                    </p>
+                                    <p className="text-sm text-gray-500">Due: {new Date(checkout.dueDate).toLocaleDateString()}</p>
                                 </div>
                                 <button
                                     onClick={() => handleReturn(checkout._id)}

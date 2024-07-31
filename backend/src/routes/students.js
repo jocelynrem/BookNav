@@ -194,16 +194,10 @@ router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async
             status: 'returned'
         })
             .sort({ returnDate: -1 })
-            .populate({
-                path: 'bookCopy',
-                populate: {
-                    path: 'book',
-                    select: 'title'
-                }
-            });
+            .populate('book', 'title');
 
         const formattedHistory = readingHistory.map(record => ({
-            bookTitle: record.bookCopy.book ? record.bookCopy.book.title : 'Unknown Book',
+            bookTitle: record.book ? record.book.title : 'Unknown Book',
             checkoutDate: record.checkoutDate,
             returnDate: record.returnDate,
             durationMinutes: Math.round((record.returnDate - record.checkoutDate) / (1000 * 60))
@@ -215,5 +209,6 @@ router.get('/:id/reading-history', authenticateToken, roleAuth('teacher'), async
         res.status(500).json({ message: 'Error fetching reading history', error: error.message });
     }
 });
+
 
 module.exports = router;
