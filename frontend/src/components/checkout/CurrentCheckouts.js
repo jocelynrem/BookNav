@@ -4,10 +4,11 @@ import { returnBook } from '../../services/checkoutService';
 const CurrentCheckouts = ({ checkouts, onReturn }) => {
     const handleReturn = async (checkoutId) => {
         try {
-            const response = await returnBook(checkoutId);
+            await returnBook(checkoutId);
             onReturn(); // Fetch the updated list of checkouts
         } catch (error) {
             console.error('Error returning book:', error);
+            alert('Failed to return book. Please try again.');
         }
     };
 

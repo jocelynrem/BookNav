@@ -1,4 +1,6 @@
+// backend/src/models/Class.js
 const mongoose = require('mongoose');
+const Student = require('./Student');
 
 const classSchema = new mongoose.Schema({
     name: {
@@ -33,9 +35,20 @@ const classSchema = new mongoose.Schema({
     }
 });
 
-classSchema.pre('save', async function (next) {
+// Update the updatedAt field before saving
+classSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
+});
+
+// Pre-hook for deleting students when a class is deleted
+classSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+    try {
+        await Student.deleteMany({ class: this._id });
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Update students' grades when class grade changes

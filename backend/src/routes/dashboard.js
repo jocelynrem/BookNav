@@ -1,5 +1,3 @@
-// In your dashboard.js route file
-
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
@@ -7,7 +5,6 @@ const roleAuth = require('../middleware/roleAuth');
 const CheckoutRecord = require('../models/CheckoutRecord');
 const User = require('../models/User');
 const Book = require('../models/Book');
-const BookCopy = require('../models/BookCopy');
 const Class = require('../models/Class');
 const Student = require('../models/Student');
 const moment = require('moment');
@@ -32,21 +29,16 @@ router.get('/recent-activity', authenticateToken, roleAuth('teacher'), async (re
             .sort('-checkoutDate')
             .limit(50)
             .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title _id' }
-            });
+            .populate('book', 'title _id');
 
         const activity = recentActivity.map(record => {
-            if (!record.bookCopy || !record.bookCopy.book) {
-                return null;
-            }
+            if (!record.book) return null;
             return {
                 action: record.status === 'checked out' ? 'Checkout' : 'Return',
-                details: `${record.student.firstName} ${record.student.lastName} - ${record.bookCopy.book.title}`,
+                details: `${record.student.firstName} ${record.student.lastName} - ${record.book.title}`,
                 time: moment(record.status === 'checked out' ? record.checkoutDate : record.returnDate).format('MMMM D, YYYY, h:mm A'),
                 checkoutId: record._id,
-                bookId: record.bookCopy.book._id
+                bookId: record.book._id
             };
         }).filter(Boolean);  // Remove any null entries
 
@@ -108,9 +100,7 @@ router.get('/reading-trends', authenticateToken, roleAuth('teacher'), async (req
         const [popularBooks, averageCheckoutDuration] = await Promise.all([
             CheckoutRecord.aggregate([
                 { $match: { student: { $in: studentIds } } },
-                { $lookup: { from: 'bookcopies', localField: 'bookCopy', foreignField: '_id', as: 'bookCopyDetails' } },
-                { $unwind: '$bookCopyDetails' },
-                { $lookup: { from: 'books', localField: 'bookCopyDetails.book', foreignField: '_id', as: 'bookDetails' } },
+                { $lookup: { from: 'books', localField: 'book', foreignField: '_id', as: 'bookDetails' } },
                 { $unwind: '$bookDetails' },
                 {
                     $group: {
@@ -167,13 +157,10 @@ router.get('/upcoming-due-dates', authenticateToken, roleAuth('teacher'), async 
             .sort('dueDate')
             .limit(10)
             .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title' }
-            });
+            .populate('book', 'title');
 
         const formattedDueDates = upcomingDueDates.map(record => ({
-            book: record.bookCopy?.book?.title || 'Unknown Title',
+            book: record.book?.title || 'Unknown Title',
             date: record.dueDate ? record.dueDate.toLocaleDateString() : 'Unknown Date',
             student: record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student'
         }));
@@ -198,16 +185,13 @@ router.get('/overdue-books', authenticateToken, roleAuth('teacher'), async (req,
             dueDate: { $lt: new Date() }
         })
             .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title' }
-            })
+            .populate('book', 'title')
             .lean();
 
         const formattedOverdueBooks = overdueBooks.map(record => ({
             _id: record._id,
             student: record.student,
-            bookCopy: record.bookCopy,
+            book: record.book,
             daysOverdue: Math.ceil((new Date() - new Date(record.dueDate)) / (1000 * 60 * 60 * 24))
         }));
 
@@ -230,18 +214,13 @@ router.get('/checked-out-books', authenticateToken, roleAuth('teacher'), async (
             status: 'checked out'
         })
             .populate('student', 'firstName lastName')
-            .populate({
-                path: 'bookCopy',
-                populate: { path: 'book', select: 'title' }
-            })
+            .populate('book', 'title')
             .lean();
 
         const formattedCheckedOutBooks = checkedOutBooks.map(record => ({
             _id: record._id,
-            title: record.bookCopy?.book?.title || 'Unknown Title',
-            student: record.student
-                ? `${record.student.firstName} ${record.student.lastName}`
-                : 'Unknown Student',
+            title: record.book?.title || 'Unknown Title',
+            student: record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student',
             dueDate: record.dueDate
         }));
 

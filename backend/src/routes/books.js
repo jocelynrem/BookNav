@@ -5,277 +5,124 @@ const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const Book = require('../models/Book');
-const BookCopy = require('../models/BookCopy');
 const CheckoutRecord = require('../models/CheckoutRecord');
 
-
-router.get('/search', async (req, res) => {
+router.get('/search', authenticateToken, async (req, res) => {
     try {
         const { q } = req.query;
+        const userId = req.user.id;
+
         if (!q) {
+            console.log(`Search request with empty query from user ${userId}`);
             return res.status(400).json({ message: 'Search query is required' });
         }
 
+        console.log(`Search request received from user ${userId} with query: ${q}`);
+
         const books = await Book.find({
+            user: userId,
             $or: [
                 { title: { $regex: q, $options: 'i' } },
                 { author: { $regex: q, $options: 'i' } },
                 { isbn: { $regex: q, $options: 'i' } }
             ]
-        }).limit(20);
+        })
+            .select('title author isbn copiesAvailable') // Select necessary fields
+            .limit(20);
 
-        // Calculate available copies for each book
-        const booksWithAvailability = await Promise.all(books.map(async book => {
-            const totalCopies = await BookCopy.countDocuments({ book: book._id });
-            const checkedOutCount = await CheckoutRecord.countDocuments({
-                bookCopy: { $in: (await BookCopy.find({ book: book._id })).map(copy => copy._id) },
-                status: 'checked out'
-            });
+        console.log(`Found ${books.length} books matching the query "${q}" for user ${userId}`);
 
-            const availableCopies = totalCopies - checkedOutCount;
-
-            return {
-                ...book.toObject(),
-                availableCopies
-            };
-        }));
-
-        res.json(booksWithAvailability);
+        res.json(books);
     } catch (error) {
         console.error('Error searching books:', error);
         res.status(500).json({ message: 'Error searching books', error: error.message });
     }
 });
 
-// Add a book to user's collection
-router.post('/add', authenticateToken, roleAuth(['teacher']), async (req, res) => {
+// Create a new book
+router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const { title, author, publishedDate, pages, genre, subject, coverImage, isbn, copies } = req.body;
+        const { title, author, isbn, copies = 1, ...otherFields } = req.body;
         const userId = req.user.id;
 
-        let book = await Book.findOne({ title, author });
+        console.log(`Received request to add book with copies: ${copies}`);
 
-        if (book) {
-            const newCopiesCount = book.copies + copies;
-            for (let i = book.copies + 1; i <= newCopiesCount; i++) {
-                const newCopy = new BookCopy({
-                    book: book._id,
-                    copyNumber: i,
-                });
-                await newCopy.save();
-            }
-            book.copies = newCopiesCount;
-            book.availableCopies += copies;
-            await book.save();
-        } else {
+        if (copies < 1) {
+            return res.status(400).json({ message: 'Copies must be at least 1.' });
+        }
+
+        let book = await Book.findOne({ isbn, user: userId });
+        if (!book) {
             book = new Book({
                 title,
                 author,
-                publishedDate,
-                pages,
-                genre,
-                subject,
-                coverImage,
                 isbn,
                 copies,
-                availableCopies: copies,
+                copiesAvailable: copies,
+                user: userId,
+                ...otherFields
             });
-
             await book.save();
+            console.log(`New book created with ID: ${book._id} and copies: ${book.copies}`);
 
-            for (let i = 1; i <= copies; i++) {
-                const newCopy = new BookCopy({
-                    book: book._id,
-                    copyNumber: i,
-                });
-                await newCopy.save();
-            }
+            // Associate the new book with the user
+            await User.findByIdAndUpdate(userId, { $push: { books: book._id } });
+            console.log(`Book with ID ${book._id} added to user ${userId}'s library`);
         }
 
-        const user = await User.findById(userId);
-        user.books.push(book);
-        await user.save();
-
         res.status(201).json(book);
-    } catch (err) {
-        console.error('Error adding book:', err);
-        res.status(400).json({ error: err.message });
+    } catch (error) {
+        console.error('Error adding book:', error);
+        res.status(400).json({ message: error.message, stack: error.stack });
     }
 });
 
 // Add more copies of a book owned by the user
 router.post('/add-copies', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    const { bookId, numberOfCopies } = req.body;
     try {
+        const { bookId, numberOfCopies } = req.body;
         const userId = req.user.id;
-        const user = await User.findById(userId);
 
-        if (!user.books.includes(bookId)) {
+        const book = await Book.findOne({ _id: bookId, user: userId });
+        if (!book) {
             return res.status(403).json({ message: 'You can only add copies to books in your library' });
         }
 
-        const result = await addBookCopies(bookId, numberOfCopies);
-        res.status(200).json(result.book);
+        book.copies += numberOfCopies;
+        book.copiesAvailable += numberOfCopies;
+        await book.save();
+
+        res.status(200).json(book);
     } catch (error) {
         console.error('Error adding book copies:', error);
         res.status(400).json({ message: error.message });
     }
 });
 
-const addBookCopies = async (bookId, numberOfCopies) => {
-    try {
-        const book = await Book.findById(bookId);
-        if (!book) {
-            throw new Error('Book not found');
-        }
-
-        const newCopies = [];
-        for (let i = 0; i < numberOfCopies; i++) {
-            const newCopy = new BookCopy({
-                book: bookId,
-                status: 'available',
-                copyNumber: book.copies + i + 1
-            });
-            await newCopy.save();
-            newCopies.push(newCopy);
-        }
-
-        book.copies += numberOfCopies;
-        book.availableCopies += numberOfCopies;
-        await book.save();
-
-        return { book: await Book.findById(bookId).populate('copies'), newCopies };
-    } catch (error) {
-        throw error;
-    }
-};
-
-// Create a new book
-router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const { title, author, publishedDate, pages, genre, coverImage, isbn, copies, readingLevel, lexileScore, arPoints } = req.body;
-        const userId = req.user.id;
-
-        if (!title || !author || author.length === 0) {
-            return res.status(400).json({ message: 'Title and Authors are required' });
-        }
-
-        let book = await Book.findOne({ isbn });
-        let newCopiesCreated = 0;
-
-        if (book) {
-            // Book already exists, update it and add new copies
-            book.title = title;
-            book.author = author;
-            book.publishedDate = publishedDate;
-            book.pages = parseInt(pages, 10) || book.pages;
-            book.genre = genre;
-            book.coverImage = coverImage;
-            book.readingLevel = readingLevel;
-            book.lexileScore = lexileScore ? parseInt(lexileScore, 10) : book.lexileScore;
-            book.arPoints = arPoints ? parseFloat(arPoints) : book.arPoints;
-
-            const newCopiesCount = parseInt(copies, 10) || 1;
-            newCopiesCreated = newCopiesCount;
-            book.copies += newCopiesCount;
-            book.availableCopies += newCopiesCount;
-
-            await book.save();
-
-            // Create new BookCopy instances
-            for (let i = 0; i < newCopiesCount; i++) {
-                const bookCopy = new BookCopy({
-                    book: book._id,
-                    status: 'available',
-                    copyNumber: book.copies - newCopiesCount + i + 1
-                });
-                await bookCopy.save();
-            }
-        } else {
-            // Create a new book
-            book = new Book({
-                title,
-                author,
-                publishedDate,
-                pages: parseInt(pages, 10) || 0,
-                genre,
-                coverImage,
-                isbn,
-                copies: parseInt(copies, 10) || 1,
-                availableCopies: parseInt(copies, 10) || 1,
-                checkedOutCopies: 0,
-                readingLevel,
-                lexileScore: lexileScore ? parseInt(lexileScore, 10) : undefined,
-                arPoints: arPoints ? parseFloat(arPoints) : undefined
-            });
-
-            await book.save();
-
-            // Create BookCopy instances
-            for (let i = 0; i < book.copies; i++) {
-                const bookCopy = new BookCopy({
-                    book: book._id,
-                    status: 'available',
-                    copyNumber: i + 1
-                });
-                await bookCopy.save();
-            }
-
-            newCopiesCreated = book.copies;
-        }
-
-        // Add the book to the user's library if it's not already there
-        const user = await User.findById(userId);
-        if (!user.books.includes(book._id)) {
-            user.books.push(book._id);
-            await user.save();
-        }
-
-        res.status(201).json({
-            book,
-            message: book.copies === newCopiesCreated ? 'New book created' : 'Book updated and new copies added',
-            newCopiesCreated
-        });
-    } catch (error) {
-        console.error('Error creating/updating book:', error);
-        res.status(400).json({ message: error.message });
-    }
-});
-
-// Get all books for a user
-router.get('/user-books', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findById(userId).populate('books');
-        res.status(200).json(user.books);
-    } catch (err) {
-        console.error('Error in /user-books route:', err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
 // Get all books for the authenticated user
-router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
+router.get('/user-books', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
-        const user = await User.findById(userId).populate('books');
-        res.status(200).json(user.books);
+        const books = await Book.find({ user: userId });
+
+        res.status(200).json(books);
     } catch (error) {
-        console.error('Error fetching all books:', error);
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching user books:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
 // Get a book by id
 router.get('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const book = await Book.findById(req.params.id);
+        const userId = req.user.id;
+        const book = await Book.findOne({ _id: req.params.id, user: userId });
         if (!book) {
-            return res.status(404).send();
+            return res.status(404).json({ message: 'Book not found' });
         }
-        res.status(200).send(book);
+        res.status(200).json(book);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).json({ message: error.message });
     }
 });
 
@@ -283,62 +130,25 @@ router.get('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
 router.patch('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
-
-        if (updates.copies !== undefined && updates.copies < 1) {
-            return res.status(400).send({ error: 'Copies must be 1 or more.' });
-        }
-
-        const book = await Book.findById(id);
-        if (!book) {
-            return res.status(404).send({ error: 'Book not found.' });
-        }
-
-        Object.keys(updates).forEach(update => book[update] = updates[update]);
-
-        if (updates.copies !== undefined) {
-            book.availableCopies = updates.copies - book.checkedOutCopies;
-        }
-
-        await book.save();
-        res.send(book);
-    } catch (error) {
-        res.status(400).send({ error: error.message });
-    }
-});
-
-// PATCH /:id/updateCopies - Update book copies
-router.patch('/:id/updateCopies', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const { id } = req.params;
         const { copies } = req.body;
+        const userId = req.user.id;
 
         if (copies < 1) {
             return res.status(400).send({ error: 'Copies must be 1 or more.' });
         }
 
-        const book = await Book.findById(id);
+        const book = await Book.findOne({ _id: id, user: userId });
         if (!book) {
             return res.status(404).send('Book not found');
         }
 
-        const currentCopiesCount = book.copies;
-        const newCopiesCount = copies;
-
-        for (let i = currentCopiesCount + 1; i <= newCopiesCount; i++) {
-            const newCopy = new BookCopy({
-                book: book._id,
-                copyNumber: i,
-            });
-            await newCopy.save();
-        }
-
-        book.copies = newCopiesCount;
-        book.availableCopies = newCopiesCount - book.checkedOutCopies;
-
+        book.copies = copies;
+        book.copiesAvailable = Math.min(book.copiesAvailable, copies);
         await book.save();
-        res.send(book);
+
+        res.status(200).json(book);
     } catch (error) {
+        console.error('Error updating book:', error);
         res.status(400).send({ error: error.message });
     }
 });
@@ -346,140 +156,37 @@ router.patch('/:id/updateCopies', authenticateToken, roleAuth('teacher'), async 
 // Delete a book by id
 router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const book = await Book.findById(req.params.id);
+        const userId = req.user.id;
+        const book = await Book.findOne({ _id: req.params.id, user: userId });
+
         if (!book) {
-            return res.status(404).send('Book not found');
+            return res.status(404).send('Book not found in your library');
         }
-        console.log('Book found:', book);
 
-        // Find all BookCopy documents for this book
-        const bookCopies = await BookCopy.find({ book: book._id });
+        await book.deleteOne();
 
-        // Update all associated CheckoutRecords
-        await CheckoutRecord.updateMany(
-            { bookCopy: { $in: bookCopies.map(copy => copy._id) } },
-            { $set: { bookCopy: null } }
-        );
-
-        // Delete BookCopy documents
-        await BookCopy.deleteMany({ book: book._id });
-
-        // Delete the book
-        await Book.deleteOne({ _id: book._id });
-
-        console.log('Book removed successfully');
-
-        res.status(200).send({ message: 'Book and associated records deleted successfully' });
+        res.status(200).send({ message: 'Book and associated checkouts removed successfully' });
     } catch (error) {
         console.error('Error deleting book:', error);
-        res.status(500).send(error.message);
+        res.status(500).send({ message: error.message });
     }
 });
 
 // Get book history
 router.get('/:id/history', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
-        const bookCopies = await BookCopy.find({ book: req.params.id });
+        const book = await Book.findById(req.params.id);
+        if (!book || book.user.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
         const checkoutRecords = await CheckoutRecord.find({
-            bookCopy: { $in: bookCopies.map(copy => copy._id) }
+            book: book._id
         }).populate('student', 'firstName lastName');
 
         res.json(checkoutRecords);
     } catch (error) {
         res.status(500).json({ message: error.message });
-    }
-});
-
-//get checkout status
-router.get('/:id/copies', async (req, res) => {
-    try {
-        const bookCopies = await BookCopy.find({ book: req.params.id });
-        res.json(bookCopies);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Get current status of all copies of a book
-router.get('/:id/status', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const bookCopies = await BookCopy.find({ book: req.params.id });
-        res.json(bookCopies);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-const reconcileBookAvailability = async (bookId) => {
-    const book = await Book.findById(bookId);
-    const activeCheckouts = await CheckoutRecord.countDocuments({
-        'bookCopy.book': bookId,
-        status: 'checked out'
-    });
-
-    book.availableCopies = book.copies - activeCheckouts;
-    await book.save();
-
-    console.log(`Reconciled book ${book.title}: Total copies: ${book.copies}, Available: ${book.availableCopies}`);
-    return book;
-};
-
-// Add a new route to reconcile a specific book
-router.post('/reconcile/:id', authenticateToken, roleAuth('teacher'), async (req, res) => {
-    try {
-        const book = await reconcileBookAvailability(req.params.id);
-        res.json({ message: 'Book availability reconciled', book });
-    } catch (error) {
-        console.error('Error reconciling book availability:', error);
-        res.status(500).json({ message: 'Error reconciling book availability', error: error.message });
-    }
-});
-
-router.post('/reconcile', async (req, res) => {
-    try {
-        // Log current state
-        console.log('Before reconciliation:');
-        console.log('Total books:', await Book.countDocuments());
-        console.log('Total book copies:', await BookCopy.countDocuments());
-        console.log('Total checkout records:', await CheckoutRecord.countDocuments());
-
-        // Find all BookCopy documents that reference non-existent books
-        const books = await Book.find().select('_id');
-        const orphanedCopies = await BookCopy.find({ book: { $nin: books.map(b => b._id) } });
-        console.log('Orphaned book copies:', orphanedCopies.length);
-
-        // Delete these orphaned BookCopy documents
-        const deletedCopiesResult = await BookCopy.deleteMany({ _id: { $in: orphanedCopies.map(copy => copy._id) } });
-
-        // Find and delete all CheckoutRecord documents that reference non-existent BookCopy documents
-        const bookCopies = await BookCopy.find().select('_id');
-        const orphanedCheckouts = await CheckoutRecord.find({ bookCopy: { $nin: bookCopies.map(bc => bc._id) } });
-        console.log('Orphaned checkouts:', orphanedCheckouts.length);
-
-        const deletedCheckoutsResult = await CheckoutRecord.deleteMany({ _id: { $in: orphanedCheckouts.map(checkout => checkout._id) } });
-
-        // Update the checked out count
-        const checkedOutCount = await CheckoutRecord.countDocuments({ status: 'checked out' });
-
-        // Log final state
-        console.log('After reconciliation:');
-        console.log('Total books:', await Book.countDocuments());
-        console.log('Total book copies:', await BookCopy.countDocuments());
-        console.log('Total checkout records:', await CheckoutRecord.countDocuments());
-        console.log('Checked out books:', checkedOutCount);
-
-        res.json({
-            message: 'Reconciliation complete',
-            deletedCopies: deletedCopiesResult.deletedCount,
-            deletedCheckouts: deletedCheckoutsResult.deletedCount,
-            currentCheckedOutCount: checkedOutCount,
-            totalBooks: await Book.countDocuments(),
-            totalBookCopies: await BookCopy.countDocuments(),
-            totalCheckoutRecords: await CheckoutRecord.countDocuments()
-        });
-    } catch (error) {
-        console.error('Reconciliation error:', error);
-        res.status(500).json({ message: 'An error occurred during reconciliation', error: error.message });
     }
 });
 

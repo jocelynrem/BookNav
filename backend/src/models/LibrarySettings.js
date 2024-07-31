@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const librarySettingsSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        unique: true
+    },
     defaultDueDays: {
         type: Number,
         default: 14

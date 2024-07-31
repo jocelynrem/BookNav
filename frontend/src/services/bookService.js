@@ -30,17 +30,6 @@ export const getBooks = async () => {
     }
 };
 
-//manually add a book
-export const createBook = async (book) => {
-    try {
-        const response = await apiClient.post(`${apiUrl}/books`, book);
-        return response.data;
-    } catch (error) {
-        console.error('Error creating book:', error);
-        throw error;
-    }
-};
-
 export const updateBook = async (id, book) => {
     try {
         if (book.copies) {
@@ -50,16 +39,6 @@ export const updateBook = async (id, book) => {
         return response.data;
     } catch (error) {
         console.error('Error updating book:', error);
-        throw error;
-    }
-};
-
-export const updateBookCopies = async (id, numberOfCopies) => {
-    try {
-        const response = await apiClient.patch(`${apiUrl}/books/${id}/updateCopies`, { copies: parseInt(numberOfCopies, 10) });
-        return response.data;
-    } catch (error) {
-        console.error('Error updating book copies:', error);
         throw error;
     }
 };
@@ -165,7 +144,6 @@ export const fetchBooksByAuthor = async (author) => {
     });
 };
 
-//add books from API search
 export const addUserBook = async (book, copies, setNotification, setDialog, setUndoBook) => {
     try {
         const existingBooks = await getUserBooks();
@@ -175,6 +153,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         );
 
         if (existingBook) {
+            // If the book already exists, offer to add more copies
             return new Promise((resolve) => {
                 setDialog({
                     open: true,
@@ -204,7 +183,9 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                 });
             });
         } else {
-            const response = await apiClient.post(`${apiUrl}/books/add`, { ...book, copies });
+            // If the book is new, add it to the user's library
+            console.log('Sending request to add book with copies:', copies);
+            const response = await apiClient.post(`${apiUrl}/books`, { ...book, copies });
             const newBook = response.data;
             setUndoBook(newBook);
             setNotification({ show: true, message: `Book "${book.title}" added to your library!`, undo: true });

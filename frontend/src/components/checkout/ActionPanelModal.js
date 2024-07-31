@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { debounce } from 'lodash';
 import { QrCodeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import ISBNScanner from './ISBNScanner';
 import { getCurrentCheckouts, returnBook, checkoutBook, searchBooks } from '../../services/checkoutService';
@@ -11,8 +12,11 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
     const modalRef = useRef();
     const streamRef = useRef(null);
+    const isProcessingRef = useRef(false);
+    const lastScannedCode = useRef(null);
 
     useEffect(() => {
         if (isOpen && student) {
@@ -77,7 +81,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             const updatedCheckout = await returnBook(checkoutRecordId);
             Swal.fire('Success', 'Book returned successfully', 'success');
             await fetchCheckedOutBooks();
-            onConfirmAction();  // Ensure parent component is updated
+            onConfirmAction(); // Ensure parent component is updated
         } catch (error) {
             console.error('Failed to return book:', error);
             let errorMessage = 'Failed to return book. Please try again.';
@@ -95,6 +99,8 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         setIsSearching(true);
         try {
             const results = await searchBooks(searchQuery);
+            // Log the results to see what we're getting from the server
+            console.log('Search results:', results);
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);
@@ -110,24 +116,13 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
     const handleCheckout = async (bookId) => {
         try {
-            if (isProcessing) return;
-            setIsProcessing(true);
-
-            const currentCheckouts = await getCurrentCheckouts(student._id);
-            const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
-                checkout.bookCopy && checkout.bookCopy.book && checkout.bookCopy.book._id === bookId
-            );
-
-            if (isAlreadyCheckedOut) {
-                Swal.fire('Error', 'This book is already checked out.', 'error');
-                setIsProcessing(false);
-                return;
-            }
+            if (isProcessing || isCheckoutInProgress) return;
+            setIsCheckoutInProgress(true);
 
             const checkoutResult = await checkoutBook(bookId, student._id);
             await fetchCheckedOutBooks();
 
-            const bookTitle = checkoutResult.bookCopy.book ? checkoutResult.bookCopy.book.title : 'Unknown Title';
+            const bookTitle = checkoutResult.book ? checkoutResult.book.title : 'Unknown Title';
             const dueDate = new Date(checkoutResult.dueDate);
             const formattedDueDate = dueDate.toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -144,14 +139,15 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                 icon: 'success'
             });
 
+            // Update the local state to reflect the change in available copies
             setSearchResults(prevResults =>
                 prevResults.map(book =>
                     book._id === bookId
-                        ? { ...book, availableCopies: book.availableCopies - 1 }
+                        ? { ...book, copiesAvailable: book.copiesAvailable - 1 }
                         : book
                 )
             );
-            onConfirmAction();  // Ensure parent component is updated
+            onConfirmAction();
         } catch (error) {
             console.error('Failed to check out book:', error);
             let errorMessage = 'Failed to check out book. Please try again.';
@@ -161,37 +157,75 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             Swal.fire('Error', errorMessage, 'error');
         } finally {
             setIsProcessing(false);
+            setIsCheckoutInProgress(false);
         }
     };
 
-    const handleCheckoutScan = async (scannedCode) => {
-        if (!scannedCode || isProcessing) return;
+    const handleCheckoutScan = useCallback(
+        debounce(async (scannedCode) => {
+            if (isProcessingRef.current) return;
+            isProcessingRef.current = true;
 
-        let normalizedISBN = scannedCode;
+            setIsScanning(false);
+            setIsProcessing(true);
 
-        if (scannedCode.length === 10) {
-            normalizedISBN = convertToISBN13(scannedCode);
-        } else if (!scannedCode.startsWith('978')) {
-            normalizedISBN = `978${scannedCode}`;
-        }
-        setIsScanning(false);
-        setIsProcessing(true);
+            try {
+                let normalizedISBN = scannedCode;
 
-        try {
-            const results = await searchBooks(normalizedISBN);
-            if (results.length === 0) {
-                Swal.fire('Error', 'Book not found in the library system.', 'error');
-            } else {
-                const book = results[0];
-                await handleCheckout(book._id);
+                if (scannedCode.length === 10) {
+                    normalizedISBN = convertToISBN13(scannedCode);
+                } else if (!scannedCode.startsWith('978')) {
+                    normalizedISBN = `978${scannedCode}`;
+                }
+
+                const results = await searchBooks(normalizedISBN);
+                if (results.length === 0) {
+                    Swal.fire('Error', 'Book not found in the library system.', 'error');
+                } else {
+                    const book = results[0];
+
+                    // Check if the book is already checked out
+                    const currentCheckouts = await getCurrentCheckouts(student._id);
+                    const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
+                        checkout.book && checkout.book._id === book._id
+                    );
+
+                    if (isAlreadyCheckedOut) {
+                        Swal.fire('Error', 'This book is already checked out by this student.', 'error');
+                    } else {
+                        const checkoutResult = await checkoutBook(book._id, student._id);
+
+                        const bookTitle = book.title || 'Unknown Title';
+                        const dueDate = new Date(checkoutResult.dueDate);
+                        const formattedDueDate = dueDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        Swal.fire({
+                            title: 'Success',
+                            html: `
+                                <p>${bookTitle} has been checked out successfully.</p>
+                                <p>Due Date: <strong>${formattedDueDate}</strong></p>
+                            `,
+                            icon: 'success'
+                        });
+
+                        await fetchCheckedOutBooks();
+                        onConfirmAction();
+                    }
+                }
+            } catch (error) {
+                console.error('Error during book search or checkout:', error);
+                Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
+            } finally {
+                setIsProcessing(false);
+                isProcessingRef.current = false;
             }
-        } catch (error) {
-            console.error('Error during book search or checkout:', error);
-            Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
+        }, 500, { leading: true, trailing: false }),
+        [student, fetchCheckedOutBooks, onConfirmAction]
+    );
 
     const convertToISBN13 = (isbn10) => {
         return `978${isbn10.substring(0, 9)}` + calculateCheckDigit(`978${isbn10.substring(0, 9)}`);
@@ -250,13 +284,13 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                     <p className="text-sm text-gray-500">No books currently checked out.</p>
                                 ) : (
                                     <ul className="mt-2 divide-y divide-gray-200">
-                                        {checkedOutBooks.map((bookCopy) => (
-                                            <li key={bookCopy._id} className="py-2 flex justify-between items-center">
+                                        {checkedOutBooks.map((checkout) => (
+                                            <li key={checkout._id} className="py-2 flex justify-between items-center">
                                                 <span className="text-sm text-gray-900">
-                                                    {bookCopy.bookCopy?.book?.title || 'Unknown Title'}
+                                                    {checkout.book?.title || 'Unknown Title'}
                                                 </span>
                                                 <button
-                                                    onClick={() => handleReturn(bookCopy._id)}
+                                                    onClick={() => handleReturn(checkout._id)}
                                                     className="text-sm text-pink-600 hover:text-pink-900"
                                                 >
                                                     Return
@@ -296,13 +330,13 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                                     <span className="text-sm font-medium text-gray-900">{book.title}</span>
                                                     <p className="text-xs text-gray-500">by {book.author}</p>
                                                 </div>
-                                                {book.availableCopies > 0 ? (
+                                                {book.copiesAvailable > 0 ? (
                                                     <button
                                                         onClick={() => handleCheckout(book._id)}
                                                         className="text-sm text-pink-600 hover:text-pink-900"
                                                         disabled={isProcessing}
                                                     >
-                                                        Check Out ({book.availableCopies} available)
+                                                        Check Out ({book.copiesAvailable} available)
                                                     </button>
                                                 ) : (
                                                     <span className="text-sm text-gray-400">No copies available</span>
@@ -360,7 +394,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             </div>
         </div>
     );
-
 };
 
 export default ActionPanelModal;

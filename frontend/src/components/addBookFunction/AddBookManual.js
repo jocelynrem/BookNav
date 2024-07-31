@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createBook, getBooks } from '../../services/bookService';
+import { addUserBook } from '../../services/bookService';
 import { useNavigate } from 'react-router-dom';
 
 const AddBookManual = () => {
@@ -48,15 +48,9 @@ const AddBookManual = () => {
         }
         console.log('Submitting book:', book);
         try {
-            const createdBook = await createBook(book);
+            const createdBook = await addUserBook(book, book.copies);
             setSuccess('Book added successfully!');
             setError('');
-
-            try {
-                await getBooks();
-            } catch (fetchError) {
-                console.error('Error fetching updated library:', fetchError);
-            }
 
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {

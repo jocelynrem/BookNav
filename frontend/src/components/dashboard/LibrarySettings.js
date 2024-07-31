@@ -18,6 +18,7 @@ const LibrarySettings = () => {
             setSettings(currentSettings);
         } catch (error) {
             console.error('Failed to fetch library settings:', error);
+            Swal.fire('Error', 'Failed to fetch library settings. Please try again.', 'error');
         }
     };
 
@@ -40,7 +41,7 @@ const LibrarySettings = () => {
     return (
         <div className="bg-white shadow sm:rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Library Settings</h3>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Your Library Settings</h3>
                 <form onSubmit={handleSubmit} className="mt-5 space-y-5">
                     <div>
                         <label htmlFor="defaultDueDays" className="block text-sm font-medium text-gray-700">
