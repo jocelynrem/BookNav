@@ -1,22 +1,19 @@
-//backend/src/models/BookCopy.js
 const mongoose = require('mongoose');
 
 const bookCopySchema = new mongoose.Schema({
     book: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Book',
-        required: true,
-        validate: {
-            validator: async function (bookId) {
-                const book = await mongoose.model('Book').findById(bookId);
-                return book != null;
-            },
-            message: 'Referenced book does not exist'
-        }
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
     },
     copyNumber: {
         type: Number,
-        required: false
+        required: true
     },
     status: {
         type: String,

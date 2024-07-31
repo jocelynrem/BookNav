@@ -98,7 +98,9 @@ const BookTable = ({ books, sortedBooks, setBooks, sortField, sortOrder, handleS
                                         <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 max-w-[150px] sm:max-w-[300px] truncate">
                                             {getAuthorName(book)}
                                         </td>
-                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 w-16 hidden sm:table-cell">{book.copies}</td>
+                                        <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500 w-16 hidden sm:table-cell">
+                                            {book.copies}
+                                        </td>
                                         <td className="relative w-12 whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                             <button
                                                 onClick={() => handleEditClick(book)}

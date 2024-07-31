@@ -204,6 +204,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
                 });
             });
         } else {
+            console.log('Sending request to add book with copies:', copies);
             const response = await apiClient.post(`${apiUrl}/books/add`, { ...book, copies });
             const newBook = response.data;
             setUndoBook(newBook);
@@ -216,6 +217,7 @@ export const addUserBook = async (book, copies, setNotification, setDialog, setU
         throw err;
     }
 };
+
 
 export const getUserBooks = async () => {
     try {
