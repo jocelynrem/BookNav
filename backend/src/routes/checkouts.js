@@ -109,10 +109,8 @@ router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), a
         // Find the associated book and update copiesAvailable
         const book = await Book.findById(checkoutRecord.book);
         if (book) {
-            console.log(`Updating book ID ${book._id}: copiesAvailable before = ${book.copiesAvailable}`);
             book.copiesAvailable += 1;
             await book.save();
-            console.log(`Book ID ${book._id}: copiesAvailable after = ${book.copiesAvailable}`);
         } else {
             console.error(`Book not found for checkout record ID ${checkoutRecord._id}`);
         }

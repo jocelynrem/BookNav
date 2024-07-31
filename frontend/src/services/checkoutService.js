@@ -89,7 +89,6 @@ export const searchBooks = async (query) => {
     try {
         const response = await axiosInstance.get(`/books/search`, { params: { q: query } });
         // Log the response data to see what we're getting from the server
-        console.log('Search response:', response.data);
         return response.data;
     } catch (error) {
         handleError(error, 'Error searching books:');
