@@ -8,6 +8,7 @@ const StudentDashboard = ({ student, onLogout }) => {
     const [isActionPanelOpen, setIsActionPanelOpen] = useState(false);
     const [currentCheckouts, setCurrentCheckouts] = useState([]);
     const [readingHistory, setReadingHistory] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         fetchData();
@@ -18,14 +19,15 @@ const StudentDashboard = ({ student, onLogout }) => {
     };
 
     const fetchCurrentCheckouts = async () => {
+        setIsLoading(true);
         try {
             const checkouts = await getCurrentCheckouts(student._id);
-            if (!checkouts || checkouts.length === 0) {
-            }
             setCurrentCheckouts(checkouts);
         } catch (error) {
             console.error('Error fetching current checkouts:', error);
             setCurrentCheckouts([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 

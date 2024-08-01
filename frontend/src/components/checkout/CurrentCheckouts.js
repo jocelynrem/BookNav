@@ -12,6 +12,11 @@ const CurrentCheckouts = ({ checkouts, onReturn }) => {
         }
     };
 
+    // Add a check to ensure checkouts is an array before mapping
+    if (!Array.isArray(checkouts)) {
+        return <p>No current checkouts or loading...</p>;
+    }
+
     return (
         <div className="bg-white shadow rounded-lg p-4 sm:p-5">
             <h2 className="text-md font-semibold text-gray-900 mb-3">Current Checkouts</h2>
@@ -22,8 +27,13 @@ const CurrentCheckouts = ({ checkouts, onReturn }) => {
                     {checkouts.map((checkout) => (
                         <li key={checkout._id} className="py-3 flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-medium text-gray-900">{checkout.bookCopy.book.title}</p>
-                                <p className="text-sm text-gray-500">Due: {new Date(checkout.dueDate).toLocaleDateString()}</p>
+                                {/* Add null checks for checkout.bookCopy and checkout.bookCopy.book */}
+                                <p className="text-sm font-medium text-gray-900">
+                                    {checkout.bookCopy && checkout.bookCopy.book ? checkout.bookCopy.book.title : 'Unknown Title'}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                    Due: {checkout.dueDate ? new Date(checkout.dueDate).toLocaleDateString() : 'Unknown Date'}
+                                </p>
                             </div>
                             <button
                                 onClick={() => handleReturn(checkout._id)}
