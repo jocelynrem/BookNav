@@ -97,11 +97,12 @@ export const searchBooks = async (query) => {
 
 export const getCurrentCheckoutsForBook = async (bookId) => {
     try {
-        const response = await axiosInstance.get(`/checkouts/book/${bookId}/all`);
-        const allCheckouts = response.data;
-        const currentCheckouts = allCheckouts.filter(checkout => checkout.status === 'checked out');
-        return { currentCheckouts, allCheckouts };
+        const response = await axiosInstance.get(`/checkouts/book/${bookId}/current`);
+        return { currentCheckouts: response.data };
     } catch (error) {
+        if (error.response && error.response.status === 404) {
+            return { currentCheckouts: [] };
+        }
         handleError(error, `Error fetching checkouts for book ${bookId}:`);
     }
 };

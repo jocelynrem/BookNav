@@ -18,7 +18,6 @@ import {
 import OverviewStats from '../components/dashboard/OverviewStats';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import ReadingTrends from '../components/dashboard/ReadingTrends';
-import UpcomingDueDates from '../components/dashboard/UpcomingDueDates';
 import OverdueBooks from '../components/dashboard/OverdueBooks';
 import QuickActions from '../components/dashboard/QuickActions';
 import LibrarySettings from '../components/dashboard/LibrarySettings';
@@ -94,6 +93,7 @@ const Dashboard = () => {
 
     const handleScanReturn = async (isbn) => {
         try {
+            setIsScanning(false); // Stop scanning after a successful scan
             const result = await returnBookByISBN(isbn);
             if (result.message && result.message.includes('reconciled')) {
                 Swal.fire('Info', result.message, 'info');
@@ -101,7 +101,6 @@ const Dashboard = () => {
                 Swal.fire('Success', 'Book returned successfully', 'success');
             }
             fetchDashboardData(); // Refresh dashboard data
-            setIsScanning(false); // Stop scanning after successful return
             setShowScannerModal(false); // Close the modal after successful return
         } catch (error) {
             console.error('Error returning book by ISBN:', error);
@@ -110,7 +109,7 @@ const Dashboard = () => {
                 errorMessage = error.response.data.message;
             }
             Swal.fire('Error', errorMessage, 'error');
-            // Don't stop scanning or close the modal on error, allow the user to try again
+            // Keep the modal open on error to allow the user to try again
         }
     };
 
@@ -163,18 +162,17 @@ const Dashboard = () => {
             });
 
             // Refresh the checkouts for this book
-            const updatedCheckouts = await getCurrentCheckoutsForBook(bookId);
+            const { currentCheckouts } = await getCurrentCheckoutsForBook(bookId);
             setCurrentCheckouts(prev => ({
                 ...prev,
-                [bookId]: updatedCheckouts.current || []
+                [bookId]: currentCheckouts
             }));
 
             // Refresh dashboard data
             await fetchDashboardData();
 
             // Close the Manual Return modal if all books are returned
-            const allBooksReturned = Object.values(updatedCheckouts).every(checkouts => checkouts.length === 0);
-            if (allBooksReturned) {
+            if (currentCheckouts.length === 0) {
                 setIsManualReturnOpen(false);
             }
         } catch (error) {
@@ -182,7 +180,6 @@ const Dashboard = () => {
             Swal.fire('Error', 'Failed to return book. Please try again.', 'error');
         }
     };
-
 
     const handleAddBook = () => {
         navigate('/library/add-book/search');
@@ -202,7 +199,6 @@ const Dashboard = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl font-bold leading-tight text-teal-700 my-8">Dashboard</h1>
-            <OverviewStats stats={stats} />
 
             <QuickActions
                 onScanReturn={() => setShowScannerModal(true)}
@@ -211,6 +207,7 @@ const Dashboard = () => {
                 addBook={handleAddBook}
             />
 
+            <OverviewStats stats={stats} />
             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
                 <div className="col-span-1">
                     <RecentActivity
@@ -227,19 +224,17 @@ const Dashboard = () => {
             {/* ISBN Scanner Modal */}
             {showScannerModal && (
                 <div className="fixed inset-0 z-10 overflow-y-auto">
-                    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div className="flex items-center justify-center min-h-screen">
                         <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                             <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                         </div>
-
-                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                         <div
                             ref={scannerModalRef}
                             className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
                         >
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                <div className="sm:flex sm:items-start sm:justify-between">
+                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                                <div className="sm:flex sm:items-start sm:justify-between mb-4">
                                     <h3 className="text-lg leading-6 font-medium text-teal-700">Scan ISBN</h3>
                                     <button
                                         onClick={() => setShowScannerModal(false)}
@@ -248,25 +243,16 @@ const Dashboard = () => {
                                         <XMarkIcon className="h-6 w-6" />
                                     </button>
                                 </div>
-                                <div className="mt-2">
-                                    {isScanning ? (
-                                        <>
-                                            <ISBNScanner onScan={handleScanReturn} />
-                                            <button
-                                                onClick={() => setIsScanning(false)}
-                                                className="mt-4 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-700 text-base font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
-                                            >
-                                                Stop Scanning
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => setIsScanning(true)}
-                                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm"
-                                        >
-                                            Start Scanning
-                                        </button>
-                                    )}
+                                <div className="mt-2 flex flex-col items-center">
+                                    <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-4">
+                                        <ISBNScanner onScan={handleScanReturn} isActive={isScanning} />
+                                    </div>
+                                    <button
+                                        onClick={() => setIsScanning(!isScanning)}
+                                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm"
+                                    >
+                                        {isScanning ? 'Stop Scanning' : 'Start Scanning'}
+                                    </button>
                                 </div>
                             </div>
                         </div>

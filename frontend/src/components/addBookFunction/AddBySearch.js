@@ -45,52 +45,53 @@ const AddBySearch = () => {
     }, []);
 
     useEffect(() => {
+        // Clear any lingering state when component mounts
+        return () => {
+            setScanning(false);
+            setSelectedBook(null);
+            setIsSlideoutOpen(false);
+        };
+    }, []);
+
+    useEffect(() => {
         if (scanning) {
-            // Initialize barcode scanner
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: document.querySelector('#scanner'),
-                    area: {
-                        top: "0%",
-                        right: "0%",
-                        left: "0%",
-                        bottom: "0%"
-                    },
-                    singleChannel: false
-                },
-                locator: {
-                    patchSize: "medium",
-                    halfSample: true
-                },
-                decoder: {
-                    readers: ["ean_reader"]
-                },
-                locate: true
-            }, function (err) {
-                if (err) {
-                    console.error(err);
-                    setError('Failed to initialize barcode scanner');
-                    return;
-                }
-                Quagga.start();
-
-                // Ensure the canvas is initialized with willReadFrequently attribute
-                const canvas = document.querySelector('canvas');
-                if (canvas) {
-                    const context = canvas.getContext('2d', { willReadFrequently: true });
-                }
-            });
-
-            Quagga.onDetected(handleSearchScan);
-
-            return () => {
+            initializeScanner();
+        }
+        return () => {
+            if (scanning) {
                 Quagga.offDetected(handleSearchScan);
                 Quagga.stop();
-            };
-        }
+            }
+        };
     }, [scanning]);
+
+    const initializeScanner = () => {
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector('#scanner'),
+                constraints: {
+                    width: 320,
+                    height: 240,
+                    facingMode: "environment"
+                },
+            },
+            decoder: {
+                readers: ["ean_reader"]
+            },
+        }, function (err) {
+            if (err) {
+                console.error(err);
+                setError('Failed to initialize barcode scanner');
+                return;
+            }
+            Quagga.start();
+        });
+
+        Quagga.onDetected(handleSearchScan);
+    };
+
 
     const handleSearchScan = (result) => {
         if (result && result.codeResult && result.codeResult.code) {
@@ -108,7 +109,6 @@ const AddBySearch = () => {
             console.error('Failed to scan ISBN.');
         }
     };
-
 
     const handleChange = (e) => {
         setQuery(e.target.value);

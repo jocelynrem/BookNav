@@ -20,6 +20,12 @@ const QuickActions = ({ onScanReturn, onManualReturn, onSettings, addBook }) => 
         <div className="mt-8">
             <div className="mt-2 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <ActionCard
+                    title="Add Books"
+                    description="Add a book to your library"
+                    icon={<ArrowPathIcon className="h-8 w-8 text-pink-600" />}
+                    onClick={addBook}
+                />
+                <ActionCard
                     title="Scan Return"
                     description="Return a book by scanning its ISBN"
                     icon={<QrCodeIcon className="h-8 w-8 text-pink-600" />}
@@ -36,12 +42,6 @@ const QuickActions = ({ onScanReturn, onManualReturn, onSettings, addBook }) => 
                     description="Adjust library settings"
                     icon={<CogIcon className="h-8 w-8 text-pink-600" />}
                     onClick={onSettings}
-                />
-                <ActionCard
-                    title="Add Books"
-                    description="Add a book to your library"
-                    icon={<ArrowPathIcon className="h-8 w-8 text-pink-600" />}
-                    onClick={addBook} // Change from AddBook to addBook
                 />
             </div>
         </div>
