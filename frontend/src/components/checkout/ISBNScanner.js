@@ -1,21 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Quagga from 'quagga';
 
-const ISBNScanner = ({ onScan }) => {
-    useEffect(() => {
-        let lastCode = '';
-        let lastScanTime = 0;
+const ISBNScanner = ({ onScan, isActive }) => {
+    const scannerRef = useRef(null);
 
+    useEffect(() => {
+        if (isActive) {
+            initializeScanner();
+        }
+        return () => {
+            Quagga.offDetected(handleScan);
+            Quagga.stop();
+        };
+    }, [isActive]);
+
+    const initializeScanner = () => {
         Quagga.init(
             {
                 inputStream: {
                     name: "Live",
                     type: "LiveStream",
-                    target: document.querySelector('#scanner'),
+                    target: scannerRef.current,
                     constraints: {
-                        width: 450,
-                        height: 190,
+                        width: { min: 450 },
+                        height: { min: 300 },
                         facingMode: "environment",
+                        aspectRatio: { min: 1, max: 2 }
                     },
                 },
                 decoder: {
@@ -35,23 +45,16 @@ const ISBNScanner = ({ onScan }) => {
             }
         );
 
-        Quagga.onDetected((result) => {
-            const code = result.codeResult.code;
-            const now = Date.now();
+        Quagga.onDetected(handleScan);
+    };
 
-            if (code !== lastCode || now - lastScanTime > 1000) {
-                lastCode = code;
-                lastScanTime = now;
-                onScan(code);
-            }
-        });
+    const handleScan = (result) => {
+        if (result.codeResult.code) {
+            onScan(result.codeResult.code);
+        }
+    };
 
-        return () => {
-            Quagga.stop();
-        };
-    }, [onScan]);
-
-    return <div id="scanner" className="w-full h-full"></div>;
+    return <div ref={scannerRef} className="w-full h-full"></div>;
 };
 
 export default ISBNScanner;

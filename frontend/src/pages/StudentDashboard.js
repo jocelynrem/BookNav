@@ -8,7 +8,6 @@ const StudentDashboard = ({ student, onLogout }) => {
     const [isActionPanelOpen, setIsActionPanelOpen] = useState(false);
     const [currentCheckouts, setCurrentCheckouts] = useState([]);
     const [readingHistory, setReadingHistory] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         fetchData();
@@ -19,15 +18,12 @@ const StudentDashboard = ({ student, onLogout }) => {
     };
 
     const fetchCurrentCheckouts = async () => {
-        setIsLoading(true);
         try {
             const checkouts = await getCurrentCheckouts(student._id);
             setCurrentCheckouts(checkouts);
         } catch (error) {
             console.error('Error fetching current checkouts:', error);
             setCurrentCheckouts([]);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -70,6 +66,11 @@ const StudentDashboard = ({ student, onLogout }) => {
 
             <div className="bg-white shadow rounded-lg p-4 sm:p-6">
                 <ReadingHistory history={readingHistory} />
+                {readingHistory.length === 0 && (
+                    <p className="mt-4 text-center text-gray-500">
+                        Your reading history is empty. Start your reading journey by checking out a book!
+                    </p>
+                )}
             </div>
 
             <ActionPanelModal

@@ -14,9 +14,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     const [isProcessing, setIsProcessing] = useState(false);
     const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
     const modalRef = useRef();
-    const streamRef = useRef(null);
     const isProcessingRef = useRef(false);
-    const lastScannedCode = useRef(null);
 
     useEffect(() => {
         if (isOpen && student) {
@@ -24,45 +22,23 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         }
     }, [isOpen, student]);
 
-    const startScanning = async () => {
-        setIsScanning(true);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            streamRef.current = stream;
-        } catch (error) {
-            console.error('Failed to start scanning:', error);
-            setIsScanning(false);
-        }
-    };
-
-    const stopScanning = () => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-        setIsScanning(false);
-    };
-
-    useEffect(() => {
-        if (!isOpen) {
-            stopScanning();
-        }
-    }, [isOpen]);
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (modalRef.current && !modalRef.current.contains(event.target)) {
-                stopScanning();
-                onClose();
+                handleClose();
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
-            stopScanning();
         };
-    }, [onClose]);
+    }, []);
+
+    const handleClose = () => {
+        setIsScanning(false);
+        onClose();
+    };
 
     const fetchCheckedOutBooks = async () => {
         try {
@@ -81,14 +57,10 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             const updatedCheckout = await returnBook(checkoutRecordId);
             Swal.fire('Success', 'Book returned successfully', 'success');
             await fetchCheckedOutBooks();
-            onConfirmAction(); // Ensure parent component is updated
+            onConfirmAction();
         } catch (error) {
             console.error('Failed to return book:', error);
-            let errorMessage = 'Failed to return book. Please try again.';
-            if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            }
-            Swal.fire('Error', errorMessage, 'error');
+            Swal.fire('Error', 'Failed to return book. Please try again.', 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -99,15 +71,10 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         setIsSearching(true);
         try {
             const results = await searchBooks(searchQuery);
-            // Log the results to see what we're getting from the server
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);
-            let errorMessage = 'Failed to search books. Please try again.';
-            if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            }
-            Swal.fire('Error', errorMessage, 'error');
+            Swal.fire('Error', 'Failed to search books. Please try again.', 'error');
         } finally {
             setIsSearching(false);
         }
@@ -121,24 +88,15 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             const checkoutResult = await checkoutBook(bookId, student._id);
             await fetchCheckedOutBooks();
 
-            const bookTitle = checkoutResult.book ? checkoutResult.book.title : 'Unknown Title';
-            const dueDate = new Date(checkoutResult.dueDate);
-            const formattedDueDate = dueDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-
             Swal.fire({
                 title: 'Success',
                 html: `
-                    <p>${bookTitle} has been checked out successfully.</p>
-                    <p>Due Date: <strong>${formattedDueDate}</strong></p>
+                    <p>${checkoutResult.book.title} has been checked out successfully.</p>
+                    <p>Due Date: <strong>${new Date(checkoutResult.dueDate).toLocaleDateString()}</strong></p>
                 `,
                 icon: 'success'
             });
 
-            // Update the local state to reflect the change in available copies
             setSearchResults(prevResults =>
                 prevResults.map(book =>
                     book._id === bookId
@@ -149,95 +107,47 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             onConfirmAction();
         } catch (error) {
             console.error('Failed to check out book:', error);
-            let errorMessage = 'Failed to check out book. Please try again.';
-            if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            }
-            Swal.fire('Error', errorMessage, 'error');
+            Swal.fire('Error', 'Failed to check out book. Please try again.', 'error');
         } finally {
             setIsProcessing(false);
             setIsCheckoutInProgress(false);
         }
     };
 
-    const handleCheckoutScan = useCallback(
+    const handleScan = useCallback(
         debounce(async (scannedCode) => {
             if (isProcessingRef.current) return;
             isProcessingRef.current = true;
-
             setIsScanning(false);
-            setIsProcessing(true);
 
             try {
-                let normalizedISBN = scannedCode;
-
-                if (scannedCode.length === 10) {
-                    normalizedISBN = convertToISBN13(scannedCode);
-                } else if (!scannedCode.startsWith('978')) {
-                    normalizedISBN = `978${scannedCode}`;
-                }
-
-                const results = await searchBooks(normalizedISBN);
+                const results = await searchBooks(scannedCode);
                 if (results.length === 0) {
                     Swal.fire('Error', 'Book not found in the library system.', 'error');
                 } else {
-                    const book = results[0];
-
-                    // Check if the book is already checked out
-                    const currentCheckouts = await getCurrentCheckouts(student._id);
-                    const isAlreadyCheckedOut = currentCheckouts.some(checkout =>
-                        checkout.book && checkout.book._id === book._id
-                    );
-
-                    if (isAlreadyCheckedOut) {
-                        Swal.fire('Error', 'This book is already checked out by this student.', 'error');
-                    } else {
-                        const checkoutResult = await checkoutBook(book._id, student._id);
-
-                        const bookTitle = book.title || 'Unknown Title';
-                        const dueDate = new Date(checkoutResult.dueDate);
-                        const formattedDueDate = dueDate.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-
-                        Swal.fire({
-                            title: 'Success',
-                            html: `
-                                <p>${bookTitle} has been checked out successfully.</p>
-                                <p>Due Date: <strong>${formattedDueDate}</strong></p>
-                            `,
-                            icon: 'success'
-                        });
-
-                        await fetchCheckedOutBooks();
-                        onConfirmAction();
-                    }
+                    setSearchResults(results);
+                    Swal.fire({
+                        title: 'Book Found',
+                        text: `Do you want to check out "${results[0].title}"?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, check out',
+                        cancelButtonText: 'No, cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            handleCheckout(results[0]._id);
+                        }
+                    });
                 }
             } catch (error) {
-                console.error('Error during book search or checkout:', error);
-                Swal.fire('Error', 'An error occurred while trying to check out the book. Please try again.', 'error');
+                console.error('Error during book search:', error);
+                Swal.fire('Error', 'An error occurred while searching for the book. Please try again.', 'error');
             } finally {
-                setIsProcessing(false);
                 isProcessingRef.current = false;
             }
-        }, 500, { leading: true, trailing: false }),
-        [student, fetchCheckedOutBooks, onConfirmAction]
+        }, 500),
+        []
     );
-
-    const convertToISBN13 = (isbn10) => {
-        return `978${isbn10.substring(0, 9)}` + calculateCheckDigit(`978${isbn10.substring(0, 9)}`);
-    };
-
-    const calculateCheckDigit = (isbn) => {
-        let sum = 0;
-        for (let i = 0; i < isbn.length; i++) {
-            sum += (i % 2 === 0 ? 1 : 3) * parseInt(isbn.charAt(i), 10);
-        }
-        let checkDigit = (10 - (sum % 10)) % 10;
-        return checkDigit.toString();
-    };
 
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -247,13 +157,12 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
     if (!isOpen) return null;
 
+
     return (
         <div className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4 sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                 <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
             </div>
-
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <div
                 ref={modalRef}
@@ -263,10 +172,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                     <button
                         type="button"
                         className="absolute top-0 right-0 mt-3 mr-3 text-gray-400 hover:text-gray-600 focus:outline-none"
-                        onClick={() => {
-                            stopScanning();
-                            onClose();
-                        }}
+                        onClick={handleClose}
                     >
                         <XMarkIcon className="h-6 w-6" />
                     </button>
@@ -348,14 +254,15 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                 ) : null}
                             </div>
 
+                            {/* ISBN Scanner Section */}
                             <div className="mt-6">
                                 <h4 className="text-md font-medium text-gray-700">Scan ISBN to Check Out</h4>
                                 <div className="mt-2">
                                     {isScanning ? (
                                         <>
-                                            <ISBNScanner onScan={handleCheckoutScan} />
+                                            <ISBNScanner onScan={handleScan} isActive={isScanning} />
                                             <button
-                                                onClick={stopScanning}
+                                                onClick={() => setIsScanning(false)}
                                                 className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                             >
                                                 Stop Scanning
@@ -363,7 +270,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                         </>
                                     ) : (
                                         <button
-                                            onClick={startScanning}
+                                            onClick={() => setIsScanning(true)}
                                             className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-pink-600 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
                                         >
                                             <QrCodeIcon className="mr-2 h-5 w-5" aria-hidden="true" />

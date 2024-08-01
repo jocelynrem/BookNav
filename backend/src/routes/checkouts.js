@@ -25,6 +25,21 @@ router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
     }
 });
 
+// Get current checkouts for a book
+router.get('/book/:bookId/current', authenticateToken, roleAuth('teacher'), async (req, res) => {
+    try {
+        const bookId = req.params.bookId;
+        const checkouts = await CheckoutRecord.find({ book: bookId, status: 'checked out' })
+            .populate('student', 'firstName lastName')
+            .populate('book', 'title author');
+
+        res.status(200).json(checkouts);
+    } catch (error) {
+        console.error('Error fetching current checkouts for book:', error);
+        res.status(500).json({ message: 'Error fetching current checkouts for book', error: error.message });
+    }
+});
+
 // Checkout a book
 router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {
     try {
