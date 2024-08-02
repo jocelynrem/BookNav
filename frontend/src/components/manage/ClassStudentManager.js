@@ -52,12 +52,16 @@ const ClassStudentManager = () => {
                 selectedClass={selectedClass}
                 setSelectedClass={setSelectedClass}
                 refreshClasses={fetchClasses}
+                setClasses={setClasses}
+                setStudents={setStudents}
             />
             <StudentsPanel
                 students={students}
                 selectedClass={selectedClass}
                 refreshStudents={() => fetchStudents(selectedClass._id)}
                 classes={classes}
+                setStudents={setStudents}
+                setClasses={setClasses}
             />
         </div>
     );

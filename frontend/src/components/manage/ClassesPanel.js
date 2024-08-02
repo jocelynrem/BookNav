@@ -4,7 +4,7 @@ import ClassForm from './ClassForm';
 import { deleteClass } from '../../services/classService';
 import Swal from 'sweetalert2';
 
-const ClassesPanel = ({ classes, selectedClass, setSelectedClass, refreshClasses }) => {
+const ClassesPanel = ({ classes, selectedClass, setSelectedClass, refreshClasses, setClasses, setStudents }) => {
     const [isAddingClass, setIsAddingClass] = useState(false);
     const [editingClassId, setEditingClassId] = useState(null);
 
@@ -32,7 +32,18 @@ const ClassesPanel = ({ classes, selectedClass, setSelectedClass, refreshClasses
         if (result.isConfirmed) {
             try {
                 await deleteClass(classId);
-                refreshClasses();
+
+                // Update classes state
+                setClasses(prevClasses => prevClasses.filter(cls => cls._id !== classId));
+
+                // Update students state
+                setStudents(prevStudents => prevStudents.filter(student => student.class !== classId));
+
+                // Update selected class if necessary
+                if (selectedClass && selectedClass._id === classId) {
+                    setSelectedClass(null);
+                }
+
                 Swal.fire('Deleted!', 'The class has been deleted.', 'success');
             } catch (error) {
                 console.error('Failed to delete class:', error);
@@ -117,3 +128,4 @@ const ClassesPanel = ({ classes, selectedClass, setSelectedClass, refreshClasses
 };
 
 export default ClassesPanel;
+

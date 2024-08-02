@@ -68,7 +68,8 @@ router.post('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
             lastName: req.body.lastName,
             grade: classData.grade,
             class: req.body.classId,
-            pin: req.body.pin
+            pin: req.body.pin,
+            readingLevel: req.body.readingLevel
         });
 
         const savedStudent = await newStudent.save();
@@ -111,7 +112,8 @@ async function bulkCreateStudents(studentsData, teacherId) {
             const existingStudent = await Student.findOne({
                 firstName: data.firstName,
                 lastName: data.lastName,
-                class: data.classId
+                class: data.classId,
+                readingLevel: req.body.readingLevel
             });
 
             if (existingStudent) {
@@ -168,9 +170,10 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
             return res.status(403).json({ message: 'Not authorized to delete student' });
         }
 
-        await student.remove();
+        await Student.deleteOne({ _id: req.params.id });
         res.json({ message: 'Student deleted' });
     } catch (error) {
+        console.error('Error deleting student:', error);
         res.status(500).json({ message: error.message });
     }
 });
