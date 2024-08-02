@@ -82,11 +82,12 @@ router.put(
 // Delete a class
 router.delete('/:id', authenticateToken, teacherOnly, async (req, res) => {
     try {
-        const deletedClass = await Class.findOneAndDelete({ _id: req.params.id, teacher: req.user.id }); // Ensure only the teacher can delete their classes
-        if (!deletedClass) {
+        const classToDelete = await Class.findOne({ _id: req.params.id, teacher: req.user.id });
+        if (!classToDelete) {
             return res.status(404).json({ message: 'Class not found' });
         }
-        res.json({ message: 'Class deleted' });
+        await classToDelete.deleteOne(); // This will trigger the pre-hook
+        res.json({ message: 'Class and associated students deleted' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1,4 +1,4 @@
-// Pagination.js
+// frontend/src/components/manage/Pagination.js
 import React from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 

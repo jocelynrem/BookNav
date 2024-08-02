@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { createStudent } from '../../services/studentService';
+import Swal from 'sweetalert2';
 
 const CSVImport = ({ onImportComplete, selectedClass, onClose }) => {
     const [file, setFile] = useState(null);
@@ -90,14 +91,38 @@ const CSVImport = ({ onImportComplete, selectedClass, onClose }) => {
 
                 setImportResults(results);
                 setImporting(false);
-                onImportComplete();
+
+                if (results.success > 0) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Import Completed',
+                        text: `Successfully imported ${results.success} students. Failed to import ${results.failed} students.`,
+                    });
+                    onImportComplete(results.success);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Import Failed',
+                        text: 'No students were imported. Please check the CSV file and try again.',
+                    });
+                }
+
+                if (results.errors.length > 0) {
+                    console.error('Import errors:', results.errors);
+                }
             },
             error: (error) => {
                 setError(`Error parsing CSV: ${error.message}`);
                 setImporting(false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'CSV Parsing Error',
+                    text: error.message,
+                });
             }
         });
     };
+
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
