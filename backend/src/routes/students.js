@@ -6,6 +6,7 @@ const roleAuth = require('../middleware/roleAuth');
 const Student = require('../models/Student');
 const Class = require('../models/Class');
 const CheckoutRecord = require('../models/CheckoutRecord');
+const Book = require('../models/Book');
 
 // Get all students for the authenticated teacher
 router.get('/', authenticateToken, roleAuth('teacher'), async (req, res) => {
@@ -170,11 +171,30 @@ router.delete('/:id', authenticateToken, roleAuth('teacher'), async (req, res) =
             return res.status(403).json({ message: 'Not authorized to delete student' });
         }
 
-        await Student.deleteOne({ _id: req.params.id });
-        res.json({ message: 'Student deleted' });
+        // Find all active checkouts for this student
+        const activeCheckouts = await CheckoutRecord.find({ student: student._id, status: 'checked out' });
+
+        // Return all checked out books
+        for (let checkout of activeCheckouts) {
+            checkout.status = 'returned';
+            checkout.returnDate = new Date();
+            await checkout.save();
+
+            // Update the book's available copies
+            const book = await Book.findById(checkout.book);
+            if (book) {
+                book.copiesAvailable += 1;
+                await book.save();
+            }
+        }
+
+        // Delete the student
+        await Student.deleteOne({ _id: student._id });
+
+        res.json({ message: 'Student deleted and all books returned' });
     } catch (error) {
-        console.error('Error deleting student:', error);
-        res.status(500).json({ message: error.message });
+        console.error('Error in delete student route:', error);
+        res.status(500).json({ message: 'An error occurred while deleting the student', error: error.message });
     }
 });
 

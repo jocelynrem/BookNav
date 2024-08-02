@@ -77,8 +77,18 @@ export const deleteStudent = async (studentId) => {
         const response = await apiClient.delete(`${apiUrl}/students/${studentId}`);
         return response.data;
     } catch (error) {
-        console.error('Failed to delete student:', error);
-        throw error;
+        console.error('Failed to delete student:', error.response ? error.response.data : error.message);
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            throw new Error(error.response.data.message || 'Failed to delete student');
+        } else if (error.request) {
+            // The request was made but no response was received
+            throw new Error('No response received from server');
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            throw new Error('Error setting up the request');
+        }
     }
 };
 
