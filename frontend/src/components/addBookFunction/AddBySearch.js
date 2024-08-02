@@ -9,7 +9,7 @@ import BookEdit from '../slideout/BookEdit';
 import BookSearch from '../search/BookSearch';
 import Notification from './Notification';
 import ConfirmationDialog from './ConfirmationDialog';
-import Pagination from './Pagination'
+import Pagination from '../Pagination'
 
 
 const AddBySearch = () => {

@@ -6,7 +6,7 @@ import { deleteStudent } from '../../services/studentService';
 import SlideoutParent from '../slideout/SlideoutParent';
 import Swal from 'sweetalert2';
 import CSVImport from './CSVImport';
-import Pagination from './Pagination';
+import Pagination from '../Pagination';
 
 const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setStudents, setClasses }) => {
     const [isAddingStudent, setIsAddingStudent] = useState(false);
