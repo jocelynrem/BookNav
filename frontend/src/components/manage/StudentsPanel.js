@@ -18,9 +18,6 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setS
     const itemsPerPage = 10;
 
     const handleAddStudent = async (studentData) => {
-        setIsAddingStudent(prev => !prev);
-        setEditingStudentId(null);
-
         if (studentData) {
             try {
                 const newStudent = await createStudent(studentData);
@@ -38,8 +35,12 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setS
                 console.error('Failed to add student:', error);
                 Swal.fire('Error', 'Failed to add student. Please try again.', 'error');
             }
+        } else {
+            setIsAddingStudent(prev => !prev);
+            setEditingStudentId(null);
         }
     };
+
 
     const handleToggleEditStudent = (studentId) => {
         setEditingStudentId(prev => prev === studentId ? null : studentId);
@@ -132,7 +133,7 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setS
                 <>
                     <div className="flex flex-col md:flex-row md:space-x-2 mb-4 space-y-2 md:space-y-0">
                         <button
-                            onClick={handleAddStudent}
+                            onClick={() => handleAddStudent(null)}
                             className="flex items-center justify-center w-full md:w-1/2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-700 hover:bg-pink-800"
                         >
                             {isAddingStudent ? (
@@ -142,6 +143,7 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setS
                             )}
                             {isAddingStudent ? 'Cancel' : 'Add Student'}
                         </button>
+
                         <button
                             onClick={handleImportCSV}
                             className="flex items-center justify-center w-full md:w-1/2 px-4 py-2 border border-pink-700 rounded-md shadow-sm text-sm font-medium text-pink-700 bg-white hover:bg-pink-50"
@@ -160,6 +162,7 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes, setS
                                 }}
                                 onClose={handleStudentFormClose}
                             />
+
                         </div>
                     )}
                     {students.length === 0 ? (
