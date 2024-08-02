@@ -13,7 +13,7 @@ import Pagination from './Pagination'
 
 
 const AddBySearch = () => {
-    const [searchType, setSearchType] = useState('isbn');
+    const [searchType, setSearchType] = useState('ISBN');
     const [query, setQuery] = useState('');
     const [books, setBooks] = useState([]);
     const [userBooks, setUserBooks] = useState([]);
@@ -97,13 +97,13 @@ const AddBySearch = () => {
     const handleSearchScan = (result) => {
         if (result && result.codeResult && result.codeResult.code) {
             const scannedCode = result.codeResult.code;
-            const isbn = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
+            const ISBN = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
 
-            setQuery(isbn);
+            setQuery(ISBN);
             setBooks([]); // Clear previous results
             setHasSearched(false); // Reset search status
             setScanning(false);
-            handleSearchByISBN(isbn);
+            handleSearchByISBN(ISBN);
         } else {
             setBooks([]); // Clear previous results even if scan fails
             setHasSearched(false); // Reset search status
@@ -135,7 +135,7 @@ const AddBySearch = () => {
             } else {
                 data = await fetchBookByISBN(query);
             }
-            setBooks(searchType === 'isbn' ? [data] : data);
+            setBooks(searchType === 'ISBN' ? [data] : data);
             setError('');
         } catch (err) {
             setError('Failed to fetch books');
@@ -152,11 +152,11 @@ const AddBySearch = () => {
     };
 
 
-    const handleSearchByISBN = async (isbn) => {
+    const handleSearchByISBN = async (ISBN) => {
         setBooks([]); // Clear previous results
         setLoading(true);
         try {
-            const data = await fetchBookByISBN(isbn);
+            const data = await fetchBookByISBN(ISBN);
             setBooks([data]);
             setError('');
         } catch (err) {
@@ -237,7 +237,6 @@ const AddBySearch = () => {
     return (
         <div className="relative">
             <div className="px-4 sm:px-6 lg:px-8">
-                {/* <h2 className="text-lg font-medium text-gray-900">Search for a Book</h2> */}
                 <BookSearch
                     query={query}
                     handleChange={handleChange}

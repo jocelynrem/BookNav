@@ -26,14 +26,14 @@ const BookSearch = ({ query, handleChange, handleSearchTypeChange, handleSearch,
                 <div className="flex items-center">
                     <input
                         type="radio"
-                        id="isbn"
+                        id="ISBN"
                         name="searchType"
-                        value="isbn"
-                        checked={searchType === 'isbn'}
+                        value="ISBN"
+                        checked={searchType === 'ISBN'}
                         onChange={handleSearchTypeChange}
                         className="mr-2 text-pink-700 focus:ring-pink-500"
                     />
-                    <label htmlFor="isbn" className={`mr-4 ${searchType === 'isbn' ? 'text-pink-700' : ''}`}>ISBN</label>
+                    <label htmlFor="ISBN" className={`mr-4 ${searchType === 'ISBN' ? 'text-pink-700' : ''}`}>ISBN</label>
                 </div>
                 <div className="flex items-center">
                     <input
@@ -78,7 +78,7 @@ const BookSearch = ({ query, handleChange, handleSearchTypeChange, handleSearch,
                 >
                     Search
                 </button>
-                {searchType === 'isbn' && (
+                {searchType === 'ISBN' && (
                     <button
                         type="button"
                         onClick={handleScanToggle}
