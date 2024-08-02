@@ -1,66 +1,62 @@
-//frontend/src/services/classService.js
+import apiClient from './apiClient';
 import apiUrl from '../config';
 
 export const getClasses = async () => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${apiUrl}/classes`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    if (!response.ok) {
-        throw new Error('Failed to fetch classes');
+    try {
+        const response = await apiClient.get(`${apiUrl}/classes`);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch classes:', error);
+        throw error;
     }
-    const data = await response.json();
-    return data;
 };
 
 export const createClass = async (classData) => {
-    const token = localStorage.getItem('token');
-
-    const response = await fetch(`${apiUrl}/classes`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(classData)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to create class');
+    try {
+        const response = await apiClient.post(`${apiUrl}/classes`, classData);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to create class:', error);
+        throw error;
     }
-    const data = await response.json();
-    return data;
 };
 
 export const updateClass = async (classId, classData) => {
-    const token = localStorage.getItem('token');
-
-    const response = await fetch(`${apiUrl}/classes/${classId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(classData)
-    });
-    if (!response.ok) {
-        throw new Error('Failed to update class');
+    try {
+        const response = await apiClient.put(`${apiUrl}/classes/${classId}`, classData);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to update class:', error);
+        throw error;
     }
-    const data = await response.json();
-    return data;
 };
 
 export const deleteClass = async (classId) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${apiUrl}/classes/${classId}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    if (!response.ok) {
-        throw new Error('Failed to delete class');
+    try {
+        const response = await apiClient.delete(`${apiUrl}/classes/${classId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to delete class:', error);
+        throw error;
     }
-    return await response.json();
+};
+
+export const getStudentsByClass = async (classId) => {
+    try {
+        const response = await apiClient.get(`${apiUrl}/students/class/${classId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch students by class:', error);
+        throw error;
+    }
+};
+
+export const moveStudent = async (studentId, newClassId) => {
+    try {
+        const response = await apiClient.put(`${apiUrl}/students/${studentId}/move`, { newClassId });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to move student:', error);
+        throw error;
+    }
 };

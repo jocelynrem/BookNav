@@ -1,6 +1,7 @@
 //frontend/src/services/studentService.js
 import axios from 'axios';
 import apiUrl from '../config';
+import apiClient from './apiClient';
 
 
 const getAuthHeaders = () => ({
@@ -61,11 +62,9 @@ export const createStudent = async (studentData) => {
     }
 };
 
-export const updateStudent = async (id, studentData) => {
+export const updateStudent = async (studentId, studentData) => {
     try {
-        const response = await axios.put(`${apiUrl}/students/${id}`, studentData, {
-            headers: getAuthHeaders()
-        });
+        const response = await apiClient.put(`${apiUrl}/students/${studentId}`, studentData);
         return response.data;
     } catch (error) {
         console.error('Failed to update student:', error);
@@ -73,11 +72,9 @@ export const updateStudent = async (id, studentData) => {
     }
 };
 
-export const deleteStudent = async (id) => {
+export const deleteStudent = async (studentId) => {
     try {
-        const response = await axios.delete(`${apiUrl}/students/${id}`, {
-            headers: getAuthHeaders()
-        });
+        const response = await apiClient.delete(`${apiUrl}/students/${studentId}`);
         return response.data;
     } catch (error) {
         console.error('Failed to delete student:', error);
@@ -100,14 +97,9 @@ export const bulkCreateStudents = async (studentsData) => {
 export const getStudentReadingHistory = async (studentId) => {
     try {
         const response = await axiosInstance.get(`/students/${studentId}/reading-history`);
-        return response.data.map(record => ({
-            bookTitle: record.bookTitle,
-            checkoutDate: new Date(record.checkoutDate),
-            returnDate: new Date(record.returnDate),
-            durationMinutes: record.durationMinutes
-        }));
+        return response.data;
     } catch (error) {
-        console.error('Failed to fetch student reading history:', error.response ? error.response.data : error.message);
+        console.error('Failed to fetch student reading history:', error);
         throw error;
     }
 };

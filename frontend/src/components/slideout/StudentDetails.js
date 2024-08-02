@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRightIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { BookOpenIcon } from '@heroicons/react/24/outline';
 import { getStudentReadingHistory } from '../../services/studentService';
 import { getCurrentCheckouts, returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
@@ -37,7 +37,7 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
             setCurrentCheckouts(checkouts);
         } catch (error) {
             console.error('Error fetching current checkouts:', error);
-            setError('Failed to load current checkouts. Please try again.');
+            setError((prevError) => prevError || 'Failed to load current checkouts. Please try again.');
         }
     };
 
@@ -84,16 +84,6 @@ const StudentDetails = ({ student, onEdit, classes = [], onClose }) => {
         <div className="space-y-6 pb-16">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">{currentStudent.firstName} {currentStudent.lastName}</h2>
-            </div>
-            <div className="flex justify-between items-center">
-                <button
-                    type="button"
-                    className="flex items-center text-teal-800 hover:text-teal-900"
-                    onClick={onEdit}
-                >
-                    Edit student
-                    <ArrowRightIcon className="ml-1 h-5 w-5" />
-                </button>
             </div>
             <div>
                 <h3 className="text-lg font-medium text-gray-900">Student Information</h3>

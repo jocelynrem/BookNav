@@ -11,7 +11,7 @@ import TeacherCheckout from '../components/checkout/TeacherCheckout';
 import StudentCheckout from '../components/checkout/StudentCheckout';
 import Dashboard from '../pages/Dashboard';
 import LibraryPage from '../pages/LibraryPage';
-import Manage from '../pages/Manage';
+import ManagePage from '../pages/ManagePage'; // Import the new ManagePage
 import Checkout from '../pages/Checkout';
 import CheckedOutBooks from '../components/dashboard/CheckedOutBooks';
 import OverdueBooks from '../components/dashboard/OverdueBooks';
@@ -29,7 +29,7 @@ const AppRoutes = () => {
             <Route path="/student-checkout" element={<StudentCheckout />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/library/*" element={<LibraryPage />} />
-            <Route path="/manage/*" element={<Manage />} />
+            <Route path="/manage" element={<PrivateRoute><ManagePage /></PrivateRoute>} /> {/* Updated route */}
             <Route path="/checkout/*" element={<Checkout />} />
             <Route path="/checked-out-books" element={<PrivateRoute><CheckedOutBooks /></PrivateRoute>} />
             <Route path="/overdue-books" element={<PrivateRoute><OverdueBooks /></PrivateRoute>} />
