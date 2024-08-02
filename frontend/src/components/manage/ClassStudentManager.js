@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { DragDropContext } from '@hello-pangea/dnd';
 import ClassesPanel from './ClassesPanel';
 import StudentsPanel from './StudentsPanel';
-import { getClasses, getStudentsByClass, moveStudent } from '../../services/classService';
+import { getClasses, getStudentsByClass } from '../../services/classService';
+import Swal from 'sweetalert2';
 
 const ClassStudentManager = () => {
     const [classes, setClasses] = useState([]);
@@ -45,40 +45,21 @@ const ClassStudentManager = () => {
         }
     };
 
-    const handleDragEnd = async (result) => {
-        if (!result.destination) return;
-
-        const { draggableId, destination } = result;
-        const newClassId = destination.droppableId;
-
-        if (newClassId !== selectedClass._id) {
-            try {
-                await moveStudent(draggableId, newClassId);
-                // Refresh students for both classes
-                await fetchStudents(selectedClass._id);
-                await fetchClasses(); // To update student counts
-            } catch (error) {
-                console.error('Failed to move student:', error);
-            }
-        }
-    };
-
     return (
-        <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex flex-col md:flex-row">
-                <ClassesPanel
-                    classes={classes}
-                    selectedClass={selectedClass}
-                    setSelectedClass={setSelectedClass}
-                    refreshClasses={fetchClasses}
-                />
-                <StudentsPanel
-                    students={students}
-                    selectedClass={selectedClass}
-                    refreshStudents={() => fetchStudents(selectedClass._id)}
-                />
-            </div>
-        </DragDropContext>
+        <div className="flex flex-col md:flex-row">
+            <ClassesPanel
+                classes={classes}
+                selectedClass={selectedClass}
+                setSelectedClass={setSelectedClass}
+                refreshClasses={fetchClasses}
+            />
+            <StudentsPanel
+                students={students}
+                selectedClass={selectedClass}
+                refreshStudents={() => fetchStudents(selectedClass._id)}
+                classes={classes}
+            />
+        </div>
     );
 };
 

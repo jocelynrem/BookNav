@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { PlusIcon, PencilIcon, TrashIcon, MinusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import StudentForm from './StudentForm';
 import StudentDetails from '../slideout/StudentDetails';
@@ -109,66 +108,54 @@ const StudentsPanel = ({ students, selectedClass, refreshStudents, classes }) =>
                             <p className="text-gray-500">No students in this class yet. Add students to get started.</p>
                         </div>
                     ) : (
-                        <Droppable droppableId={selectedClass._id}>
-                            {(provided) => (
-                                <div {...provided.droppableProps} ref={provided.innerRef} className="bg-white shadow overflow-hidden sm:rounded-md">
-                                    <ul className="divide-y divide-gray-200">
-                                        {students.map((student, index) => (
-                                            <React.Fragment key={student._id}>
-                                                <Draggable draggableId={student._id} index={index}>
-                                                    {(provided) => (
-                                                        <li
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <button
-                                                                    className="text-left focus:outline-none"
-                                                                    onClick={() => handleStudentClick(student)}
-                                                                >
-                                                                    <p className="text-sm font-medium text-pink-700 truncate">{student.firstName} {student.lastName}</p>
-                                                                    <p className="mt-1 text-xs text-gray-500">Grade: {student.grade}</p>
-                                                                </button>
-                                                            </div>
-                                                            <div className="flex items-center ml-4 space-x-2">
-                                                                <button
-                                                                    onClick={() => handleToggleEditStudent(student._id)}
-                                                                    className={`text-teal-700 hover:text-teal-800 ${editingStudentId === student._id ? 'bg-teal-100 p-1 rounded' : ''}`}
-                                                                >
-                                                                    <PencilIcon className="h-5 w-5" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteStudent(student._id)}
-                                                                    className="text-red-600 hover:text-red-800"
-                                                                >
-                                                                    <TrashIcon className="h-5 w-5" />
-                                                                </button>
-                                                            </div>
-                                                        </li>
-                                                    )}
-                                                </Draggable>
-                                                {editingStudentId === student._id && (
-                                                    <li className="px-6 py-4 bg-gray-50">
-                                                        <StudentForm
-                                                            studentData={student}
-                                                            classId={selectedClass._id}
-                                                            onSave={() => {
-                                                                refreshStudents();
-                                                                handleStudentFormClose();
-                                                            }}
-                                                            onClose={handleStudentFormClose}
-                                                        />
-                                                    </li>
-                                                )}
-                                            </React.Fragment>
-                                        ))}
-                                        {provided.placeholder}
-                                    </ul>
-                                </div>
-                            )}
-                        </Droppable>
+                        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+                            <ul className="divide-y divide-gray-200">
+                                {students.map((student) => (
+                                    <React.Fragment key={student._id}>
+                                        <li
+                                            className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <button
+                                                    className="text-left focus:outline-none"
+                                                    onClick={() => handleStudentClick(student)}
+                                                >
+                                                    <p className="text-sm font-medium text-pink-700 truncate">{student.firstName} {student.lastName}</p>
+                                                    <p className="mt-1 text-xs text-gray-500">Grade: {student.grade}</p>
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center ml-4 space-x-2">
+                                                <button
+                                                    onClick={() => handleToggleEditStudent(student._id)}
+                                                    className={`text-teal-700 hover:text-teal-800 ${editingStudentId === student._id ? 'bg-teal-100 p-1 rounded' : ''}`}
+                                                >
+                                                    <PencilIcon className="h-5 w-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteStudent(student._id)}
+                                                    className="text-red-600 hover:text-red-800"
+                                                >
+                                                    <TrashIcon className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                        </li>
+                                        {editingStudentId === student._id && (
+                                            <li className="px-6 py-4 bg-gray-50">
+                                                <StudentForm
+                                                    studentData={student}
+                                                    classId={selectedClass._id}
+                                                    onSave={() => {
+                                                        refreshStudents();
+                                                        handleStudentFormClose();
+                                                    }}
+                                                    onClose={handleStudentFormClose}
+                                                />
+                                            </li>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </ul>
+                        </div>
                     )}
                 </>
             ) : (
