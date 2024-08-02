@@ -1,14 +1,28 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { createStudent } from '../../services/studentService';
 
-const CSVImport = ({ onImportComplete, selectedClass }) => {
+const CSVImport = ({ onImportComplete, selectedClass, onClose }) => {
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState([]);
     const [importing, setImporting] = useState(false);
     const [importResults, setImportResults] = useState(null);
     const [error, setError] = useState(null);
+    const modalRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [onClose]);
 
     const onDrop = useCallback((acceptedFiles) => {
         const file = acceptedFiles[0];
@@ -86,15 +100,15 @@ const CSVImport = ({ onImportComplete, selectedClass }) => {
     };
 
     return (
-        <div className="mt-8 bg-gray-50 shadow sm:rounded-lg w-full sm:w-1/2 lg:w-1/3 mx-auto">
-            <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-base font-semibold leading-6 text-gray-900">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+            <div ref={modalRef} className="bg-white p-8 rounded-lg shadow-xl max-w-3xl w-full">
+                <h2 className="text-2xl font-bold mb-4">
                     {selectedClass ? `Import Students from CSV for ${selectedClass.name}` : "Select a class to import students"}
-                </h3>
-                <div className="mt-2 max-w-xl text-sm text-gray-500">
+                </h2>
+                <div className="mt-2 text-sm text-gray-500 mb-4">
                     <p>Upload a CSV file to bulk import students into this class. Ensure your CSV has the following headers: FirstName, LastName, PIN, ReadingLevel (optional).</p>
                 </div>
-                <div {...getRootProps()} className={`mt-5 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer ${isDragActive ? 'bg-gray-100' : ''}`}>
+                <div {...getRootProps()} className={`mt-5 border-2 border-dashed border-teal-600 rounded-lg p-4 text-center cursor-pointer ${isDragActive ? 'bg-teal-50' : ''}`}>
                     <input {...getInputProps()} />
                     {isDragActive ? (
                         <p>Drop the CSV file here...</p>
@@ -141,11 +155,17 @@ const CSVImport = ({ onImportComplete, selectedClass }) => {
                     </div>
                 )}
 
-                <div className="mt-5">
+                <div className="mt-5 flex justify-end space-x-3">
+                    <button
+                        onClick={onClose}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancel
+                    </button>
                     <button
                         onClick={handleImport}
                         disabled={!file || importing}
-                        className="inline-flex items-center rounded-md bg-teal-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {importing ? 'Importing...' : 'Import'}
                     </button>

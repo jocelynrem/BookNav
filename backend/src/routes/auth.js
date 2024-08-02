@@ -148,8 +148,6 @@ router.post('/reset/:token', async (req, res) => {
     }
 });
 
-// Protected Routes (require authentication)
-
 // Update user information
 router.put('/update', authenticateToken, roleAuth('teacher'), async (req, res) => {
     try {
