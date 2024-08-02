@@ -43,7 +43,6 @@ const OverdueBooks = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = overdueBooks.slice(indexOfFirstItem, indexOfLastItem);
 
-
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     if (isLoading) {
@@ -79,15 +78,21 @@ const OverdueBooks = () => {
                                     <tbody className="divide-y divide-gray-200">
                                         {currentItems.map((book) => (
                                             <tr key={book._id}>
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">{book.bookCopy.book.title}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{`${book.student.firstName} ${book.student.lastName}`}</td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{book.daysOverdue}</td>
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                                                    {book.bookCopy?.book?.title || 'Unknown Title'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {book.student ? `${book.student.firstName} ${book.student.lastName}` : 'Unknown Student'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {book.daysOverdue}
+                                                </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                     <button
                                                         onClick={() => handleReturnBook(book._id)}
                                                         className="text-pink-600 hover:text-pink-900"
                                                     >
-                                                        Return<span className="sr-only">, {book.bookCopy.book.title}</span>
+                                                        Return<span className="sr-only">, {book.bookCopy?.book?.title || 'Unknown Title'}</span>
                                                     </button>
                                                 </td>
                                             </tr>
