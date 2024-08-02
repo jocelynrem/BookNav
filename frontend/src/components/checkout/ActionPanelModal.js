@@ -91,7 +91,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             Swal.fire({
                 title: 'Success',
                 html: `
-                    <p>${checkoutResult.book.title} has been checked out successfully.</p>
+                    <p>${checkoutResult.book?.title || 'Unknown Title'} has been checked out successfully.</p>
                     <p>Due Date: <strong>${new Date(checkoutResult.dueDate).toLocaleDateString()}</strong></p>
                 `,
                 icon: 'success'
@@ -113,6 +113,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             setIsCheckoutInProgress(false);
         }
     };
+
 
     const handleScan = useCallback(
         debounce(async (scannedCode) => {
