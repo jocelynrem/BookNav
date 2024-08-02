@@ -92,7 +92,10 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
         book.copiesAvailable -= 1;
         await book.save();
 
-        res.status(201).json(checkoutRecord);
+        // Populate book details
+        const populatedCheckoutRecord = await CheckoutRecord.findById(checkoutRecord._id).populate('book', 'title');
+
+        res.status(201).json(populatedCheckoutRecord);
     } catch (error) {
         console.error('Error in checkout route:', error);
         res.status(500).json({ message: 'Error processing checkout', error: error.message });
