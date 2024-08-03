@@ -102,7 +102,7 @@ const Header = () => {
                                 className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Manage Students
+                                Students & Classes
                             </Link>
                             <Link
                                 to="/checkout/teacher"
