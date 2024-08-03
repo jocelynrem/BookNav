@@ -38,7 +38,7 @@ export const logoutUser = () => {
 };
 
 export const sendPasswordResetEmail = async (email) => {
-    const response = await axios.post(`${apiUrl}/auth/reset-password`, { email });
+    const response = await axios.post(`${apiUrl}/auth/forgot-password`, { email });
     return response.data;
 };
 
@@ -47,6 +47,7 @@ export const resetPassword = async (token, password) => {
         const response = await axios.post(`${apiUrl}/auth/reset/${token}`, { password });
         return response.data;
     } catch (error) {
+        console.error('Error resetting password:', error.response ? error.response.data : error.message);
         throw error;
     }
 };

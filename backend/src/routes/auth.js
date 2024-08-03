@@ -6,7 +6,6 @@ const { authenticateToken } = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const sgMail = require('@sendgrid/mail');
 
 // Set SendGrid API Key
@@ -76,75 +75,82 @@ router.post('/login', loginLimiter, async (req, res) => {
 });
 
 // Initiate password reset
-router.post('/reset-password', async (req, res) => {
+router.post('/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
+
         const user = await User.findOne({ email });
 
         if (!user) {
-            // Response should not reveal whether the email exists in the system
             return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
         }
 
-        // Generate and hash the reset token
-        const resetToken = crypto.randomBytes(20).toString('hex');
-        const hashedToken = await bcrypt.hash(resetToken, 10);
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
 
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
 
         await user.save();
 
-        // Construct the reset URL with the plain token
         const resetUrl = `${process.env.FRONTEND_URL}/reset/${resetToken}`;
 
         const msg = {
             to: user.email,
             from: process.env.SENDGRID_EMAIL,
             subject: 'Password Reset',
-            text: `You are receiving this because you (or someone else) have requested to reset your password. Please click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`,
-            html: `<p>You are receiving this because you (or someone else) have requested to reset your password.</p>
-                   <p>Please click on the following link, or paste this into your browser to complete the process:</p>
-                   <a href="${resetUrl}">${resetUrl}</a>
-                   <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`,
+            text: `You are receiving this because you have requested to reset your password. Please use the following link to reset your password: ${resetUrl}`,
+            html: `<p>You have requested to reset your password.</p>
+                   <p>Please click on the following link to reset your password:</p>
+                   <a href="${resetUrl}">${resetUrl}</a>`
         };
 
         await sgMail.send(msg);
+
         res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
     } catch (error) {
-        console.error('Error in reset password:', error);
+        console.error('Error in forgot password:', error);
         res.status(500).json({ error: 'An error occurred while processing your request.' });
     }
 });
-
 
 // Reset password with token
 router.post('/reset/:token', async (req, res) => {
     try {
         const { password } = req.body;
-        if (!password) {
-            return res.status(400).json({ error: 'Password is required' });
-        }
+        const { token } = req.params;
+
+        // Hash the token from the URL
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
 
         const user = await User.findOne({
-            resetPasswordToken: req.params.token,
-            resetPasswordExpires: { $gt: Date.now() },
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: { $gt: Date.now() }
         });
 
         if (!user) {
-            return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+            return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
         }
 
+        // Set the new password
         user.password = password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
 
         await user.save();
 
-        res.status(200).json({ message: 'Password reset successful' });
+        res.status(200).json({ message: 'Your password has been reset successfully' });
     } catch (error) {
-        console.error('Error in resetting password:', error);
-        res.status(500).json({ error: 'Error in resetting password' });
+        console.error('Error in password reset:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 });
 

@@ -3,37 +3,33 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { resetPassword } from '../services/authService';
 
 const PasswordReset = () => {
-    const { token } = useParams();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const { token } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!token) {
-            setError('No reset token provided. Please request a new password reset link.');
-        }
     }, [token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!token) {
-            setError('No reset token provided. Please request a new password reset link.');
-            return;
-        }
+        setError('');
+        setMessage('');
+
         if (password !== confirmPassword) {
-            setError('Passwords do not match.');
+            setError('Passwords do not match');
             return;
         }
+
         try {
             const response = await resetPassword(token, password);
-            setMessage('Password reset successful. Redirecting to login...');
-            setError('');
+            setMessage(response.message);
             setTimeout(() => navigate('/login'), 3000);
         } catch (err) {
-            setError(err.response?.data?.error || 'Failed to reset password. Please try again.');
-            setMessage('');
+            console.error('Reset password error:', err);
+            setError(err.response?.data?.message || 'An error occurred. Please try again.');
         }
     };
 
