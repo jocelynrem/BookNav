@@ -91,6 +91,7 @@ app.get('/', (req, res) => {
 
 // Catch-all route
 app.use('*', (req, res) => {
+    console.log('Unmatched route:', req.originalUrl);
     res.status(404).send('Route not found');
 });
 

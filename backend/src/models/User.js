@@ -75,6 +75,23 @@ userSchema.methods.addBook = async function (bookId) {
     }
 };
 
+userSchema.methods.createPasswordResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+    this.resetPasswordExpires = Date.now() + 3600000; // Token expires in 1 hour
+    return resetToken;
+};
+
+userSchema.statics.findByPasswordResetToken = function (token) {
+    return this.findOne({
+        resetPasswordToken: crypto.createHash('sha256').update(token).digest('hex'),
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+};
+
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
