@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BuildingLibraryIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/20/solid';
+import { Bars3Icon, XMarkIcon, BookOpenIcon, UserGroupIcon, HomeIcon } from '@heroicons/react/20/solid';
 import { useAuth } from '../contexts/AuthContext';
 import { logoutUser } from '../services/authService';
 
@@ -16,16 +16,13 @@ const Header = () => {
     };
 
     return (
-        <header className="sticky top-0 z-30 bg-white shadow mb-8">
+        <header className="sticky top-0 z-30 bg-teal-800 shadow-lg">
             <nav className="container mx-auto flex items-center justify-between max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Global">
                 <div className="flex items-center space-x-6 py-4">
-                    <div className="-m-1.5 p-1.5">
-                        <BuildingLibraryIcon className="h-8 w-8 text-teal-800" />
-                    </div>
                     <div className="flex items-center md:hidden">
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="text-teal-800 hover:bg-gray-50 p-2 rounded-lg"
+                            className="text-teal-700 hover:bg-white p-2 rounded-lg"
                         >
                             {mobileMenuOpen ? (
                                 <XMarkIcon className="h-6 w-6" aria-hidden="true" />
@@ -37,17 +34,21 @@ const Header = () => {
                     <div className="hidden md:flex items-center space-x-6">
                         {isAuthenticated && (
                             <>
-                                <Link to="/dashboard" className="text-teal-800 hover:underline">
-                                    Dashboard
+                                <Link to="/dashboard" className="text-gray-100 font-medium hover:text-teal-700 hover:bg-gray-100 px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out">
+                                    <HomeIcon className="h-5 w-5" />
+                                    <span>Dashboard</span>
                                 </Link>
-                                <Link to="/library/my-library" className="text-teal-800 hover:underline">
-                                    My Library
+                                <Link to="/library/my-library" className="text-gray-100 font-medium hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out">
+                                    <BookOpenIcon className="h-5 w-5" />
+                                    <span>My Library</span>
                                 </Link>
-                                <Link to="/manage" className="text-teal-800 hover:underline">
-                                    Students & Classes
+                                <Link to="/manage" className="text-gray-100 font-medium hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out">
+                                    <UserGroupIcon className="h-5 w-5" />
+                                    <span>Students & Classes</span>
                                 </Link>
-                                <Link to="/checkout/teacher" className="text-teal-800 hover:underline">
-                                    Checkout Books
+                                <Link to="/checkout/teacher" className="text-gray-100 font-medium hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out">
+                                    <BookOpenIcon className="h-5 w-5" />
+                                    <span>Checkout Books</span>
                                 </Link>
                             </>
                         )}
@@ -57,7 +58,7 @@ const Header = () => {
                     {isAuthenticated ? (
                         <button
                             onClick={handleLogout}
-                            className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                            className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100 px-3 py-2 rounded-md transition duration-300 ease-in-out"
                         >
                             Log out
                         </button>
@@ -65,13 +66,13 @@ const Header = () => {
                         <>
                             <Link
                                 to="/login"
-                                className="text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md transition duration-300 ease-in-out"
                             >
                                 Log in
                             </Link>
                             <Link
                                 to="/register"
-                                className="text-base font-semibold leading-7 text-gray-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md transition duration-300 ease-in-out"
                             >
                                 Register
                             </Link>
@@ -80,36 +81,40 @@ const Header = () => {
                 </div>
             </nav>
             {mobileMenuOpen && (
-                <div className="md:hidden bg-white shadow-lg">
+                <div className="md:hidden bg-teal-700 shadow-lg">
                     {isAuthenticated && (
                         <div className="px-4 py-6 space-y-4">
                             <Link
                                 to="/dashboard"
-                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Dashboard
+                                <HomeIcon className="h-5 w-5" />
+                                <span>Dashboard</span>
                             </Link>
                             <Link
                                 to="/library/my-library"
-                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                My Library
+                                <BookOpenIcon className="h-5 w-5" />
+                                <span>My Library</span>
                             </Link>
                             <Link
                                 to="/manage"
-                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Students & Classes
+                                <UserGroupIcon className="h-5 w-5" />
+                                <span>Students & Classes</span>
                             </Link>
                             <Link
                                 to="/checkout/teacher"
-                                className="block text-base font-semibold leading-7 text-teal-800 hover:bg-gray-50 px-3 py-2 rounded-lg"
+                                className="text-base font-medium leading-7 text-gray-100 hover:text-teal-700 hover:bg-gray-100  px-3 py-2 rounded-md flex items-center space-x-1 transition duration-300 ease-in-out"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                Checkout
+                                <BookOpenIcon className="h-5 w-5" />
+                                <span>Checkout</span>
                             </Link>
                         </div>
                     )}

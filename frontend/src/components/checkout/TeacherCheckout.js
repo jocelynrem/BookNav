@@ -14,8 +14,8 @@ function classNames(...classes) {
 
 const getColorForClass = (className) => {
     const colors = [
-        'bg-pink-600', 'bg-purple-600', 'bg-yellow-500', 'bg-green-500',
-        'bg-blue-500', 'bg-teal-500', 'bg-red-500', 'bg-orange-500'
+        'bg-pink-600', 'bg-pink-700', 'bg-pink-800',
+        'bg-teal-700', 'bg-teal-800', 'bg-teal-900'
     ];
     const hash = className.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
     return colors[hash % colors.length];
