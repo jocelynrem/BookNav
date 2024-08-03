@@ -70,7 +70,7 @@ export default function LoginPage() {
                                 </h2>
                                 <p className="mt-2 text-sm leading-6 text-gray-500">
                                     Not a member?{' '}
-                                    <a href="/register" className="font-semibold text-teal-600 hover:text-teal-500">
+                                    <a href="/register" className="font-semibold text-teal-700 hover:text-teal-800">
                                         Register here
                                     </a>
                                 </p>
@@ -93,7 +93,7 @@ export default function LoginPage() {
                                                 required
                                                 value={usernameOrEmail}
                                                 onChange={(e) => setUsernameOrEmail(e.target.value)}
-                                                className="block w-full rounded-md border-0 py-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                                className="block w-full rounded-md border-0 py-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-700 sm:text-sm sm:leading-6"
                                             />
                                         </div>
                                     </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
                                                 required
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="block w-full rounded-md border-0 py-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
+                                                className="block w-full rounded-md border-0 py-2 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-700 sm:text-sm sm:leading-6"
                                             />
                                         </div>
                                     </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
                                                 id="remember-me"
                                                 name="remember-me"
                                                 type="checkbox"
-                                                className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-600"
+                                                className="h-4 w-4 rounded border-gray-300 text-teal-700 focus:ring-teal-700"
                                             />
                                             <label htmlFor="remember-me" className="ml-3 block text-sm leading-6 text-gray-700">
                                                 Remember me
@@ -130,7 +130,7 @@ export default function LoginPage() {
                                         </div>
 
                                         <div className="text-sm leading-6">
-                                            <a href="/reset-password" className="font-semibold text-teal-600 hover:text-teal-500">
+                                            <a href="/reset-password" className="font-semibold text-teal-700 hover:text-teal-800">
                                                 Forgot password?
                                             </a>
                                         </div>
@@ -139,7 +139,7 @@ export default function LoginPage() {
                                     <div>
                                         <button
                                             type="submit"
-                                            className="flex w-full justify-center rounded-md bg-teal-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+                                            className="flex w-full justify-center rounded-md bg-teal-700 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
                                         >
                                             Sign in
                                         </button>
