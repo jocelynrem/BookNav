@@ -71,6 +71,12 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         setIsSearching(true);
         try {
             const results = await searchBooks(searchQuery);
+
+            if (results.length === 0) {
+                console.warn('No books found matching your search.'); // Warn if no results
+            } else {
+            }
+
             setSearchResults(results);
         } catch (error) {
             console.error('Failed to search books:', error);
@@ -79,6 +85,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
             setIsSearching(false);
         }
     };
+
 
     const handleCheckout = async (bookId) => {
         try {
@@ -114,7 +121,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         }
     };
 
-
     const handleScan = useCallback(
         debounce(async (scannedCode) => {
             if (isProcessingRef.current) return;
@@ -123,22 +129,29 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
 
             try {
                 const results = await searchBooks(scannedCode);
+
                 if (results.length === 0) {
                     Swal.fire('Error', 'Book not found in the library system.', 'error');
                 } else {
-                    setSearchResults(results);
-                    Swal.fire({
-                        title: 'Book Found',
-                        text: `Do you want to check out "${results[0].title}"?`,
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Yes, check out',
-                        cancelButtonText: 'No, cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            handleCheckout(results[0]._id);
-                        }
-                    });
+                    const availableBook = results[0]; // Assuming the first result is the desired book
+
+                    if (availableBook.copiesAvailable > 0) {
+                        setSearchResults(results);
+                        Swal.fire({
+                            title: 'Book Found',
+                            text: `Do you want to check out "${availableBook.title}"?`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, check out',
+                            cancelButtonText: 'No, cancel'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                handleCheckout(availableBook._id);
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', 'No copies available for checkout.', 'error');
+                    }
                 }
             } catch (error) {
                 console.error('Error during book search:', error);
@@ -150,6 +163,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
         []
     );
 
+
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSearchActionPanel();
@@ -157,7 +171,6 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
     };
 
     if (!isOpen) return null;
-
 
     return (
         <div className="fixed inset-0 z-10 overflow-y-auto flex items-center justify-center p-4 sm:p-0">
@@ -261,7 +274,9 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                 <div className="mt-2">
                                     {isScanning ? (
                                         <>
-                                            <ISBNScanner onScan={handleScan} isActive={isScanning} />
+                                            <div className="relative w-full h-64">
+                                                <ISBNScanner onScan={handleScan} isActive={isScanning} />
+                                            </div>
                                             <button
                                                 onClick={() => setIsScanning(false)}
                                                 className="mt-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:text-sm"
@@ -280,6 +295,7 @@ const ActionPanelModal = ({ isOpen, onClose, student, bookStatus, onConfirmActio
                                     )}
                                 </div>
                             </div>
+
 
                             {bookStatus && (
                                 <div className="mt-4">

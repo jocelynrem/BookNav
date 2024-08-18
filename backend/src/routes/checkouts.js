@@ -45,6 +45,8 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
     try {
         const { bookId, studentId } = req.body;
 
+        console.log('Checkout Request:', { bookId, studentId });
+
         // Validate that the student belongs to the teacher's class
         const userId = req.user.id;
         const student = await Student.findById(studentId).populate('class');
@@ -52,16 +54,22 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
             return res.status(403).json({ message: 'Student does not belong to your class' });
         }
 
+        console.log('Student validated:', student);
+
         // Validate that the book belongs to the authenticated teacher's library
         const user = await User.findById(userId).populate('books');
         if (!user.books.some(book => book._id.toString() === bookId)) {
             return res.status(403).json({ message: 'You can only checkout books from your own library' });
         }
 
+        console.log('Book belongs to teacher:', bookId);
+
         // Retrieve the library settings
         const settings = await LibrarySettings.findOne();
         const maxCheckoutBooks = settings ? settings.maxCheckoutBooks : 5;
         const defaultDueDays = settings ? settings.defaultDueDays : 14;
+
+        console.log('Library Settings:', { maxCheckoutBooks, defaultDueDays });
 
         // Check if the student has reached the maximum number of checkouts
         const studentCheckouts = await CheckoutRecord.countDocuments({ student: studentId, status: 'checked out' });
@@ -69,11 +77,16 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
             return res.status(400).json({ message: 'Maximum number of checkouts reached for this student' });
         }
 
+        console.log('Student checkout count:', studentCheckouts);
+
         // Find an available copy
         const book = await Book.findOne({ _id: bookId, user: userId });
         if (!book || book.copiesAvailable <= 0) {
+            console.log('No available copies:', { bookId, copiesAvailable: book ? book.copiesAvailable : 'Book not found' });
             return res.status(400).json({ message: 'No available copies of this book' });
         }
+
+        console.log('Book found with available copies:', { bookId, copiesAvailable: book.copiesAvailable });
 
         // Create checkout record
         const dueDate = new Date();
@@ -88,9 +101,13 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
 
         await checkoutRecord.save();
 
+        console.log('Checkout record created:', checkoutRecord);
+
         // Update the book's available copies
         book.copiesAvailable -= 1;
         await book.save();
+
+        console.log('Updated book copies available:', { bookId: book._id, copiesAvailable: book.copiesAvailable });
 
         // Populate book details
         const populatedCheckoutRecord = await CheckoutRecord.findById(checkoutRecord._id).populate('book', 'title');
@@ -101,6 +118,7 @@ router.post('/', authenticateToken, roleAuth(['teacher', 'student']), async (req
         res.status(500).json({ message: 'Error processing checkout', error: error.message });
     }
 });
+
 
 // Return a book
 router.put('/:id/return', authenticateToken, roleAuth(['teacher', 'student']), async (req, res) => {

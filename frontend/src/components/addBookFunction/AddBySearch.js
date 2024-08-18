@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { fetchBooksByTitle, fetchBooksByAuthor, fetchBookByISBN, addUserBook, deleteBook, getUserBooks } from '../../services/bookService';
+import {
+    fetchBooksByTitle,
+    fetchBooksByAuthor,
+    fetchBookByISBN,
+    addUserBook,
+    deleteBook,
+    getUserBooks
+} from '../../services/bookService';
 import { ClipLoader } from 'react-spinners';
-import Quagga from 'quagga';
 import SearchBookTable from '../search/SearchBookTable';
 import SlideoutParent from '../slideout/SlideoutParent';
 import SearchDetails from '../slideout/SearchDetails';
@@ -9,8 +15,8 @@ import BookEdit from '../slideout/BookEdit';
 import BookSearch from '../search/BookSearch';
 import Notification from './Notification';
 import ConfirmationDialog from './ConfirmationDialog';
-import Pagination from '../Pagination'
-
+import Pagination from '../Pagination';
+import ISBNScannerModal from './ISBNScannerModal';
 
 const AddBySearch = () => {
     const [searchType, setSearchType] = useState('ISBN');
@@ -22,16 +28,15 @@ const AddBySearch = () => {
     const [selectedBook, setSelectedBook] = useState(null);
     const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [scanning, setScanning] = useState(false);
-    const [notification, setNotification] = useState({ show: false, message: '', error: false, undo: false });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [notification, setNotification] = useState({ show: false, message: '', error: false });
     const [dialog, setDialog] = useState({ open: false, title: '', content: '', onConfirm: () => { } });
     const [undoBook, setUndoBook] = useState(null);
-    const [hasSearched, setHasSearched] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [hasSearched, setHasSearched] = useState(false);
 
     useEffect(() => {
-        // Fetch user books on component mount
         const fetchUserBooks = async () => {
             try {
                 const data = await getUserBooks();
@@ -46,99 +51,51 @@ const AddBySearch = () => {
     }, []);
 
     useEffect(() => {
-        // Clear any lingering state when component mounts
-        return () => {
-            setScanning(false);
-            setSelectedBook(null);
-            setIsSlideoutOpen(false);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (scanning) {
-            initializeScanner();
+        if (query) {
+            handleSearch(); // Automatically trigger search when query changes
         }
-        return () => {
-            if (scanning) {
-                Quagga.offDetected(handleSearchScan);
-                Quagga.stop();
-            }
-        };
-    }, [scanning]);
-
-    const initializeScanner = () => {
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: document.querySelector('#scanner'),
-                constraints: {
-                    width: 320,
-                    height: 240,
-                    facingMode: "environment"
-                },
-            },
-            decoder: {
-                readers: ["ean_reader"]
-            },
-        }, function (err) {
-            if (err) {
-                console.error(err);
-                setError('Failed to initialize barcode scanner');
-                return;
-            }
-            Quagga.start();
-        });
-
-        Quagga.onDetected(handleSearchScan);
-    };
-
+    }, [query]);
 
     const handleSearchScan = (result) => {
-        if (result && result.codeResult && result.codeResult.code) {
-            const scannedCode = result.codeResult.code;
-            const ISBN = scannedCode.startsWith('978') ? scannedCode : `978${scannedCode}`;
-
-            setQuery(ISBN);
-            setBooks([]); // Clear previous results
-            setHasSearched(false); // Reset search status
-            setScanning(false);
-            handleSearchByISBN(ISBN);
-        } else {
-            setBooks([]); // Clear previous results even if scan fails
-            setHasSearched(false); // Reset search status
-            console.error('Failed to scan ISBN.');
-        }
-    };
-
-    const handleChange = (e) => {
-        setQuery(e.target.value);
+        setQuery(result);
+        setIsModalOpen(false);
     };
 
     const handleSearchTypeChange = (e) => {
         setSearchType(e.target.value);
-        setQuery(''); // Clear the search input
-        setBooks([]); // Clear previous results
-        setHasSearched(false); // Reset search status
+        setQuery('');
+        setBooks([]);
+        setHasSearched(false);
+        setError(''); // Clear any previous errors when changing search type
     };
 
     const handleSearch = async () => {
-        setBooks([]); // Clear previous results
+        setBooks([]);
         setLoading(true);
-        setHasSearched(true);
+        setHasSearched(true); // Mark that a search has been initiated
+
+        if (!query) {
+            setError(`Please enter a ${searchType} to search.`);
+            setLoading(false);
+            return;
+        }
+
         try {
             let data;
             if (searchType === 'title') {
                 data = await fetchBooksByTitle(query);
+                if (data.length === 0) throw new Error('No books found with that title.');
             } else if (searchType === 'author') {
                 data = await fetchBooksByAuthor(query);
+                if (data.length === 0) throw new Error('No books found by that author.');
             } else {
                 data = await fetchBookByISBN(query);
+                if (!data) throw new Error('No book found with that ISBN.');
             }
             setBooks(searchType === 'ISBN' ? [data] : data);
             setError('');
         } catch (err) {
-            setError('Failed to fetch books');
+            setError(err.message);
             console.error(err);
         } finally {
             setLoading(false);
@@ -146,37 +103,17 @@ const AddBySearch = () => {
     };
 
     const handleScanToggle = () => {
-        setBooks([]); // Clear previous results
-        setHasSearched(false); // Reset search status
-        setScanning(!scanning);
-    };
-
-
-    const handleSearchByISBN = async (ISBN) => {
-        setBooks([]); // Clear previous results
-        setLoading(true);
-        try {
-            const data = await fetchBookByISBN(ISBN);
-            setBooks([data]);
-            setError('');
-        } catch (err) {
-            setError('Failed to fetch book details');
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+        setQuery('');  // Clear the search input
+        setIsModalOpen(!isModalOpen);  // Toggle the modal
+        setBooks([]);  // Clear any previous search results
+        setHasSearched(false);  // Reset the search status
+        setError('');  // Clear any previous errors
     };
 
     const handleTitleClick = (book) => {
         setSelectedBook(book);
         setIsSlideoutOpen(true);
         setIsEditing(false);
-    };
-
-    const handleEditClick = (book) => {
-        setSelectedBook(book);
-        setIsSlideoutOpen(true);
-        setIsEditing(true);
     };
 
     const handleSlideoutClose = () => {
@@ -188,11 +125,9 @@ const AddBySearch = () => {
         try {
             let addedOrUpdatedBook;
             if (isExisting) {
-                // Adding copies to an existing book
                 addedOrUpdatedBook = await addBookCopies(book._id, copies);
                 setNotification({ show: true, message: `Added ${copies} copies to "${book.title}".`, error: false });
             } else {
-                // Adding a new book
                 addedOrUpdatedBook = await addUserBook(book, copies, setNotification, setDialog, setUndoBook);
                 setNotification({ show: true, message: `Added "${book.title}" to your library.`, error: false });
             }
@@ -201,12 +136,10 @@ const AddBySearch = () => {
                 setUserBooks(prevBooks => {
                     const existingBookIndex = prevBooks.findIndex(b => b._id === addedOrUpdatedBook._id);
                     if (existingBookIndex !== -1) {
-                        // Update existing book
                         return prevBooks.map((b, index) =>
                             index === existingBookIndex ? addedOrUpdatedBook : b
                         );
                     } else {
-                        // Add new book
                         return [...prevBooks, addedOrUpdatedBook];
                     }
                 });
@@ -239,27 +172,29 @@ const AddBySearch = () => {
             <div className="px-4 sm:px-6 lg:px-8">
                 <BookSearch
                     query={query}
-                    handleChange={handleChange}
+                    handleChange={e => setQuery(e.target.value)}
                     handleSearchTypeChange={handleSearchTypeChange}
                     handleSearch={handleSearch}
                     searchType={searchType}
                     handleScanToggle={handleScanToggle}
-                    scanning={scanning}
+                    scanning={isModalOpen}
                 />
-                {scanning && (
-                    <div id="scanner" className="mt-4" style={{ width: '320px', height: '240px', margin: '0 auto' }}></div>
-                )}
+                <ISBNScannerModal
+                    isOpen={isModalOpen}
+                    onClose={handleScanToggle}
+                    onDetected={handleSearchScan}
+                />
                 {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
                 {loading && (
                     <div className="mt-4 text-center">
                         <ClipLoader size={35} color={"#4A90E2"} loading={loading} />
                     </div>
                 )}
-                {/* {!loading && !hasSearched && (
-                    <p className="mt-4 text-center text-gray-500">Enter a search query to find books.</p>
-                )} */}
                 {!loading && hasSearched && books.length === 0 && (
                     <p className="mt-4 text-center text-gray-500">No books found. Try a different search.</p>
+                )}
+                {!hasSearched && !loading && (
+                    <p className="mt-4 text-center text-gray-500">Please choose a search type and enter a query, or scan an ISBN to start searching.</p>
                 )}
                 {!loading && books.length > 0 && (
                     <div className="mt-8 flow-root">

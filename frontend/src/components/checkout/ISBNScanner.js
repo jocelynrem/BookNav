@@ -1,60 +1,60 @@
 import React, { useEffect, useRef } from 'react';
-import Quagga from 'quagga';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 
 const ISBNScanner = ({ onScan, isActive }) => {
-    const scannerRef = useRef(null);
+    const videoRef = useRef(null);
+    const codeReader = useRef(null);
 
     useEffect(() => {
         if (isActive) {
             initializeScanner();
         }
+
         return () => {
-            Quagga.offDetected(handleScan);
-            Quagga.stop();
+            stopScanner();
         };
     }, [isActive]);
 
-    const initializeScanner = () => {
-        Quagga.init(
-            {
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: scannerRef.current,
-                    constraints: {
-                        width: { min: 450 },
-                        height: { min: 300 },
-                        facingMode: "environment",
-                        aspectRatio: { min: 1, max: 2 }
-                    },
-                },
-                decoder: {
-                    readers: ["ean_reader"],
-                },
-                locator: {
-                    patchSize: "medium",
-                    halfSample: true
-                },
-            },
-            (err) => {
-                if (err) {
-                    console.error('Error initializing Quagga:', err);
-                    return;
-                }
-                Quagga.start();
+    const initializeScanner = async () => {
+        if (!videoRef.current) return;
+
+        codeReader.current = new BrowserMultiFormatReader();
+
+        try {
+            const devices = await codeReader.current.listVideoInputDevices();
+            if (devices.length > 0) {
+                await codeReader.current.decodeFromVideoDevice(devices[0].deviceId, videoRef.current, (result, err) => {
+                    if (result) {
+                        onScan(result.getText());
+                        stopScanner(); // Stop scanning after detecting a code
+                    }
+                    if (err && !(err instanceof NotFoundException)) {
+                        console.error('Error decoding from video device:', err);
+                    }
+                });
             }
-        );
-
-        Quagga.onDetected(handleScan);
-    };
-
-    const handleScan = (result) => {
-        if (result.codeResult.code) {
-            onScan(result.codeResult.code);
+        } catch (err) {
+            console.error('Error initializing ZXing:', err);
         }
     };
 
-    return <div ref={scannerRef} className="w-full h-full"></div>;
+    const stopScanner = () => {
+        if (codeReader.current) {
+            codeReader.current.reset();
+        }
+    };
+
+    return (
+        <div className="relative w-full h-full">
+            <video
+                ref={videoRef}
+                className="absolute top-0 left-0 w-full h-full object-cover"
+                playsInline
+                muted
+                autoPlay
+            />
+        </div>
+    );
 };
 
 export default ISBNScanner;

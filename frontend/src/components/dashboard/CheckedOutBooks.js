@@ -4,7 +4,7 @@ import { returnBook } from '../../services/checkoutService';
 import Swal from 'sweetalert2';
 import Breadcrumbs from './Breadcrumbs';
 import Pagination from '../Pagination';
-
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 const CheckedOutBooks = () => {
     const [checkedOutBooks, setCheckedOutBooks] = useState([]);
@@ -12,6 +12,8 @@ const CheckedOutBooks = () => {
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
+    const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' });
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetchCheckedOutBooks();
@@ -41,26 +43,41 @@ const CheckedOutBooks = () => {
         }
     };
 
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedBooks = [...checkedOutBooks].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const filteredBooks = sortedBooks.filter(book =>
+        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (book.student && book.student.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredBooks.slice(indexOfFirstItem, indexOfLastItem);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     if (isLoading) {
         return <div className="flex justify-center items-center h-64">Loading...</div>;
     }
 
     if (error) {
         return <div className="text-red-500 text-center">{error}</div>;
-    }
-
-    if (checkedOutBooks.length === 0) {
-        return <div className="text-center py-4">No books are currently checked out.</div>;
-    }
-
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = checkedOutBooks.slice(indexOfFirstItem, indexOfLastItem);
-
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    if (isLoading) {
-        return <div className="flex justify-center items-center h-64">Loading...</div>;
     }
 
     return (
@@ -71,7 +88,18 @@ const CheckedOutBooks = () => {
                 ]}
             />
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Checked Out Books</h1>
-            {checkedOutBooks.length === 0 ? (
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by title or student"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                />
+            </div>
+
+            {filteredBooks.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No books are currently checked out.</p>
             ) : (
                 <>
@@ -81,8 +109,26 @@ const CheckedOutBooks = () => {
                                 <table className="min-w-full divide-y divide-gray-300">
                                     <thead>
                                         <tr>
-                                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Title</th>
-                                            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Student</th>
+                                            <th
+                                                scope="col"
+                                                className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 cursor-pointer sm:pl-0"
+                                                onClick={() => handleSort('title')}
+                                            >
+                                                Title
+                                                {sortConfig.key === 'title' && (
+                                                    sortConfig.direction === 'asc' ? <ChevronUpIcon className="inline h-4 w-4 ml-1" /> : <ChevronDownIcon className="inline h-4 w-4 ml-1" />
+                                                )}
+                                            </th>
+                                            <th
+                                                scope="col"
+                                                className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer"
+                                                onClick={() => handleSort('student')}
+                                            >
+                                                Student
+                                                {sortConfig.key === 'student' && (
+                                                    sortConfig.direction === 'asc' ? <ChevronUpIcon className="inline h-4 w-4 ml-1" /> : <ChevronDownIcon className="inline h-4 w-4 ml-1" />
+                                                )}
+                                            </th>
                                             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Due Date</th>
                                             <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
                                                 <span className="sr-only">Actions</span>
@@ -114,10 +160,10 @@ const CheckedOutBooks = () => {
                             </div>
                         </div>
                     </div>
-                    {Math.ceil(checkedOutBooks.length / itemsPerPage) > 1 && (
+                    {Math.ceil(filteredBooks.length / itemsPerPage) > 1 && (
                         <Pagination
                             itemsPerPage={itemsPerPage}
-                            totalItems={checkedOutBooks.length}
+                            totalItems={filteredBooks.length}
                             paginate={paginate}
                             currentPage={currentPage}
                         />
