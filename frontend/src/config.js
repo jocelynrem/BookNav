@@ -1,7 +1,7 @@
 let apiUrl;
 
 if (process.env.NODE_ENV === 'production') {
-    apiUrl = process.env.REACT_APP_API_URL || 'https://librarynav-b0a201a9ab3a.herokuapp.com/api';
+    apiUrl = process.env.REACT_APP_API_URL || 'https://booknav-backend-d849f051372e.herokuapp.com/api';
 } else if (process.env.NODE_ENV === 'staging') {
     apiUrl = process.env.REACT_APP_STAGING_API_URL || 'https://booknav-backend-d849f051372e.herokuapp.com/api';
 } else {
